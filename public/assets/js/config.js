@@ -1,15 +1,15 @@
 'use strict'
 // ANCHOR MAIN IP CONFIG
-const mainIpService = "http://192.168.0.100";
-const mainChatService = "http://192.168.0.100";
+const mainIpService = "http://192.168.0.59";
+const mainChatService = "http://192.168.0.59";
 // const mainChatService = "http://192.168.0.28";
 // const localUrl = "http://sandbox.dashboard.ultipay.id";
 // const mainIpService = "https://sandbox.api.ultipay.id";
 // const mainChatService = "https://sandbox.api.ultipay.id";
-const localUrl = "http://192.168.0.100";
+const localUrl = "localhost";
 
 // ANCHOR MAIN IP NAME AND PORT
-const mainIpKey = "SERVER_CENTOS";
+const mainIpKey = "SERVER_WAHYU";
 // const mainIpKey = "AWS_SERVER";
 const backendPortKey = "PORT_BACKEND_AWS";
 const transactionPortKey = "PORT_TRANSACTION_AWS";
