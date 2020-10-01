@@ -593,9 +593,9 @@ function convertBirthDate(date) {
 
 function getData(param, token) {
     // console.log('getdata => ', param)
+    if(ct == undefined) ct = JSON.parse(localStorage.getItem('accountProfile'));
     return new Promise(async (resolve, reject) => {
         try {
-            let ct = JSON.parse(localStorage.getItem('accountProfile'))
             let _url = param
             let _headers = {
                 "Content-Type": "application/json",
@@ -1059,10 +1059,10 @@ function getProjectManagement(){
             "Cache-Control": "no-cache"
         },
         success: function (callback) {
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
+            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
+            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
+            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
+            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
             $('#mainContent').append(callback);
         }
     })
