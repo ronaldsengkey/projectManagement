@@ -2024,8 +2024,8 @@ async function convertURLRedis(data) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  hostIP = returnedConfig.SERVER_JIMBO;
-  hostNameServer = 'SERVER_JIMBO';
+  hostIP = returnedConfig.SERVER_WAHYU;
+  hostNameServer = 'SERVER_WAHYU';
   // hostIP = returnedConfig.AWS_SERVER;
   // hostNameServer = "AWS_SERVER";
 
