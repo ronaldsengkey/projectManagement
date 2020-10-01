@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Ultipay Dashboard</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.9/css/mdb.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/css/main.css">
+</head>
+<body class="themeDefault">  
+    <div class="modal fade right" id="modalBottomRight" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="true" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-side modal-bottom-right modal-notify modal-danger" role="document">
+          <!--Content-->
+          <div class="modal-content">
+            <!--Header-->
+            <div class="modal-header">
+              <!-- <p class="heading">Forgot Password</p> -->
+  
+              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true" class="white-text">×</span>
+              </button> -->
+            </div>
+  
+            <!--Body-->
+            <div class="modal-body">
+            </div>
+
+          </div>
+          <!--/.Content-->
+        </div>
+    </div>
+
+
+  <div id="mainContent">
+  <div style="height: 100vh">
+    <div class="flex-center flex-column">
+      <img src="https://ultipay-profile-photos.s3.us-east-2.amazonaws.com/featured-graphic.jpg" width="40%" style="position:absolute;top:-5%;">
+        <div class="card col-3 elegant-color">
+          <div class="card-body text-center pt-5 pb-4">
+            <h6 class="card-title animated fadeIn mb-2 text-white" id="title_login_authenticator" style="display: none;">Please Scan the Image Below with Google Auth Apps :</h6>
+            <h6 class="card-title animated fadeIn mb-2 text-white" id="title_login_sms" style="display: none;">Please Check your Phone for SMS with OTP :</h6>
+            <h6 class="card-title animated fadeIn mb-2 text-white" id="title_login_email" style="display: none;">Please Check your Email for OTP :</h6>
+            <div class="md-form pb-3">
+              <div class="md-form">
+                <img src="" id="login_img" class="image img">
+              </div>
+              <div class="md-form">
+                <input type="number" id="login_otp" class="form-control text-white" value="" placeholder="xxxxxx">
+                <label for="login_otp">Login OTP</label>
+              </div>
+              <p class="font-small ultipayDefault-text d-flex justify-content-end click" data-target="modal" data-origin="forgotPassword">Forgot
+                <a href="javascript:void(0);" class="ultipayDefault-text ml-1"> Password?</a>
+              </p>
+            </div>
+            <div class="text-center mb-3">
+                <!-- <button type="button" class="btn btn-primary waves-effect waves-light">Discount</button> -->
+              <button data-target="login-auth" data-origin="employee" class="btn peach-gradient btn-block btn-rounded z-depth-1a waves-effect waves-light">Login</button>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.9/js/mdb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script src="/public/assets/js/login.js"></script>
+</body>
+</html>

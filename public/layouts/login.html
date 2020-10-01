@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Ultipay Dashboard</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.9/css/mdb.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <!-- <link rel="stylesheet" href="/public/assets/css/main.css"> -->
+  <link rel="stylesheet/less" type="text/css" href="/public/assets/css/less/main.less">
+</head>
+
+<body class="themeDefault">
+  <section>
+
+  </section>
+  <div class="modal fade right" id="modalBottomRight" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    data-backdrop="true" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-side modal-bottom-right modal-notify modal-danger" id="modalContainer"
+      role="document">
+      <!--Content-->
+      <div class="modal-content">
+        <!--Header-->
+        <div class="modal-header">
+          <p class="heading">Forgot Password</p>
+
+          <button type="button" class="close closeFP" data-dismiss="modal" aria-label="Close"
+            style="align-self: center;">
+            <span aria-hidden="true" class="white-text">×</span>
+          </button>
+        </div>
+
+        <!--Body-->
+        <div class="modal-body">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainContent" class="vh-100 peach-gradient d-flex align-items-center justify-content-center">
+    <div class="container-login px-4 pb-5">
+        <div class="text-center mb-5">
+            <img src="public/assets/img/logo.png" height="140" />
+        </div>
+        <input type="text" id="email" class="rounded w-100 mb-3 border-0 text-white" placeholder="Email" autocomplete="off" />
+        <input type="password" id="password" class="rounded w-100 mb-3 border-0 text-white" placeholder="Password" />
+        <div class="mb-3">
+            <!-- <button type="button" class="btn btn-primary waves-effect waves-light">Discount</button> -->
+            <button data-target="login" data-origin="forLogin"
+                class="btn btn-block bg-white z-depth-1 waves-effect m-0">Login</button>
+        </div>
+        <p class="text-center m-0 font-weight-normal click" data-target="modal" data-origin="forgotPassword">
+            <a href="javascript:void(0);" class="text-white">
+                Forgot Password?
+            </a>
+        </p>
+    </div>
+</div>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/3.9.0/less.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js">
+  </script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.9/js/mdb.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+  <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+  <script src="/public/assets/js/global.js"></script>
+  <script src="public/assets/js/config.js"></script>
+  <script src="/public/assets/js/login.js"></script>
+  <script src="/public/assets/js/forgotPassword.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+/* Style the input fields */
+input {
+    padding: 10px;
+    width: 100%;
+    font-size: 17px;
+    border: 1px solid #aaaaaa;
+}
+
+/* Mark input boxes that gets an error on validation: */
+input.invalid {
+    background-color: #ffdddd;
+}
+
+/* Hide all steps by default: */
+.tab {
+    display: none;
+    margin-top: 1%;
+}
+
+/* Make circles that indicate the steps of the form: */
+.step {
+    height: 15px;
+    width: 15px;
+    margin: 0 2px;
+    background-color: #bbbbbb;
+    border: none;
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.5;
+}
+
+/* Mark the active step: */
+.step.active {
+    opacity: 1;
+}
+
+/* Mark the steps that are finished and valid: */
+.step.finish {
+    background-color: #4CAF50;
+}
+
+.addressTag:hover {
+    background-color: lightgrey;
+}
+
+.md-form input:not([type]):focus:not([readonly])+label,
+.md-form input[type="date"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="datetime-local"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="datetime"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="email"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="number"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="password"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="search-md"]:focus:not([readonly])+label,
+.md-form input[type="search"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="tel"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="text"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="time"]:not(.browser-default):focus:not([readonly])+label,
+.md-form input[type="url"]:not(.browser-default):focus:not([readonly])+label,
+.md-form textarea.md-textarea:focus:not([readonly])+label {
+    color: @ultipayOrangeColor;
+}
+
+.md-form input:not([type]):focus:not([readonly]),
+.md-form input[type="date"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="datetime-local"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="datetime"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="email"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="number"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="password"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="search-md"]:focus:not([readonly]),
+.md-form input[type="search"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="tel"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="text"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="time"]:not(.browser-default):focus:not([readonly]),
+.md-form input[type="url"]:not(.browser-default):focus:not([readonly]),
+.md-form textarea.md-textarea:focus:not([readonly]) {
+    border-bottom: @ultipayOrangeColor;
+    box-shadow: 0 1px 0 0 @ultipayOrangeColor;
+}
+
+#popupSubTitle {
+    cursor: default;
+    font-weight: 400;
+}
+
+#popup {
+    position: absolute;
+    width: 70%;
+    margin: 0% 15%;
+    z-index: 111;
+}
+
+#formMember {
+    background-color: #ffffff;
+    margin: auto;
+    min-width: 300px;
+}
+
+.btn-toggle-pass {
+    border: none;
+    position: absolute;
+    top: 11px;
+    background: transparent;
+    right: 0;
+}
+
+.btn-toggle-pass {
+    &.active {
+        color: @ultipayInfoColor;
+    }
+}
+
+.disableInput {
+    pointer-events: none;
+    opacity: 0.4;
+}

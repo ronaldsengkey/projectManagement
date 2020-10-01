@@ -1,0 +1,82 @@
+
+<div class="row m-0 mb-12 col-lg-12 col-md-12 col-xs-12 sectionCard" id="key">
+        
+    <div class="card chart-card shadow-none" style="width: 100%;">
+        <span class="card-title text-right pr-3 pt-2 mb-0 expand"></span>
+        <!-- Card content -->
+        <div class="card-body pb-0">
+
+            <!-- Title -->
+            <h4 class="card-title font-weight-bold text-uppercase" style="padding-left: 1.5rem;">KEY API</h4>
+            <!-- Text -->
+            <form id="formKey" style="display: none;" class="form-group col-lg-12 col-md-12 col-sm-12">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-12" style="align-self: center;">
+                        <label for="keyName">Key Name</label>
+                        <textarea rows="1" id="keyName" type="text" class="form-control mb-2 mr-sm-2"></textarea>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12" style="align-self: center;">
+                        <label for="keyValue">Key Value</label>
+                        <textarea rows="1" id="keyValue" type="text" class="form-control mb-2 mr-sm-2"></textarea>
+                    </div>
+                </div>
+                <div class="row float-right" style="text-align: end; padding-right: 2.5%;">
+                    <button type="button" class="btn btn-sm btn-default" onclick="saveKey()"
+                        style="width: 100%;">Save</button>
+                </div>
+            </form>
+            <div class="row col-lg-12 col-md-12 col-sm-12" style="text-align: end; display: inline-block;">
+                <button type="button" class="btn btn-sm btn-default" id="btnKey" onclick="openKey()">Add Key</button>
+            </div>
+    
+            <div class="card shadow-none">            
+                <div class="card-body">
+                    <h6 class="card-title"><strong>Key List</strong></h6>
+                    <hr />
+                    <div class="card-text keyContain" id="listContainer">
+                        <!-- <ul class="list-group list-group-flush" id="keyList2">
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-lg-1">Serial Number</div>
+                                    <div class="col-lg-3 key_name" contenteditable="true">Some Key Name</div>
+                                    <div class="col-lg-6 key_value" style="text-align:end" contenteditable="true">Some Key Value</div>
+                                    <div class="col-lg-2" style="text-align:end">
+                                        <i class="fas fa-edit" style="cursor:pointer;" onclick="updateKey(13, this)"></i>
+                                        &nbsp;
+                                        <i class="fas fa-times" style="cursor:pointer;" onclick="deleteKey(13,'marketing')"></i>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <br> -->
+
+                        <ul class="list-group list-group-flush" id="keyList">
+                            <!-- <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-lg-4">member</div>
+                                    <div class="col-lg-6" style="text-align:end">/employee/member</div>
+                                    <div class="col-lg-2" style="text-align:end">
+                                        <i class="fas fa-times" style="cursor:pointer;" onclick="deleteScope(12,'member')"></i>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-lg-4">marketing</div>
+                                    <div class="col-lg-6" style="text-align:end">/employee/marketing</div>
+                                    <div class="col-lg-2" style="text-align:end">
+                                        <i class="fas fa-times" style="cursor:pointer;" onclick="deleteScope(13,'marketing')"></i>
+                                    </div>
+                                </div>
+                            </li> -->
+                        </ul>
+                    </div>
+
+    
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
