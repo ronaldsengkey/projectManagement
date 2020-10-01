@@ -2019,12 +2019,12 @@ async function convertURLRedis(data) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  hostIP = returnedConfig.SERVER_WAHYU;
-  hostNameServer = 'SERVER_WAHYU';
+  hostIP = returnedConfig.SERVER_CENTOS;
+  hostNameServer = 'SERVER_CENTOS';
   // hostIP = returnedConfig.AWS_SERVER;
   // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.SERVER_WAHYU;
+  hostIPAlt = returnedConfig.SERVER_CENTOS;
 
   // ANCHOR MAIN SERVER PORT NAME AND LINK
   accPort = "8443/account";
