@@ -23,11 +23,6 @@ const request = require("request");
 const efs = require('fs');
 const fsConfig = efs.readFileSync('./config.json', 'utf-8');
 const cryptography = require("./crypto.js");
-const partnerKey = efs.readFileSync("./partner.key", 'utf-8');
-const marketingKey = efs.readFileSync("./marketing.key", 'utf-8');
-const financeKey = efs.readFileSync("./finance.key", 'utf-8');
-const employeeKey = efs.readFileSync("./employee.key", 'utf-8');
-const csKey = efs.readFileSync("./cs.key", 'utf-8');
 const myKey = efs.readFileSync("./server.key", 'utf-8');
 var redis = require("redis");
 // const {
