@@ -1,6 +1,7 @@
 'use strict'
 
 $(async function () {
+  $('#chartSection').prev().removeClass('d-none');
   await domBoardContent();
 })
 

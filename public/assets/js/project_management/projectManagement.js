@@ -1,9 +1,29 @@
 'use strict'
 
+var arrBackground = ["rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"];
+var arrBackground2 = ["rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)", "rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"];
+var arrbBorder = ["rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"];
+var arrbBorder2 = ["rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)", "rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)"];
+var arrLabels = ["Red", "Orange", "Yellow", "Green", "Blue", "Purple", "Grey"];
+
 $(async function () {
     feather.replace();
     $('.beefup').beefup();
+    $('#chartSection').prev().addClass('d-none');
     await getBoard();
+    
+    // await getSummaryBoard('type');
+    // await getSummaryBoard('typeForMe');
+    // await getSummaryBoard('division');
+    // await getSummaryBoard('boardByMember');
+    // await getSummaryBoard('boardByTask');
+    // await getSummaryBoard('taskForMe');
+    // await getSummaryBoard('taskForMeByStatus');
+    // await getSummaryBoard('taskByDivision');
+    // await getSummaryBoard('taskByStatus');
+    // await getSummaryBoard('taskByPriority');
+    await getSummaryBoard('taskByDivisionAndStatus');    
+
 })
 
 $(document).on('click', '.removeSidebar', function () {
@@ -41,6 +61,49 @@ async function getBoard() {
         success: function (result) {
             if (result.responseCode == '200') {
                 manageBoardData(result.data);
+            } else if (result.responseCode == '404') {
+                amaranNotifFull(result.responseMessage);
+            } else {
+                let param = {
+                    type: 'error',
+                    text: result.responseMessage
+                };
+                callNotif(param);
+            }
+        }
+    })
+}
+
+async function getSummaryBoard(category) {
+    var userData = JSON.parse(localStorage.getItem('accountProfile'));
+    var member = userData.name;
+    var account_id = userData.id_employee;
+    $.ajax({
+        url: 'summaryBoard',
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "param": JSON.stringify({
+                "_id": "",
+                "type": "",
+                "name": "",
+                "account_id": account_id,
+                "member": member
+            }),
+            "category": category,
+            "secretKey": ct.secretKey,
+            "token": ct.token,
+            "signature": ct.signature
+        },
+        success: function (result) {
+            if(category == 'boardByTask'){
+                console.log('result boardByTask ==>',result);
+            }
+            if (result.responseCode == '200') {
+                result.category=category;
+                manageSummaryBoardData(result);
             } else if (result.responseCode == '404') {
                 amaranNotifFull(result.responseMessage);
             } else {
@@ -100,6 +163,85 @@ async function manageBoardData(data) {
     feather.replace();
 }
 
+async function manageSummaryBoardData(data) {
+    var result = JSON.stringify(data.data);
+    if(data.category == 'type'){
+        $('#boardChartType').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Type</div>';
+        html += '<canvas id="chartType" class="p-2"></canvas>';
+        $('#boardChartType').html(html);
+        await getBarChart('boardType',result);
+    }else if(data.category == 'typeForMe'){
+        // console.log('result =>',result);
+        $('#boardChartTypeForMe').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart For Me By Type</div>';
+        html += '<canvas id="chartTypeForMe" class="p-2"></canvas>';
+        $('#boardChartTypeForMe').html(html);
+        await getBarChart('boardTypeForMe',result);
+
+    }else if(data.category == 'division'){
+        $('#boardChartDivision').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Division</div>';
+        html += '<canvas id="chartDivision" class="p-2"></canvas>';
+        $('#boardChartDivision').html(html);
+        await getBarChart('boardDivision',result);
+    }else if(data.category == 'boardByMember'){
+        $('#boardChartMember').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Member</div>';
+        html += '<canvas id="chartByMember" class="p-2"></canvas>';
+        $('#boardChartMember').html(html);
+        await getBarChart('boardByMember',result);
+    }else if(data.category == 'boardByTask'){
+        $('#boardChartTask').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Task</div>';
+        html += '<canvas id="chartByTask" class="p-2"></canvas>';
+        $('#boardChartTask').html(html);
+        await getBarChart('boardByTask',result);
+    }else if(data.category == 'taskForMe'){
+        $('#taskForMe').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task For Me</div>';
+        html += '<canvas id="chartTaskForMe" class="p-2"></canvas>';
+        $('#taskForMe').html(html);
+        await getBarChart('taskForMe',result);
+    }else if(data.category == 'taskForMeByStatus'){
+        $('#taskForMeByStatus').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task For Me By Status</div>';
+        html += '<canvas id="chartTaskForMeByStatus" class="p-2"></canvas>';
+        $('#taskForMeByStatus').html(html);
+        await getBarChart('taskForMeByStatus',result);
+    }else if(data.category == 'taskByDivision'){
+        $('#taskByDivision').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Division</div>';
+        html += '<canvas id="chartTaskByDivision" class="p-2"></canvas>';
+        $('#taskByDivision').html(html);
+        await getBarChart('taskByDivision',result);
+    }else if(data.category == 'taskByStatus'){
+        $('#taskByStatus').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Status</div>';
+        html += '<canvas id="chartTaskByStatus" class="p-2"></canvas>';
+        $('#taskByStatus').html(html);
+        await getBarChart('taskByStatus',result);
+    }else if(data.category == 'taskByPriority'){
+        $('#taskByPriority').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Priority</div>';
+        html += '<canvas id="chartTaskByPriority" class="p-2"></canvas>';
+        $('#taskByPriority').html(html);
+        await getBarChart('taskByPriority',result);
+
+        
+    }else if(data.category == 'taskByDivisionAndStatus'){
+        $('#taskByDivisionAndStatus').empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Division And Status</div>';
+        html += '<canvas id="chartTaskByDivisionAndStatus" class="p-2"></canvas>';
+        $('#taskByDivisionAndStatus').html(html);
+        // await getBarChart('taskByDivisionAndStatus',result);
+        await getDoubleBarChart('taskByDivisionAndStatus',result);
+
+                
+    }else{
+
+    }
+}
 $(document).on('click', '.delBoard', async function () {
     let boardId = $(this).data('id');
     let param = {
@@ -801,3 +943,192 @@ async function postGroupTask(body) {
     });
 }
 
+async function getDoubleBarChart(chartName, data) {
+    var nameArray = new Array();
+    var workingOnItArray = new Array();
+    var stuckArray = new Array();
+    var doneArray = new Array();
+    var waitingForReviewArray = new Array();
+
+    var tmp = JSON.parse(data)
+    tmp.forEach(function (item, index) {
+        nameArray[index] = item._id;
+        stuckArray[index] = item.stuck;
+        workingOnItArray[index] = item.working_on_it;
+        doneArray[index] = item.done;
+        waitingForReviewArray[index] = item.waiting_for_review;        
+    });
+
+    var ctxB = document.getElementById('chartTaskByDivisionAndStatus')
+        .getContext('2d');
+    var myBarChart = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: nameArray,
+            datasets: [{
+                    label: '# of Working on it',
+                    data: workingOnItArray,
+                    backgroundColor: arrBackground[0],
+                    borderColor: arrbBorder[0],
+                    borderWidth: 1
+                },
+                {
+                    label: '# of stuck',
+                    data: stuckArray,
+                    backgroundColor: arrBackground[1],
+                    borderColor: arrbBorder[1],
+                    borderWidth: 1
+                },
+                {
+                    label: '# of done',
+                    data: doneArray,
+                    backgroundColor: arrBackground[2],
+                    borderColor: arrbBorder[2],
+                    borderWidth: 1
+                },
+                {
+                    label: '# of Waiting for review',
+                    data: waitingForReviewArray,
+                    backgroundColor: arrBackground[3],
+                    borderColor: arrbBorder[3],
+                    borderWidth: 1
+                },
+
+            ]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+}
+async function getBarChart(chartName, data) {
+    
+    var nameArray = new Array();
+    var totalArray = new Array();
+    var backgroundArray = new Array();
+    var borderArray = new Array();
+    var labelArray = new Array();
+    var barId, labelName;
+
+    var chartType = 'pie';
+    if (chartName === 'boardType') {
+        barId = 'chartType';
+        labelName = 'Board Chart By Type';
+    } else if (chartName === 'boardTypeForMe') {
+        barId = 'chartTypeForMe';
+        labelName = 'Board Chart For Me By Type';
+    } else if (chartName === 'boardDivision') {
+        barId = 'chartDivision';
+        labelName = 'Board Chart By Division';
+    } else if (chartName === 'boardByMember') {
+        barId = 'chartByMember';
+        labelName = 'Board Chart By Member';
+        chartType = 'bar';
+    } else if (chartName === 'boardByTask') {
+        console.log('Board Chart By Task')
+        barId = 'chartByTask';
+        labelName = 'Board Chart By Task';
+        chartType = 'bar';
+    } else if (chartName === 'taskForMe') {
+        barId = 'chartTaskForMe';
+        labelName = 'Chart Task For Me';
+    } else if (chartName === 'taskForMeByStatus') {
+        barId = 'chartTaskForMeByStatus';
+        labelName = 'Chart Task For Me By Status';
+    } else if (chartName === 'taskByDivision') {
+        barId = 'chartTaskByDivision';
+        labelName = 'Chart Task By Division';
+    } else if (chartName === 'taskByStatus') {
+        barId = 'chartTaskByStatus';
+        labelName = 'Chart Task By Status';
+    } else if (chartName === 'taskByPriority') {
+        barId = 'chartTaskByPriority';
+        labelName = 'Chart Task By Priority';        
+    }
+
+    if(data !== undefined) {
+        var tmp = JSON.parse(data);
+        if (tmp) {
+            var i = 0;
+            tmp.forEach(function (item) {
+                nameArray[i] = item._id;
+                totalArray[i] = item.count;
+                labelArray[i] = arrLabels[i];
+                backgroundArray[i] = arrBackground[i];
+                borderArray[i] = arrbBorder[i];
+                i++;
+            });
+        }
+
+        var ctxB = document.getElementById(barId).getContext('2d');
+        var myBarChart = new Chart(ctxB, {
+            type: chartType,
+            data: {
+                labels: nameArray,
+                datasets: [{
+                    label: labelName,
+                    data: totalArray,
+                    backgroundColor: backgroundArray,
+                    borderColor: borderArray,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+    }else{
+
+    }    
+
+    // var ctx = document.getElementById('chartType').getContext('2d');
+    // var myChart = new Chart(ctx, {
+    //     type: 'pie',
+    //     data: {
+    //         labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+    //         datasets: [{
+    //             label: '# of Votes',
+    //             data: [12, 19, 3, 5, 2, 3],
+    //             backgroundColor: [
+    //                 'rgba(255, 99, 132, 0.2)',
+    //                 'rgba(54, 162, 235, 0.2)',
+    //                 'rgba(255, 206, 86, 0.2)',
+    //                 'rgba(75, 192, 192, 0.2)',
+    //                 'rgba(153, 102, 255, 0.2)',
+    //                 'rgba(255, 159, 64, 0.2)'
+    //             ],
+    //             borderColor: [
+    //                 'rgba(255, 99, 132, 1)',
+    //                 'rgba(54, 162, 235, 1)',
+    //                 'rgba(255, 206, 86, 1)',
+    //                 'rgba(75, 192, 192, 1)',
+    //                 'rgba(153, 102, 255, 1)',
+    //                 'rgba(255, 159, 64, 1)'
+    //             ],
+    //             borderWidth: 1
+    //         }]
+    //     },
+    //     options: {
+    //         scales: {
+    //             yAxes: [{
+    //                 ticks: {
+    //                     beginAtZero: true
+    //                 }
+    //             }]
+    //         }
+    //     }
+    // });
+}
