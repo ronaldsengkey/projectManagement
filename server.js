@@ -1319,6 +1319,46 @@ fastify.get("/board", async function (req, reply) {
   }
 });
 
+fastify.get("/summaryBoard", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          target:'getSummaryBoard',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param:cryptography.aesEncrypt(
+            req.headers.param
+          ),
+          category: cryptography.aesEncrypt(
+            req.headers.category
+          ),
+        },
+      },
+    };
+
+    console.log("coba get summaryBoard", data);
+    let a = await actionGet(data);
+    // console.log('aaaaa',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 fastify.get("/getGroupTask", async function (req, reply) {
   try {
     console.log('req',req.headers);
