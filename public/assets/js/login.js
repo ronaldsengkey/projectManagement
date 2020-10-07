@@ -31,7 +31,7 @@ function loadingDeactivated() {
 loadingDeactivated();
 
 $(function () {
-    // disableDevTools();
+    disableDevTools();
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname
@@ -47,29 +47,6 @@ $(function () {
         }
     }
     loadingDeactivated();
-
-    if (accountProfile !== 'undefined' && accountProfile !== null) {
-        let ct = JSON.parse(accountProfile);
-        $.ajax({
-            // url: 'checkToken?token='+ct.token,
-            url: 'checkToken',
-            crossDomain: true,
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "token": ct.token
-            },
-            success: function (callback) {
-                if (callback.responseCode == '200') {
-                    window.location = callback.data.accountCategory
-                } else {
-                    logout();
-                }
-            }
-        })
-    }
 });
 
 $(document).on('keypress', 'input', function (e) {

@@ -54,7 +54,7 @@ $(document).on('click', '.profilePict', function () {
 
 $(async function () {
     loadingActivated();
-    // disableDevTools();
+    disableDevTools();
     try {
         // if (accountProfile !== 'undefined' && accountProfile != null) {
         //     let ct = JSON.parse(accountProfile);
@@ -86,6 +86,24 @@ $(async function () {
         //         }
         //     })
         // }
+        await setTimeout(function () {
+            Swal.fire({
+                type: "error",
+                title: 'Expired session',
+                text: "Sorry, your session has expired, please login again!",
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#d33',
+                // cancelButtonColor: '#d33',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.value) {
+                    logout();
+                }
+            })
+
+        }, 1000 * 60 * 60);
         let ct = JSON.parse(accountProfile);
         // let loginTime = localStorage.getItem('loginTime');
         let getUrl = window.location.search;
@@ -422,38 +440,6 @@ async function getPageHtml(param, callbackFunc) {
             return callback;
         }
     })
-}
-
-function initShortcut() {
-    if (accountProfile !== 'undefined' && accountProfile != null) {
-        // let dt = window.atob(accountProfile);
-        let ct = JSON.parse(accountProfile);
-        $.ajax({
-            // url: 'checkToken?token=' + ct.token,
-            url: 'checkToken',
-            crossDomain: true,
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "token": ct.token
-            },
-            success: function (callback) {
-                if (callback.responseCode == '200') {
-                    // getPage('home');
-                    window.location = 'employee'
-                    setTimeout(() => {
-                        defineShortcut(ct);
-                    }, 500);
-                } else {
-                    logout();
-                }
-            }
-        })
-    } else {
-        logout();
-    }
 }
 
 async function getAjax(url, token) {
