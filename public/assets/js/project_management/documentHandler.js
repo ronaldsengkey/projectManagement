@@ -174,7 +174,7 @@ $(document).on('click', '.menuRename', function () {
                 "Cache-Control": "no-cache",
               },
               success: function (result) {
-                $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
                 $('.boardContent').html(result);
                 let pass = {
                   boardName: boardName,
@@ -250,7 +250,7 @@ $(document).on('click', '.menuDelete', function () {
                 "Cache-Control": "no-cache",
               },
               success: function (result) {
-                $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
                 $('.boardContent').html(result);
                 let pass = {
                   boardName: boardName,

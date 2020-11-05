@@ -100,22 +100,23 @@ async function domTaskTable(data, id, result, boardMember) {
     let progBar = await processProgressBar(data, id);
     let progPrioBar = await processProgressBarPrio(data, id);
     data.forEach(element => {
-      console.log('the elemenet', element.pic);
-      let havePriority = element.priority.toString() == 'null' ? false : element.priority;
+      let havePriority = element.priority == undefined ||  element.priority.toString() == 'null' ? false : element.priority;
+
       let priorityClass;
 
-      let haveStatus = element.status.toString() == 'null' ? false : element.status;
+      let haveStatus = element.status == undefined ||  element.status.toString() == 'null' ? false : element.status;
+      
       let statusClass;
 
-      let haveTimeline = element.timeline == '[]' || element.timeline.toString() == 'null' ? false : element.timeline;
+      let haveTimeline = element.timeline == undefined || element.timeline == '[]' || element.timeline.toString() == 'null'? false : element.timeline;
 
-      let haveDuedate = element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
+      let haveDuedate = element.due_date == undefined || element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
 
-      let havePic = element.pic == '[]' || element.pic.toString() == 'null' ? false : element.pic;
+      let havePic = element.pic == undefined || element.pic == '[]' || element.pic.toString() == 'null' ? false : element.pic;
 
-      let haveTeam = element.member == '[]' || element.member.toString() == 'null' ? false : element.member;
+      let haveTeam = element.member == undefined || element.member == '[]' || element.member.toString() == 'null' ? false : element.member;
 
-      let haveComment = element.comment == '0' ? false : element.comment;
+      let haveComment = element.comment == undefined || element.comment == '0' ? false : element.comment;
 
       htmlTask = '<tr class="taskRow" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
