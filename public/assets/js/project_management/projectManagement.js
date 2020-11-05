@@ -440,13 +440,14 @@ $(document).on('click', '.boardList', async function () {
     $('a[class*="boardList"]').removeClass('lighten-1');
     $(this).addClass('amber');
     $(this).addClass('lighten-1');
+    $('.boardContentData').empty();
     $('.boardContent').empty();
     $('.boardHeader').empty();
     if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
     let groupTask = await getGroupTask(id);
     if (groupTask.responseCode == '200') {
         // ANCHOR jgn lupa uncomment
-        // groupTask.data = await groupTaskChecking(groupTask.data);
+        groupTask.data = await groupTaskChecking(groupTask.data);
         window['groupTask' + id + ''] = groupTask.data;
         $.ajax({
             url: 'projectBoard',
@@ -457,8 +458,8 @@ $(document).on('click', '.boardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                $('.boardContent').html(result);
+                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                $('.boardContentData').html(result);
                 let pass = {
                     boardName: boardName,
                     camelized: camelized,
@@ -480,7 +481,7 @@ $(document).on('click', '.boardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $('.boardContent').html(result);
+                $('.boardContentData').html(result);
                 let pass = {
                     boardName: boardName,
                     camelized: camelized,
@@ -863,6 +864,7 @@ $(document).on('click', '#addGroupTask', function () {
                         text: result.responseMessage
                     };
                     callNotif(param);
+                    $('.boardContentData').empty();
                     $('.boardContent').empty();
                     $('.boardHeader').empty();
                     let gt = await getGroupTask(thisId);
@@ -878,8 +880,8 @@ $(document).on('click', '#addGroupTask', function () {
                                 "Cache-Control": "no-cache",
                             },
                             success: function (result) {
-                                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                                $('.boardContent').html(result);
+                                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                                $('.boardContentData').html(result);
                                 let pass = {
                                     boardName: boardName,
                                     camelized: camelized,
