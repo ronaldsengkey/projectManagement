@@ -163,7 +163,7 @@ $(document).on('click', '.menuRename', function () {
           $('.boardHeader').empty();
           let gt = await getGroupTask(renameBoardId);
           if (gt.responseCode == '200') {
-            gt.data = await groupTaskChecking(gt.data);
+            gt.data = await groupTaskChecking(gt.data,boardType);
             console.log('board id', renameBoardId, gt.data);
             window['groupTask' + renameBoardId + ''] = gt.data;
             $.ajax({
@@ -240,7 +240,7 @@ $(document).on('click', '.menuDelete', function () {
           $('.boardHeader').empty();
           let gt = await getGroupTask(deleteBoardId);
           if (gt.responseCode == '200') {
-            gt.data = await groupTaskChecking(gt.data);
+            gt.data = await groupTaskChecking(gt.data,boardType);
             window['groupTask' + deleteBoardId + ''] = gt.data;
             $.ajax({
               url: 'projectBoard',

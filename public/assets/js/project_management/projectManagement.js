@@ -447,7 +447,7 @@ $(document).on('click', '.boardList', async function () {
     let groupTask = await getGroupTask(id);
     if (groupTask.responseCode == '200') {
         // ANCHOR jgn lupa uncomment
-        groupTask.data = await groupTaskChecking(groupTask.data);
+        groupTask.data = await groupTaskChecking(groupTask.data,type);
         window['groupTask' + id + ''] = groupTask.data;
         $.ajax({
             url: 'projectBoard',
@@ -706,11 +706,6 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
                 $('#emptyMember').remove();
                 empDone = !empDone;
                 $('#employeeId').attr('data-concern', 'Finance');
-                let newEmployee = await boardEmployeeChecking(employee);
-                newEmployee.forEach(element => {
-                    let html = '<option value=' + element.employee_id + ' data-toggle="tooltip" data-placement="left" title="' + element.auth_name + '">' + element.employee_name + '</option>';
-                    $('#employeeId').append(html);
-                });
             }
             if(divisiDone && empDone){
                 $('#divisionId').prop('disabled', false);
@@ -721,26 +716,27 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
     }
 })
 
-$(document).on('change', '#divisionId', function () {
+$(document).on('change', '#divisionId', async function () {
     let currentVal = $(this).val();
-    $('#employeeId').empty();
-    let currentDivision = $('select#divisionId option:selected').text()
-    $('#employeeId').attr('data-concern', currentDivision);
-    let employeeDivision = window['employeeData'].filter(function (e) {
-        return e.division_id == currentVal
-    })
-    employeeDivision.forEach(element => {
-        let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
-        $('#employeeId').append(html);
-    });
-
-    let dataBoard = boardMemberJoin.filter(function (e) {
-        return e.departmen_id == currentVal;
-    })
-    dataBoard.forEach(element => {
-        $('option[value=' + element.account_id + ']').remove();
-    });
-
+    if(currentVal == ''){
+        $('#employeeId').empty();
+    } else {
+        $('#employeeId').empty();
+        let currentDivision = $('select#divisionId option:selected').text()
+        $('#employeeId').attr('data-concern', currentDivision);
+        let employeeDivision = await boardEmployeeChecking(window['employeeData']);
+        employeeDivision.forEach(element => {
+            let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+            $('#employeeId').append(html);
+        });
+    
+        let dataBoard = boardMemberJoin.filter(function (e) {
+            return e.departmen_id == currentVal;
+        })
+        dataBoard.forEach(element => {
+            $('option[value=' + element.account_id + ']').remove();
+        });
+    }
 })
 
 async function getEmployee() {
@@ -876,7 +872,7 @@ $(document).on('click', '#addGroupTask', function () {
                     $('.boardHeader').empty();
                     let gt = await getGroupTask(thisId);
                     if (gt.responseCode == '200') {
-                        gt.data = await groupTaskChecking(gt.data);
+                        gt.data = await groupTaskChecking(gt.data,boardType);
                         window['groupTask' + thisId + ''] = gt.data;
                         $.ajax({
                             url: 'projectBoard',
