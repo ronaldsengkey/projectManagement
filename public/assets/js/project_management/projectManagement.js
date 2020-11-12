@@ -571,7 +571,7 @@ function callNotifBoard(title) {
                         text: result.responseMessage
                     };
                 }
-                callNotif(param);
+                return amaranNotifFull(result.responseMessage);
             });
         },
         allowOutsideClick: () => !Swal.isLoading()
@@ -579,10 +579,10 @@ function callNotifBoard(title) {
 }
 
 $(document).on('click', '.addMember', function () {
-    boardMemberId = $('#employeeId option:selected').toArray().map(item => item.value);
-    boardDivisionName = $('select#divisionId option:selected').text();
-    boardDivision = $('select#divisionId').val();
-    boardMemberName = $('#employeeId option:selected').toArray().map(item => item.text);
+    let boardMemberId = $('#employeeId option:selected').toArray().map(item => item.value);
+    let boardDivisionName = $('select#divisionId option:selected').text();
+    let boardDivision = $('select#divisionId').val();
+    let boardMemberName = $('#employeeId option:selected').toArray().map(item => item.text);
     boardMemberId.forEach(function (e, index) {
         boardMemberJoin.push({
             'departmen_id': boardDivision,
@@ -689,10 +689,13 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
             $('#employeeId').prop('disabled', true);
             $('#divisionId').prop('disabled', true);
             let divisi = await getDivision();
+            let divisiDone = false;
+            let empDone = false;
             if (divisi != 500) {
                 $('#emptyDivision').remove();
-                $('#divisionId').prop('disabled', false);
+                divisiDone = !divisiDone
                 let newDivisi = await boardDivisionChecking(divisi);
+                $('#divisionId').append("<option value=''>Choose...</option>");
                 newDivisi.forEach(element => {
                     let html = '<option value=' + element.id + '>' + element.name + '</option>';
                     $('#divisionId').append(html);
@@ -701,13 +704,17 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
             let employee = await getEmployee();
             if (employee != 500) {
                 $('#emptyMember').remove();
-                $('#employeeId').prop('disabled', false);
+                empDone = !empDone;
                 $('#employeeId').attr('data-concern', 'Finance');
                 let newEmployee = await boardEmployeeChecking(employee);
                 newEmployee.forEach(element => {
                     let html = '<option value=' + element.employee_id + ' data-toggle="tooltip" data-placement="left" title="' + element.auth_name + '">' + element.employee_name + '</option>';
                     $('#employeeId').append(html);
                 });
+            }
+            if(divisiDone && empDone){
+                $('#divisionId').prop('disabled', false);
+                $('#employeeId').prop('disabled', false);
             }
             Swal.hideLoading()
         }
@@ -777,7 +784,7 @@ async function getDivision() {
                 "signature": ct.signature
             }
         }
-        b = await getData(param);
+        let b = await getData(param);
         if (b.responseCode == '200') {
             resolve(b.data);
         } else {

@@ -15,11 +15,12 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
       $(this).blur();
       $(this).mouseleave();
       let addComment = await globalAddComment(updateComment);
+      console.log("addComment::", addComment);
       $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
       if (addComment != 500) {
         console.log('tastas', id, window['dataComment' + id + '']);
-        window['dataComment' + id + ''] = JSON.parse(window['dataComment' + id + '']);
-        window['dataComment' + id + ''].push(addComment);
+        // window['dataComment' + id + ''] = JSON.parse(window['dataComment' + id + '']);
+        // window['dataComment' + id + ''].push(addComment);
         let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
           '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
           '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
@@ -740,13 +741,13 @@ $(document).on('click', '.submitTeam', function () {
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
 
-  console.log('mw submit', window['dataCurrentTeam' + id + ''].member);
+  console.log('mw submit', window['dataCurrentTeam' + id + '']);
   let updateTeam = {
     '_id': id,
     'group_id': groupid,
     'name': name,
     'user_update': ct.name,
-    'member': JSON.stringify(window['dataCurrentTeam' + id + ''].member)
+    'member': JSON.stringify(window['dataCurrentTeam' + id + ''][0].member)
   }
   globalUpdateTask('team', updateTeam);
 })

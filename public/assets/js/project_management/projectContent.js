@@ -129,7 +129,7 @@ async function domTaskTable(data, id, result, boardMember) {
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
       }
-
+      console.log("haveTeam::", haveTeam);
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id + '']);
@@ -178,7 +178,10 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       if (haveComment) {
-        window['dataComment' + element._id + ''] = element.comment;
+        console.log("element::", element);
+        console.log("element.comment::", element.comment);
+        window['dataComment' + element._id + ''] = "[]";
+        // window['dataComment' + element._id + ''] = element.comment;
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
         htmlTask += '<td><i class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
@@ -189,7 +192,7 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       }
 
-      $('.dataTask').prepend(htmlTask);
+      $('#table' + id + ' > .dataTask').prepend(htmlTask);
 
       feather.replace();
       if (haveComment) {
