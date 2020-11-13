@@ -9,7 +9,7 @@ $(async function () {
 async function appendLegend(id){
   let gridTag = '<div class="gridLayout3">';
   window['dataBoardMember' + id + ''].forEach(function(e){
-    gridTag += '<div class="text-center"><span class="picLogo text-white" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+    gridTag += '<div class="text-center"><span class="picLogo text-white mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
   })
   gridTag += '</div>';
   $(gridTag).insertBefore($('.accordionBoard'))
