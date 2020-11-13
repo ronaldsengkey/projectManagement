@@ -72,7 +72,11 @@ async function domBoardContent() {
 
 async function domTaskTable(data, id, result, boardMember) {
   let htmlTask;
-  let emptyTable = '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
+  let emptyTable = '<div class="row w-100">' +
+    '<div class="progressBar col-12 mb-2" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>'+
+    '<div class="progressBarPrio col-12 mb-3" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>' +
+    '</div>' +
+    '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
     '<thead class="text-center">' +
     '<tr>' +
     '<th>Task Name</th>' +
@@ -88,8 +92,6 @@ async function domTaskTable(data, id, result, boardMember) {
     '<tbody class="dataTask text-center">' +
     '<tr>' +
     '<td class="newTask" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '" colspan="8">+ Add Task</td>' +
-    '</tr><tr>' +
-    '<td colspan="4" class="progressBar" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></td><td colspan="4" class="progressBarPrio" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></td>' +
     '</tr>' +
     '</tbody>' +
     '</table>';
@@ -100,22 +102,23 @@ async function domTaskTable(data, id, result, boardMember) {
     let progBar = await processProgressBar(data, id);
     let progPrioBar = await processProgressBarPrio(data, id);
     data.forEach(element => {
-      console.log('the elemenet', element.pic);
-      let havePriority = element.priority.toString() == 'null' ? false : element.priority;
+      let havePriority = element.priority == undefined ||  element.priority.toString() == 'null' ? false : element.priority;
+
       let priorityClass;
 
-      let haveStatus = element.status.toString() == 'null' ? false : element.status;
+      let haveStatus = element.status == undefined ||  element.status.toString() == 'null' ? false : element.status;
+      
       let statusClass;
 
-      let haveTimeline = element.timeline == '[]' || element.timeline.toString() == 'null' ? false : element.timeline;
+      let haveTimeline = element.timeline == undefined || element.timeline == '[]' || element.timeline.toString() == 'null'? false : element.timeline;
 
-      let haveDuedate = element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
+      let haveDuedate = element.due_date == undefined || element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
 
-      let havePic = element.pic == '[]' || element.pic.toString() == 'null' ? false : element.pic;
+      let havePic = element.pic == undefined || element.pic == '[]' || element.pic.toString() == 'null' ? false : element.pic;
 
-      let haveTeam = element.member == '[]' || element.member.toString() == 'null' ? false : element.member;
+      let haveTeam = element.member == undefined || element.member == '[]' || element.member.toString() == 'null' ? false : element.member;
 
-      let haveComment = element.comment == '0' ? false : element.comment;
+      let haveComment = element.comment == undefined || element.comment == '0' ? false : element.comment;
 
       htmlTask = '<tr class="taskRow" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
@@ -128,7 +131,7 @@ async function domTaskTable(data, id, result, boardMember) {
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
       }
-
+      console.log("haveTeam::", haveTeam);
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id + '']);
@@ -177,7 +180,10 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       if (haveComment) {
-        window['dataComment' + element._id + ''] = element.comment;
+        console.log("element::", element);
+        console.log("element.comment::", element.comment);
+        window['dataComment' + element._id + ''] = "[]";
+        // window['dataComment' + element._id + ''] = element.comment;
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
         htmlTask += '<td><i class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
@@ -188,7 +194,7 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       }
 
-      $('.dataTask').prepend(htmlTask);
+      $('#table' + id + ' > .dataTask').prepend(htmlTask);
 
       feather.replace();
       if (haveComment) {
@@ -264,7 +270,7 @@ async function processProgressBar(data, idGroup) {
   let waitingWidth = (totalWaiting / countTotal) * 100;
   let noStatusWidth = (totalNoStatus / countTotal) * 100;
 
-  let htmlProgress = '<div class="row"><div class="col-lg-2" style="align-self:center;">Status </div><div class="col-lg-10"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
+  let htmlProgress = '<div class="row"><div class="col-md-2 col-lg-1" style="align-self:center;">Status </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
     '<div data-identity="Done" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Done ' + totalDone + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped lowLabel" role="progressbar" style="width: ' + doneWidth + '%" aria-valuenow=' + totalDone + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + doneWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Working on it" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Working on it ' + totalWorking + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped mediumLabel" role="progressbar" style="width: ' + workingWidth + '%" aria-valuenow=' + totalWorking + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + workingWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Stuck" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Stuck ' + totalStuck + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped highLabel" role="progressbar" style="width: ' + stuckWidth + '%" aria-valuenow=' + totalStuck + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + stuckWidth.toFixed(1) + '&</div>' +
@@ -509,7 +515,7 @@ async function processProgressBarPrio(data, idGroup) {
   let urgentWidth = (totalUrgent / countTotal) * 100;
   let noPriorityWidth = (totalNoPriority / countTotal) * 100;
 
-  let htmlProgress = '<div class="row"><div class="col-lg-2" style="align-self:center;">Priority </div><div class="col-lg-10"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
+  let htmlProgress = '<div class="row"><div class="col-lg-1 col-md-2" style="align-self:center;">Priority </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
     '<div data-identityprio="Low" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Low ' + totalLow + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped lowLabel" role="progressbar" style="width: ' + lowWidth + '%" aria-valuenow=' + totalLow + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + lowWidth.toFixed(1) + '%</div>' +
     '<div data-identityprio="Medium" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Medium ' + totalMedium + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped mediumLabel" role="progressbar" style="width: ' + mediumWidth + '%" aria-valuenow=' + totalMedium + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + mediumWidth.toFixed(1) + '%</div>' +
     '<div data-identityprio="High" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="High ' + totalHigh + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped highLabel" role="progressbar" style="width: ' + highWidth + '%" aria-valuenow=' + totalHigh + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + highWidth.toFixed(1) + '&</div>' +

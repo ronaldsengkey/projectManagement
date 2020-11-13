@@ -533,13 +533,14 @@ $(document).on('click', '.boardList', async function () {
     $('a[class*="boardList"]').removeClass('lighten-1');
     $(this).addClass('amber');
     $(this).addClass('lighten-1');
+    $('.boardContentData').empty();
     $('.boardContent').empty();
     $('.boardHeader').empty();
     if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
     let groupTask = await getGroupTask(id);
     if (groupTask.responseCode == '200') {
         // ANCHOR jgn lupa uncomment
-        // groupTask.data = await groupTaskChecking(groupTask.data);
+        groupTask.data = await groupTaskChecking(groupTask.data,type);
         window['groupTask' + id + ''] = groupTask.data;
         $.ajax({
             url: 'projectBoard',
@@ -550,8 +551,8 @@ $(document).on('click', '.boardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                $('.boardContent').html(result);
+                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                $('.boardContentData').html(result);
                 let pass = {
                     boardName: boardName,
                     camelized: camelized,
@@ -573,7 +574,7 @@ $(document).on('click', '.boardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $('.boardContent').html(result);
+                $('.boardContentData').html(result);
                 let pass = {
                     boardName: boardName,
                     camelized: camelized,
@@ -663,7 +664,7 @@ function callNotifBoard(title) {
                         text: result.responseMessage
                     };
                 }
-                callNotif(param);
+                return amaranNotifFull(result.responseMessage);
             });
         },
         allowOutsideClick: () => !Swal.isLoading()
@@ -671,10 +672,10 @@ function callNotifBoard(title) {
 }
 
 $(document).on('click', '.addMember', function () {
-    boardMemberId = $('#employeeId option:selected').toArray().map(item => item.value);
-    boardDivisionName = $('select#divisionId option:selected').text();
-    boardDivision = $('select#divisionId').val();
-    boardMemberName = $('#employeeId option:selected').toArray().map(item => item.text);
+    let boardMemberId = $('#employeeId option:selected').toArray().map(item => item.value);
+    let boardDivisionName = $('select#divisionId option:selected').text();
+    let boardDivision = $('select#divisionId').val();
+    let boardMemberName = $('#employeeId option:selected').toArray().map(item => item.text);
     boardMemberId.forEach(function (e, index) {
         boardMemberJoin.push({
             'departmen_id': boardDivision,
@@ -781,10 +782,13 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
             $('#employeeId').prop('disabled', true);
             $('#divisionId').prop('disabled', true);
             let divisi = await getDivision();
+            let divisiDone = false;
+            let empDone = false;
             if (divisi != 500) {
                 $('#emptyDivision').remove();
-                $('#divisionId').prop('disabled', false);
+                divisiDone = !divisiDone
                 let newDivisi = await boardDivisionChecking(divisi);
+                $('#divisionId').append("<option value=''>Choose...</option>");
                 newDivisi.forEach(element => {
                     let html = '<option value=' + element.id + '>' + element.name + '</option>';
                     $('#divisionId').append(html);
@@ -793,39 +797,39 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
             let employee = await getEmployee();
             if (employee != 500) {
                 $('#emptyMember').remove();
-                $('#employeeId').prop('disabled', false);
+                empDone = !empDone;
                 $('#employeeId').attr('data-concern', 'Finance');
-                let newEmployee = await boardEmployeeChecking(employee);
-                newEmployee.forEach(element => {
-                    let html = '<option value=' + element.employee_id + ' data-toggle="tooltip" data-placement="left" title="' + element.auth_name + '">' + element.employee_name + '</option>';
-                    $('#employeeId').append(html);
-                });
+            }
+            if(divisiDone && empDone){
+                $('#divisionId').prop('disabled', false);
+                $('#employeeId').prop('disabled', false);
             }
             Swal.hideLoading()
         }
     }
 })
 
-$(document).on('change', '#divisionId', function () {
+$(document).on('change', '#divisionId', async function () {
     let currentVal = $(this).val();
-    $('#employeeId').empty();
-    let currentDivision = $('select#divisionId option:selected').text()
-    $('#employeeId').attr('data-concern', currentDivision);
-    let employeeDivision = window['employeeData'].filter(function (e) {
-        return e.division_id == currentVal
-    })
-    employeeDivision.forEach(element => {
-        let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
-        $('#employeeId').append(html);
-    });
-
-    let dataBoard = boardMemberJoin.filter(function (e) {
-        return e.departmen_id == currentVal;
-    })
-    dataBoard.forEach(element => {
-        $('option[value=' + element.account_id + ']').remove();
-    });
-
+    if(currentVal == ''){
+        $('#employeeId').empty();
+    } else {
+        $('#employeeId').empty();
+        let currentDivision = $('select#divisionId option:selected').text()
+        $('#employeeId').attr('data-concern', currentDivision);
+        let employeeDivision = await boardEmployeeChecking(window['employeeData']);
+        employeeDivision.forEach(element => {
+            let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+            $('#employeeId').append(html);
+        });
+    
+        let dataBoard = boardMemberJoin.filter(function (e) {
+            return e.departmen_id == currentVal;
+        })
+        dataBoard.forEach(element => {
+            $('option[value=' + element.account_id + ']').remove();
+        });
+    }
 })
 
 async function getEmployee() {
@@ -869,7 +873,7 @@ async function getDivision() {
                 "signature": ct.signature
             }
         }
-        b = await getData(param);
+        let b = await getData(param);
         if (b.responseCode == '200') {
             resolve(b.data);
         } else {
@@ -956,11 +960,12 @@ $(document).on('click', '#addGroupTask', function () {
                         text: result.responseMessage
                     };
                     callNotif(param);
+                    $('.boardContentData').empty();
                     $('.boardContent').empty();
                     $('.boardHeader').empty();
                     let gt = await getGroupTask(thisId);
                     if (gt.responseCode == '200') {
-                        gt.data = await groupTaskChecking(gt.data);
+                        gt.data = await groupTaskChecking(gt.data,boardType);
                         window['groupTask' + thisId + ''] = gt.data;
                         $.ajax({
                             url: 'projectBoard',
@@ -971,8 +976,8 @@ $(document).on('click', '#addGroupTask', function () {
                                 "Cache-Control": "no-cache",
                             },
                             success: function (result) {
-                                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                                $('.boardContent').html(result);
+                                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                                $('.boardContentData').html(result);
                                 let pass = {
                                     boardName: boardName,
                                     camelized: camelized,
