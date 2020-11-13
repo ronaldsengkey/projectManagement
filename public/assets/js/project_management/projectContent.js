@@ -72,7 +72,11 @@ async function domBoardContent() {
 
 async function domTaskTable(data, id, result, boardMember) {
   let htmlTask;
-  let emptyTable = '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
+  let emptyTable = '<div class="row w-100">' +
+    '<div class="progressBar col-12 mb-2" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>'+
+    '<div class="progressBarPrio col-12 mb-3" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>' +
+    '</div>' +
+    '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
     '<thead class="text-center">' +
     '<tr>' +
     '<th>Task Name</th>' +
@@ -88,8 +92,6 @@ async function domTaskTable(data, id, result, boardMember) {
     '<tbody class="dataTask text-center">' +
     '<tr>' +
     '<td class="newTask" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '" colspan="8">+ Add Task</td>' +
-    '</tr><tr>' +
-    '<td colspan="4" class="progressBar" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></td><td colspan="4" class="progressBarPrio" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></td>' +
     '</tr>' +
     '</tbody>' +
     '</table>';
@@ -268,7 +270,7 @@ async function processProgressBar(data, idGroup) {
   let waitingWidth = (totalWaiting / countTotal) * 100;
   let noStatusWidth = (totalNoStatus / countTotal) * 100;
 
-  let htmlProgress = '<div class="row"><div class="col-lg-2" style="align-self:center;">Status </div><div class="col-lg-10"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
+  let htmlProgress = '<div class="row"><div class="col-md-2 col-lg-1" style="align-self:center;">Status </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
     '<div data-identity="Done" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Done ' + totalDone + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped lowLabel" role="progressbar" style="width: ' + doneWidth + '%" aria-valuenow=' + totalDone + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + doneWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Working on it" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Working on it ' + totalWorking + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped mediumLabel" role="progressbar" style="width: ' + workingWidth + '%" aria-valuenow=' + totalWorking + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + workingWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Stuck" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Stuck ' + totalStuck + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped highLabel" role="progressbar" style="width: ' + stuckWidth + '%" aria-valuenow=' + totalStuck + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + stuckWidth.toFixed(1) + '&</div>' +
@@ -513,7 +515,7 @@ async function processProgressBarPrio(data, idGroup) {
   let urgentWidth = (totalUrgent / countTotal) * 100;
   let noPriorityWidth = (totalNoPriority / countTotal) * 100;
 
-  let htmlProgress = '<div class="row"><div class="col-lg-2" style="align-self:center;">Priority </div><div class="col-lg-10"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
+  let htmlProgress = '<div class="row"><div class="col-lg-1 col-md-2" style="align-self:center;">Priority </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height:2.5vh;">' +
     '<div data-identityprio="Low" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Low ' + totalLow + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped lowLabel" role="progressbar" style="width: ' + lowWidth + '%" aria-valuenow=' + totalLow + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + lowWidth.toFixed(1) + '%</div>' +
     '<div data-identityprio="Medium" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Medium ' + totalMedium + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped mediumLabel" role="progressbar" style="width: ' + mediumWidth + '%" aria-valuenow=' + totalMedium + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + mediumWidth.toFixed(1) + '%</div>' +
     '<div data-identityprio="High" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="High ' + totalHigh + '/' + countTotal + '" class="progress-bar progressPrio progress-bar-striped highLabel" role="progressbar" style="width: ' + highWidth + '%" aria-valuenow=' + totalHigh + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + highWidth.toFixed(1) + '&</div>' +

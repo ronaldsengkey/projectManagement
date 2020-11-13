@@ -20,7 +20,9 @@ async function globalGradeChecking(concern,data,type = ''){
         case 'groupTask':
             // Super Admin Ultipay, CEO, CTO
             if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
-                processedData = data;
+                processedData = data.filter(function(e){
+                    return parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id
+                })
                 return processedData;
             } 
             // Manager
@@ -83,7 +85,9 @@ async function globalGradeChecking(concern,data,type = ''){
         case 'addBoardEmployee':
             // Super Admin Ultipay, CEO, CTO
             if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
-                processedData = data;
+                processedData = data.filter(function(e){
+                    return parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id
+                })
                 return processedData;
             } 
             // Manager
