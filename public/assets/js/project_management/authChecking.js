@@ -39,65 +39,92 @@ async function globalGradeChecking(concern,data,type = ''){
         case 'groupTask':
             // Super Admin Ultipay, CEO, CTO
             if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
-                processedData = data.filter(function(e){
-                    return parseInt(e.grade) == (parseInt(ct.grade)+1)
-                })
+                if(type == 'Main'){
+                    processedData = data;
+                } else {
+                    processedData = data.filter(function(e){
+                        let isMember = JSON.parse(e.member).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+
+                        let isPic = JSON.parse(e.pic).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+                        if(isMember.length > 0 && isPic.length > 0) return e;
+                    })
+                }
                 return processedData;
             } 
             // Manager
             else if(ct.grade == '3') {
-                let managerDivision = ct.division_id;
-                processedData = data.filter(function(e){
-                    return e.division_id == managerDivision && e.grade >= ct.grade
-                })
+                if(type == 'Main'){
+                    processedData = data;
+                } else {
+                    processedData = data.filter(function(e){
+                        let isMember = JSON.parse(e.member).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+
+                        let isPic = JSON.parse(e.pic).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+                        if(isMember.length > 0 && isPic.length > 0) return e;
+                    })
+                }
                 return processedData;
             }
             // Supervisor
             else if(ct.grade == '4') {
-                let spvDivision = ct.division_id;
-                processedData = data.filter(function(e){
-                    if(type == 'Private'){
-                        let accepted = window['dataBoardMember'+e.board_id+''].filter(function(f){
-                            if(f.account_id == ct.id_employee){
-                                return true;
-                            }
+                if(type == 'Main'){
+                    processedData = data;
+                } else {
+                    processedData = data.filter(function(e){
+                        let isMember = JSON.parse(e.member).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
                         })
-                        if(accepted.length > 0) return e;
-                    } else
-                    return e.division_id == spvDivision && e.grade >= ct.grade
-                })
+
+                        let isPic = JSON.parse(e.pic).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+                        if(isMember.length > 0 && isPic.length > 0) return e;
+                    })
+                }
                 return processedData;
             }
             // Staff
             else if(ct.grade == '5') {
-                let staffDivision = ct.division_id;
-                processedData = data.filter(function(e){
-                    if(type == 'Private'){
-                        let accepted = window['dataBoardMember'+e.board_id+''].filter(function(f){
-                            if(f.account_id == ct.id_employee){
-                                return true;
-                            }
+                if(type == 'Main'){
+                    processedData = data;
+                } else {
+                    processedData = data.filter(function(e){
+                        let isMember = JSON.parse(e.member).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
                         })
-                        if(accepted.length > 0) return e;
-                    } else
-                    return e.division_id == staffDivision && e.grade >= ct.grade
-                })
+
+                        let isPic = JSON.parse(e.pic).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+                        if(isMember.length > 0 && isPic.length > 0) return e;
+                    })
+                }
                 return processedData;
             }
             // Part Timer
             else if(ct.grade == '6') {
-                let partTimerDivision = ct.division_id;
-                processedData = data.filter(function(e){
-                    if(type == 'Private'){
-                        let accepted = window['dataBoardMember'+e.board_id+''].filter(function(f){
-                            if(f.account_id == ct.id_employee){
-                                return true;
-                            }
+                if(type == 'Main'){
+                    processedData = data;
+                } else {
+                    processedData = data.filter(function(e){
+                        let isMember = JSON.parse(e.member).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
                         })
-                        if(accepted.length > 0) return e;
-                    } else
-                    return e.division_id == partTimerDivision && e.grade >= ct.grade
-                })
+
+                        let isPic = JSON.parse(e.pic).filter(function(s){
+                            if(s.account_id == ct.id_employee) return true;
+                        })
+                        if(isMember.length > 0 && isPic.length > 0) return e;
+                    })
+                }
                 return processedData;
             }
             break;

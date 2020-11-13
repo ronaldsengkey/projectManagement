@@ -423,7 +423,7 @@ $(document).on('click', '.commentTask', async function () {
           $('.commentContent[data-id=' + id + ']').empty();
         }
       }
-    }, 60000);
+    }, 10000);
 
     $('#commentModal').on('hidden.bs.modal', function (e) {
       clearInterval(intervalComment);
@@ -437,7 +437,10 @@ $(document).on('click', '.commentTask', async function () {
   try {
     window['dataCommentTeam' + groupid + ''].forEach(element => {
       let random = Math.floor(Math.random() * 4) + 1;
-      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+window['color'+element.account_id]+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>');
+      let choose;
+      if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+      else choose = window['color'+element.account_id];
+      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+choose+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>');
     });
   } catch (e) {
     $('.commentTaskMember').append('<div>No member yet</div>');

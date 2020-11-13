@@ -23,13 +23,16 @@ async function domBoardContent() {
   // let boardMember = JSON.stringify($('#addGroupTask').data('member'));
   let boardMember = window['groupTask' + id + ''];
   if(boardType == 'Private') await appendLegend(id);
-
   window['groupTask' + id + ''].forEach(element => {
     try{
-      window['dataBoardMember' + id + ''].forEach(element2 => {
-        window['color'+element2.account_id] = element2.color;
-        window['colorName'+element2.account_name] = element2.color;
-      });
+      if(boardType == 'Private'){
+        window['dataBoardMember' + id + ''].forEach(element2 => {
+          window['color'+element2.account_id] = element2.color;
+          window['colorName'+element2.account_name] = element2.color;
+        });
+      } else {
+        window['color'+JSON.parse(element.pic)[0].account_id] = getRandomColor();
+      }
     }catch(e){
       console.log('catch color define');
     }
@@ -567,9 +570,15 @@ function processReplyData(replyData, replyId, id) {
     dataReply.forEach(function (element, index) {
       let htmlReply;
       if (element.user_create != ct.name) {
-        htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+        let choose;
+        if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
+        else choose = window['colorName'+element.user_create];
+        htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
       } else {
-        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+        let choose;
+        if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
+        else choose = window['colorName'+element.user_create];
+        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
       }
       $('.replyComment[data-id=' + replyId + ']').append(htmlReply);
 
@@ -600,7 +609,11 @@ async function domComment(commentData, id) {
       '</footer>' +
       '</blockquote>';
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div><hr/>';
+      let choose;
+      if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
+        else choose = window['colorName'+element.user_create];
+
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 
@@ -622,7 +635,10 @@ function processTeamData(data) {
   data.member = JSON.parse(data.member);
   data.member.forEach(element => {
     let rand = Math.floor(Math.random() * 4) + 1;
-    html += '<div class="memberLogo" style="background:'+window['color'+element.account_id]+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>';
+    let choose;
+    if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+    else choose = window['color'+element.account_id];
+    html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>';
   });
   return html;
 }
