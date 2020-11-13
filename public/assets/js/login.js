@@ -31,7 +31,7 @@ function loadingDeactivated() {
 loadingDeactivated();
 
 $(function () {
-    disableDevTools();
+    // disableDevTools();
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname

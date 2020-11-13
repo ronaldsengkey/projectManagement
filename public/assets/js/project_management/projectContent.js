@@ -2,8 +2,18 @@
 
 $(async function () {
   $('#chartSection').prev().removeClass('d-none');
+  $('#chartSection').remove();
   await domBoardContent();
 })
+
+async function appendLegend(id){
+  let gridTag = '<div class="gridLayout3">';
+  window['dataBoardMember' + id + ''].forEach(function(e){
+    gridTag += '<div class="text-center"><span class="picLogo text-white" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+  })
+  gridTag += '</div>';
+  $(gridTag).insertBefore($('.accordionBoard'))
+}
 
 async function domBoardContent() {
   let id = $('#addGroupTask').data('id');
@@ -12,8 +22,17 @@ async function domBoardContent() {
   let boardType = $('#addGroupTask').data('boardtype');
   // let boardMember = JSON.stringify($('#addGroupTask').data('member'));
   let boardMember = window['groupTask' + id + ''];
+  if(boardType == 'Private') await appendLegend(id);
 
   window['groupTask' + id + ''].forEach(element => {
+    try{
+      window['dataBoardMember' + id + ''].forEach(element2 => {
+        window['color'+element2.account_id] = element2.color;
+        window['colorName'+element2.account_name] = element2.color;
+      });
+    }catch(e){
+      console.log('catch color define');
+    }
     let rand = (Math.floor(Math.random() * 4) + 1);
     let camelizeBoard = camelize(element.name);
     let joinBoardAndId = camelize(element.name) + element.board_id;
@@ -23,7 +42,7 @@ async function domBoardContent() {
       '<div class="row"><div class="col-lg-10">' +
       '<h2 class="mb-0">' +
       '<button class="btn btn-link btn-block text-left toCollapse" type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
-      '<span class="picLogo' + rand + '" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
+      '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
       '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element._id + ' data-trigger="focus" data-toggle="popover"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>' +
@@ -127,11 +146,10 @@ async function domTaskTable(data, id, result, boardMember) {
       if (havePic) {
         let rand = (Math.floor(Math.random() * 4) + 1);
         window['picTask' + element._id + ''] = element.pic;
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo' + rand + '" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
+        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
       }
-      console.log("haveTeam::", haveTeam);
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id + '']);
@@ -180,8 +198,6 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       if (haveComment) {
-        console.log("element::", element);
-        console.log("element.comment::", element.comment);
         window['dataComment' + element._id + ''] = "[]";
         // window['dataComment' + element._id + ''] = element.comment;
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
@@ -551,9 +567,9 @@ function processReplyData(replyData, replyId, id) {
     dataReply.forEach(function (element, index) {
       let htmlReply;
       if (element.user_create != ct.name) {
-        htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+        htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
       } else {
-        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" data-toggle="tooltip" data-placement="bottom" title="' + element.comment + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
       }
       $('.replyComment[data-id=' + replyId + ']').append(htmlReply);
 
@@ -566,6 +582,7 @@ async function domComment(commentData, id) {
   $('.commentContent[data-id=' + id + ']').empty();
   let dataComment = commentData.reverse();
   dataComment.forEach(function (element, index) {
+    console.log('ele comm',element);
     let haveReply = element.reply ?? false;
     let cardComment = '<div class="card p-3 mb-3 cardForComment" data-id=' + element._id + '>';
 
@@ -583,7 +600,7 @@ async function domComment(commentData, id) {
       '</footer>' +
       '</blockquote>';
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div><hr/>';
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+element.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 
@@ -605,7 +622,7 @@ function processTeamData(data) {
   data.member = JSON.parse(data.member);
   data.member.forEach(element => {
     let rand = Math.floor(Math.random() * 4) + 1;
-    html += '<div class="memberLogo' + rand + '"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>';
+    html += '<div class="memberLogo" style="background:'+window['color'+element.account_id]+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>';
   });
   return html;
 }

@@ -16,6 +16,22 @@ $(async function () {
     appendFilter([filterTimeRanges]);
 })
 
+function loadingActivated() {
+    const loading = '<div id="loadingWrap">' +
+        '<div class="text-center contentLoadingWrap">' +
+        '<div class="lds-ripple"><div></div><div></div></div>' +
+        '</div>' +
+        '</div>';
+    $(loading).insertBefore('section');
+    $('#loadingWrap').fadeIn('slow');
+}
+
+function loadingDeactivated() {
+    $('#loadingWrap').fadeOut('slow', function () {
+        $('#loadingWrap').remove();
+    });
+}
+
 $(document).on('click', '.removeSidebar', function () {
     if ($('#sidebar-wrapper').hasClass('w767')) {
         $('#sidebar-wrapper').removeClass('w767');
@@ -123,9 +139,9 @@ async function manageBoardData(data) {
 
     $('.boardListPlaceMain').empty();
     $('.boardListPlacePrivate').empty();
-    let publicBoard = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Public Board</div>';
+    let publicBoard = '<div class="publicBoardLabelName text-center mt-2" style="font-size: xx-large;">Public Board</div>';
     let privateBoard = '<div class="privateBoardLabel text-center mt-2" style="font-size: xx-large;">Private Board</div>';
-    if ($('.publicBoardLabel').length == 0) $(publicBoard).insertBefore($('.boardListPlaceMain'));
+    if ($('.publicBoardLabelName').length == 0) $(publicBoard).insertBefore($('.boardListPlaceMain'));
     if ($('.privateBoardLabel').length == 0) $(privateBoard).insertBefore($('.boardListPlacePrivate'));
 
     boardMain.forEach(element => {
@@ -142,17 +158,20 @@ async function manageBoardData(data) {
 
     boardPrivate.forEach(element => {
         if (element.user_create == ct.name) {
+            element.member = JSON.parse(element.member);
+            window['dataBoardMember' + element._id + ''] = element.member;
             let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
+        } else {
+            element.member = JSON.parse(element.member);
+            window['dataBoardMember' + element._id + ''] = element.member;
+            element.member.forEach(elementMember => {
+                if (elementMember.account_id == ct.id_employee) {
+                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+                    $('.boardListPlacePrivate').append(htmlPrivate);
+                }
+            });
         }
-        element.member = JSON.parse(element.member);
-        window['dataBoardMember' + element._id + ''] = element.member;
-        element.member.forEach(elementMember => {
-            if (elementMember.account_id == ct.id_employee) {
-                let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
-                $('.boardListPlacePrivate').append(htmlPrivate);
-            }
-        });
     })
 
     feather.replace();
@@ -522,7 +541,34 @@ async function getGroupTask(id) {
     });
 }
 
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function hasDuplicates(values) {
+    var valueArr = values.map(function(item){ return item.color });
+    var isDuplicate = valueArr.some(function(item, idx){ 
+        return valueArr.indexOf(item) != idx 
+    });
+    return isDuplicate;
+}
+
+async function distributeColor(id){
+    window['dataBoardMember' + id + ''].forEach(element => {
+        element['color'] = getRandomColor()
+    });
+    // check duplicates
+    let checkDupe = hasDuplicates(window['dataBoardMember' + id + ''])
+    if(checkDupe) distributeColor(id);
+}
+
 $(document).on('click', '.boardList', async function () {
+    loadingActivated();
     let boardName = capitalize($(this).data('name'));
     let camelized = camelize($(this).data('name'));
     let type = $(this).data('type');
@@ -537,61 +583,67 @@ $(document).on('click', '.boardList', async function () {
     $('.boardContent').empty();
     $('.boardHeader').empty();
     if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
-    let groupTask = await getGroupTask(id);
-    if (groupTask.responseCode == '200') {
-        // ANCHOR jgn lupa uncomment
-        groupTask.data = await groupTaskChecking(groupTask.data,type);
-        window['groupTask' + id + ''] = groupTask.data;
-        $.ajax({
-            url: 'projectBoard',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            success: function (result) {
-                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                $('.boardContentData').html(result);
-                let pass = {
-                    boardName: boardName,
-                    camelized: camelized,
-                    name: name,
-                    type: type,
-                    id: id,
-                    member: JSON.stringify(window['dataBoardMember' + id + ''])
-                };
-                domBoardTools(pass)
-            }
-        })
-    } else if (groupTask.responseCode == '404') {
-        $.ajax({
-            url: 'projectBoard',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            success: function (result) {
-                $('.boardContentData').html(result);
-                let pass = {
-                    boardName: boardName,
-                    camelized: camelized,
-                    name: name,
-                    type: type,
-                    id: id,
-                    member: JSON.stringify(window['dataBoardMember' + id + ''])
-                };
-                domBoardTools(pass)
-            }
-        })
-    } else {
-        let param = {
-            type: 'error',
-            text: groupTask.responseMessage
-        };
-        callNotif(param);
+    try {
+        let groupTask = await getGroupTask(id);
+        loadingDeactivated();
+        if (groupTask.responseCode == '200') {
+            if(type == 'Private') distributeColor(id)
+            // ANCHOR jgn lupa uncomment
+            groupTask.data = await groupTaskChecking(groupTask.data,type);
+            window['groupTask' + id + ''] = groupTask.data;
+            $.ajax({
+                url: 'projectBoard',
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "*/*",
+                    "Cache-Control": "no-cache",
+                },
+                success: function (result) {
+                    $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                    $('.boardContentData').html(result);
+                    let pass = {
+                        boardName: boardName,
+                        camelized: camelized,
+                        name: name,
+                        type: type,
+                        id: id,
+                        member: JSON.stringify(window['dataBoardMember' + id + ''])
+                    };
+                    domBoardTools(pass)
+                }
+            })
+        } else if (groupTask.responseCode == '404') {
+            $.ajax({
+                url: 'projectBoard',
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "*/*",
+                    "Cache-Control": "no-cache",
+                },
+                success: function (result) {
+                    $('.boardContentData').html(result);
+                    let pass = {
+                        boardName: boardName,
+                        camelized: camelized,
+                        name: name,
+                        type: type,
+                        id: id,
+                        member: JSON.stringify(window['dataBoardMember' + id + ''])
+                    };
+                    domBoardTools(pass)
+                }
+            })
+        } else {
+            let param = {
+                type: 'error',
+                text: groupTask.responseMessage
+            };
+            callNotif(param);
+        }
+    }catch(e){
+        loadingDeactivated();
     }
 })
 
@@ -766,45 +818,58 @@ async function postBoard(body) {
 
 $(document).on('click change', 'input[name="swal2-radio"]', async function () {
     if ($(this).val() == 'main') {
-        $('#employeeId').addClass('d-none');
-        $('#divisionId').addClass('d-none');
+        $('.rowEmp').remove();
+        $('#divisionId').remove();
     } else {
         $('#employeeId').removeClass('d-none');
         $('#divisionId').removeClass('d-none');
 
         if ($('#divisionId').length == 0 && $('#employeeId').length == 0) {
             Swal.showLoading();
-            let empHtml = '<div class="row"><div class="col-lg-9"><select id="employeeId" multiple class="swal2-input d-none" style="height:auto;"><option id="emptyMember">Please select board member</option></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addMember">Add</button></div></div>';
+            let empHtml = '<div class="row rowEmp"><div class="col-lg-9"><select id="employeeId" multiple class="swal2-input d-none" style="height:auto;"><option id="emptyMember">Please select board member</option></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addMember">Add</button></div></div>';
             let divHtml = '<select id="divisionId" class="swal2-input d-none"><option id="emptyDivision">Please select board division</option></select>';
             $('.swal2-content').append(divHtml);
             $('.swal2-content').append(empHtml);
             $('.swal2-content').append('<div class="accordionPlace"></div>');
             $('#employeeId').prop('disabled', true);
             $('#divisionId').prop('disabled', true);
-            let divisi = await getDivision();
-            let divisiDone = false;
-            let empDone = false;
-            if (divisi != 500) {
-                $('#emptyDivision').remove();
-                divisiDone = !divisiDone
-                let newDivisi = await boardDivisionChecking(divisi);
-                $('#divisionId').append("<option value=''>Choose...</option>");
-                newDivisi.forEach(element => {
-                    let html = '<option value=' + element.id + '>' + element.name + '</option>';
-                    $('#divisionId').append(html);
-                });
+            let divisi;
+            let employee;
+
+            try {
+                divisi = await getDivision();
+                employee = await getEmployee();
+
+                let divisiDone = false;
+                let empDone = false;
+                if (divisi != 500) {
+                    $('#emptyDivision').remove();
+                    $('#divisionId').empty()
+                    divisiDone = !divisiDone
+                    let newDivisi = await boardDivisionChecking(divisi);
+                    $('#divisionId').append("<option value=''>Choose...</option>");
+                    newDivisi.forEach(element => {
+                        let html = '<option value=' + element.id + '>' + element.name + '</option>';
+                        $('#divisionId').append(html);
+                    });
+                }
+                
+                if (employee != 500) {
+                    $('#emptyMember').remove();
+                    $('#employeeId').empty()
+                    empDone = !empDone;
+                    $('#employeeId').attr('data-concern', 'Finance');
+                }
+                if(divisiDone && empDone){
+                    $('#divisionId').prop('disabled', false);
+                    $('#employeeId').prop('disabled', false);
+                }
+                Swal.hideLoading()
+            } catch (error) {
+                amaranNotifFull('failed to get data');
+                Swal.hideLoading();
             }
-            let employee = await getEmployee();
-            if (employee != 500) {
-                $('#emptyMember').remove();
-                empDone = !empDone;
-                $('#employeeId').attr('data-concern', 'Finance');
-            }
-            if(divisiDone && empDone){
-                $('#divisionId').prop('disabled', false);
-                $('#employeeId').prop('disabled', false);
-            }
-            Swal.hideLoading()
+            
         }
     }
 })

@@ -54,7 +54,7 @@ $(document).on('click', '.profilePict', function () {
 
 $(async function () {
     loadingActivated();
-    disableDevTools();
+    // disableDevTools();
     try {
         // if (accountProfile !== 'undefined' && accountProfile != null) {
         //     let ct = JSON.parse(accountProfile);
@@ -1048,6 +1048,7 @@ function getProjectManagement(){
             $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
             $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
             $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
+            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/page-filter.js", function (data, textStatus, jqxhr) {})
             $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
             $('#mainContent').append(callback);
         }

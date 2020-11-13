@@ -34,7 +34,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
           '</footer>' +
           '</blockquote>';
 
-        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div>';
+        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div>';
 
         cardCommentNew += '<hr/>';
         cardCommentNew += emptyComment;
@@ -106,7 +106,7 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
           maxId = Math.max(maxId, $(this).data('index'))
         });
         let indexNew = maxId + 1;
-        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + indexNew + '><div class="col-lg-2 nameReply" data-toggle="tooltip" data-placement="bottom" title="' + res.data.comment + '"><span class="initialName">' + getInitials(res.data.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + res.data._id + ' data-index=' + indexNew + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + res.data.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + res.data._id + ' data-aidi=' + res.data._id + ' data-index=' + indexNew + ' data-id=' + res.data._id + ' data-feather="trash-2"></i></div></div></div></div></div>';
+        let htmlReply = '<div class="row mb-3 rowDelete" data-index=' + indexNew + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+res.data.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + res.data.comment + '"><span class="initialName">' + getInitials(res.data.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + res.data._id + ' data-index=' + indexNew + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + res.data.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + res.data._id + ' data-aidi=' + res.data._id + ' data-index=' + indexNew + ' data-id=' + res.data._id + ' data-feather="trash-2"></i></div></div></div></div></div>';
         $(htmlReply).insertBefore($('.rowDelete').first());
         feather.replace();
         $(this).val('');
@@ -159,42 +159,44 @@ $(document).on('click', '.menuRename', function () {
             text: result.responseMessage
           };
           callNotif(param);
-          $('.boardContent').empty();
-          $('.boardHeader').empty();
-          let gt = await getGroupTask(renameBoardId);
-          if (gt.responseCode == '200') {
-            gt.data = await groupTaskChecking(gt.data,boardType);
-            console.log('board id', renameBoardId, gt.data);
-            window['groupTask' + renameBoardId + ''] = gt.data;
-            $.ajax({
-              url: 'projectBoard',
-              method: 'GET',
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-              },
-              success: function (result) {
-                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                $('.boardContent').html(result);
-                let pass = {
-                  boardName: boardName,
-                  camelized: camelized,
-                  name: oldName,
-                  id: renameBoardId,
-                  type: boardType,
-                  member: JSON.stringify(window['dataBoardMember' + renameBoardId + ''])
-                };
-                domBoardTools(pass)
-              }
-            })
-          } else {
-            let param = {
-              type: 'error',
-              text: groupTask.responseMessage
-            };
-            callNotif(param);
-          }
+          $('a[data-id='+renameBoardId+']').click();
+          $('#chartSection').remove();
+          // $('.boardContent').empty();
+          // $('.boardHeader').empty();
+          // let gt = await getGroupTask(renameBoardId);
+          // if (gt.responseCode == '200') {
+          //   gt.data = await groupTaskChecking(gt.data,boardType);
+          //   console.log('board id', renameBoardId, gt.data);
+          //   window['groupTask' + renameBoardId + ''] = gt.data;
+          //   $.ajax({
+          //     url: 'projectBoard',
+          //     method: 'GET',
+          //     headers: {
+          //       "Content-Type": "application/json",
+          //       "Accept": "*/*",
+          //       "Cache-Control": "no-cache",
+          //     },
+          //     success: function (result) {
+          //       $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+          //       $('.boardContent').html(result);
+          //       let pass = {
+          //         boardName: boardName,
+          //         camelized: camelized,
+          //         name: oldName,
+          //         id: renameBoardId,
+          //         type: boardType,
+          //         member: JSON.stringify(window['dataBoardMember' + renameBoardId + ''])
+          //       };
+          //       domBoardTools(pass)
+          //     }
+          //   })
+          // } else {
+          //   let param = {
+          //     type: 'error',
+          //     text: groupTask.responseMessage
+          //   };
+          //   callNotif(param);
+          // }
         } else {
           param = {
             type: 'error',
@@ -236,41 +238,43 @@ $(document).on('click', '.menuDelete', function () {
             text: result.responseMessage
           };
           callNotif(param);
-          $('.boardContent').empty();
-          $('.boardHeader').empty();
-          let gt = await getGroupTask(deleteBoardId);
-          if (gt.responseCode == '200') {
-            gt.data = await groupTaskChecking(gt.data,boardType);
-            window['groupTask' + deleteBoardId + ''] = gt.data;
-            $.ajax({
-              url: 'projectBoard',
-              method: 'GET',
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-              },
-              success: function (result) {
-                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                $('.boardContent').html(result);
-                let pass = {
-                  boardName: boardName,
-                  camelized: camelized,
-                  name: oldName,
-                  id: deleteBoardId,
-                  type: boardType,
-                  member: JSON.stringify(window['dataBoardMember' + deleteBoardId + ''])
-                };
-                domBoardTools(pass)
-              }
-            })
-          } else {
-            let param = {
-              type: 'error',
-              text: groupTask.responseMessage
-            };
-            callNotif(param);
-          }
+          $('a[data-id='+deleteBoardId+']').click();
+          $('#chartSection').remove();
+          // $('.boardContent').empty();
+          // $('.boardHeader').empty();
+          // let gt = await getGroupTask(deleteBoardId);
+          // if (gt.responseCode == '200') {
+          //   gt.data = await groupTaskChecking(gt.data,boardType);
+          //   window['groupTask' + deleteBoardId + ''] = gt.data;
+          //   $.ajax({
+          //     url: 'projectBoard',
+          //     method: 'GET',
+          //     headers: {
+          //       "Content-Type": "application/json",
+          //       "Accept": "*/*",
+          //       "Cache-Control": "no-cache",
+          //     },
+          //     success: function (result) {
+          //       $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+          //       $('.boardContent').html(result);
+          //       let pass = {
+          //         boardName: boardName,
+          //         camelized: camelized,
+          //         name: oldName,
+          //         id: deleteBoardId,
+          //         type: boardType,
+          //         member: JSON.stringify(window['dataBoardMember' + deleteBoardId + ''])
+          //       };
+          //       domBoardTools(pass)
+          //     }
+          //   })
+          // } else {
+          //   let param = {
+          //     type: 'error',
+          //     text: groupTask.responseMessage
+          //   };
+          //   callNotif(param);
+          // }
         } else {
           param = {
             type: 'error',
@@ -433,7 +437,7 @@ $(document).on('click', '.commentTask', async function () {
   try {
     window['dataCommentTeam' + groupid + ''].forEach(element => {
       let random = Math.floor(Math.random() * 4) + 1;
-      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo' + random + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>');
+      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+window['color'+element.account_id]+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>');
     });
   } catch (e) {
     $('.commentTaskMember').append('<div>No member yet</div>');
@@ -699,9 +703,9 @@ $(document).on('change', '.emploTeam', function () {
   let random = Math.floor(Math.random() * 4) + 1;
 
   if (haveTeam) {
-    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo' + random + '" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
   } else {
-    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo' + random + '" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
     $(this).data('team', 'true');
     $('.colTeam[data-id=' + id + ']').css('display', 'flex');
     $('.colTeam[data-id=' + id + ']').addClass('justify-content-center');

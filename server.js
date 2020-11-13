@@ -684,14 +684,19 @@ function iterateObject(obj) {
 
 function iterateObjectDecrypt(obj) {
   let temp;
+ 
   Object.keys(obj).forEach((key) => {
-    if (typeof obj[key] === "object") {
-      iterateObjectDecrypt(obj[key]);
-    } else {
-      temp = obj[key];
-      obj[key] = cryptography.decryptMessage(obj[key]);
-      if (obj[key] == "") obj[key] = temp;
-      if (obj[key].toString().includes("error")) obj[key] = temp;
+    try{
+      if (typeof obj[key] === "object") {
+        iterateObjectDecrypt(obj[key]);
+      } else {
+        temp = obj[key];
+        obj[key] = cryptography.decryptMessage(obj[key]);
+        if (obj[key] == "") obj[key] = temp;
+        if (obj[key].toString().includes("error")) obj[key] = temp;
+      }
+    }catch(e){
+      obj[key] = false;
     }
   });
   return obj;
@@ -2059,12 +2064,12 @@ async function convertURLRedis(data) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  // hostIP = returnedConfig.SERVER_WAHYU;
-  // hostNameServer = 'SERVER_WAHYU';
-  hostIP = returnedConfig.AWS_SERVER;
-  hostNameServer = "AWS_SERVER";
+  hostIP = returnedConfig.SERVER_SYAFRI;
+  hostNameServer = 'SERVER_SYAFRI';
+  // hostIP = returnedConfig.AWS_SERVER;
+  // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.AWS_SERVER;
+  hostIPAlt = returnedConfig.SERVER_SYAFRI;
 
   // ANCHOR MAIN SERVER PORT NAME AND LINK
   accPort = "8443/account";
@@ -2074,8 +2079,8 @@ async function defineConfig() {
   portTrans = "PORT_TRANSACTION_AWS";
 
   // ANCHOR LOCAL URL
-  localUrl = "http://sandbox.dashboard.ultipay.id";
-  // localUrl = "http://192.168.0.100";
+  // localUrl = "http://sandbox.dashboard.ultipay.id";
+  localUrl = "http://localhost";
 
   // ANCHOR LOCAL PORT
   employeeLocalPort = "8103";
