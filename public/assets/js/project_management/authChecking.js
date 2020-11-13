@@ -40,7 +40,7 @@ async function globalGradeChecking(concern,data,type = ''){
             // Super Admin Ultipay, CEO, CTO
             if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
                 processedData = data.filter(function(e){
-                    return parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id
+                    return parseInt(e.grade) == (parseInt(ct.grade)+1)
                 })
                 return processedData;
             } 
@@ -48,7 +48,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '3') {
                 let managerDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return e.division_id == managerDivision && e.grade >= ct.grade && e.company_id == ct.company_id
+                    return e.division_id == managerDivision && e.grade >= ct.grade
                 })
                 return processedData;
             }
@@ -64,7 +64,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         })
                         if(accepted.length > 0) return e;
                     } else
-                    return e.division_id == spvDivision && e.grade >= ct.grade && e.company_id == ct.company_id
+                    return e.division_id == spvDivision && e.grade >= ct.grade
                 })
                 return processedData;
             }
@@ -80,7 +80,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         })
                         if(accepted.length > 0) return e;
                     } else
-                    return e.division_id == staffDivision && e.grade >= ct.grade && e.company_id == ct.company_id
+                    return e.division_id == staffDivision && e.grade >= ct.grade
                 })
                 return processedData;
             }
@@ -96,7 +96,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         })
                         if(accepted.length > 0) return e;
                     } else
-                    return e.division_id == partTimerDivision && e.grade >= ct.grade && e.company_id == ct.company_id
+                    return e.division_id == partTimerDivision && e.grade >= ct.grade
                 })
                 return processedData;
             }
