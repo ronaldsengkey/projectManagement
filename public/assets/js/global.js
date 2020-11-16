@@ -76,17 +76,23 @@ function logout() {
 function amaranNotifFull(title,position){
     if(position == undefined){
         $.amaran({
-            'message'           :title,
-            'cssanimationIn'    :'bounceInDown',
-            'cssanimationOut'   :'zoomOutUp',
-            'position'          :'top right'
+            content: {
+                'message'           :title,
+                'cssanimationIn'    :'bounceInDown',
+                'cssanimationOut'   :'zoomOutUp',
+                'position'          :'top right'
+            },
+            theme:'default ok'
         });
     } else {
         $.amaran({
-            'message'           :title,
-            'cssanimationIn'    :'bounceInDown',
-            'cssanimationOut'   :'zoomOutUp',
-            'position'          :position
+            content: {
+                'message'           :title,
+                'cssanimationIn'    :'bounceInDown',
+                'cssanimationOut'   :'zoomOutUp',
+                'position'          :position
+            },
+            theme:'default ok'
         });
     }
     

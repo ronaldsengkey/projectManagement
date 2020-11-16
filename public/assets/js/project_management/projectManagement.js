@@ -65,6 +65,7 @@ async function getBoard() {
             "signature": ct.signature
         },
         success: function (result) {
+            loadingDeactivated();
             if (result.responseCode == '200') {
                 manageBoardData(result.data);
             } else if (result.responseCode == '404') {
@@ -147,7 +148,7 @@ async function manageBoardData(data) {
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
         if (element.user_create == ct.name) {
-            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlaceMain').append(htmlMain);
         } else {
             let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
@@ -160,7 +161,7 @@ async function manageBoardData(data) {
         if (element.user_create == ct.name) {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
-            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
         } else {
             element.member = JSON.parse(element.member);
@@ -182,6 +183,7 @@ async function manageSummaryBoardData(data) {
     var divId = data.category;
     var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
     var chartId = 'chart'+chartName;
+    console.log('data summary',data);
 
     if(data.category == 'taskByDivisionAndStatus'){
         $('#taskByDivisionAndStatus').empty();
@@ -279,15 +281,23 @@ async function manageSummaryBoardData(data) {
 
     // }
 }
+
+function splitCamel(word) {
+    var result = word.replace(/([A-Z])/g, " $1");
+    var finalResult = result.charAt(0).toUpperCase() + result.slice(1);
+    return finalResult;
+}
+
 async function manageNullBoardData(data) {
     var divId = data.category;
     var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
     var chartId = 'chart'+chartName;
-    var node = document.getElementById('lbl'+chartName);
-    let html = node.outerHTML;
+    console.log('chartname',chartName);
+    // var node = document.getElementById('lbl'+chartName);
+    // let html = node.outerHTML;
 
     $('#'+divId).empty();
-    html += '<p class="text-center font-italic">'+data.responseMessage+'</p>';
+    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(chartName)+'<img class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></div>';
     $('#'+divId).html(html);
 
     // if(data.category == 'boardType'){
@@ -356,11 +366,12 @@ async function manageNullBoardData(data) {
 }
 $(document).on('click', '.delBoard', async function () {
     let boardId = $(this).data('id');
+    let boardName = $(this).data('name');
     let param = {
         '_id': boardId
     };
     Swal.fire({
-        title: 'Are you sure to delete this board?',
+        title: 'Are you sure to delete\n'+boardName+'\nboard?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, Delete it!',
@@ -411,7 +422,6 @@ $(document).on('click', '.editBoard', async function () {
 
 async function editBoard(bodyEdit) {
     return new Promise(async function (resolve, reject) {
-
         let editSettingsBoard = {
             settings: {
                 "async": true,
@@ -443,14 +453,20 @@ async function editBoard(bodyEdit) {
                 "signature": ct.signature
             },
             data: JSON.stringify(editSettingsBoard),
-            success: function (result) {
+            success: async function (result) {
                 if (result.responseCode == '200') {
                     let param = {
                         type: 'success',
                         text: result.responseMessage
                     };
                     callNotif(param);
-                    getBoard();
+                    try {
+                        loadingActivated();
+                        await getBoard();
+                    } catch (error) {
+                        loadingDeactivated();
+                    }
+                    
                 } else {
                     let param = {
                         type: 'error',
@@ -465,7 +481,6 @@ async function editBoard(bodyEdit) {
 
 async function deleteBoard(bodyDelete) {
     return new Promise(async function (resolve, reject) {
-
         let deleteSettingsBoard = {
             settings: {
                 "async": true,
@@ -497,14 +512,19 @@ async function deleteBoard(bodyDelete) {
                 "signature": ct.signature
             },
             data: JSON.stringify(deleteSettingsBoard),
-            success: function (result) {
+            success: async function (result) {
                 if (result.responseCode == '200') {
                     let param = {
                         type: 'success',
                         text: result.responseMessage
                     };
                     callNotif(param);
-                    getBoard();
+                    try {
+                        loadingActivated();
+                        await getBoard();
+                    } catch (error) {
+                        loadingDeactivated();
+                    }
                 } else {
                     let param = {
                         type: 'error',
@@ -586,6 +606,7 @@ $(document).on('click', '.boardList', async function () {
     try {
         let groupTask = await getGroupTask(id);
         loadingDeactivated();
+        $('#page-content-wrapper').addClass('warp-boundary');
         if (groupTask.responseCode == '200') {
             if(type == 'Private') distributeColor(id)
             // ANCHOR jgn lupa uncomment
@@ -623,6 +644,8 @@ $(document).on('click', '.boardList', async function () {
                     "Cache-Control": "no-cache",
                 },
                 success: function (result) {
+                    $('#chartSection').prev().removeClass('d-none');
+                    $('#chartSection').remove();
                     $('.boardContentData').html(result);
                     let pass = {
                         boardName: boardName,
@@ -633,6 +656,12 @@ $(document).on('click', '.boardList', async function () {
                         member: JSON.stringify(window['dataBoardMember' + id + ''])
                     };
                     domBoardTools(pass)
+
+                    let appendEmptyImage = '<img class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png"></img>';
+                    $('.boardContentData').addClass('h-100');
+                    $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
+                    $('#boardAccordion').css({'height':'inherit','padding-bottom':'35vh','opacity':'0.4'});
+                    $('#boardAccordion').append(appendEmptyImage);
                 }
             })
         } else {
@@ -701,15 +730,19 @@ function callNotifBoard(title) {
                 'user_create': ct.name
             }
             console.log('boaarr', bodyBoard);
-            return await postBoard(bodyBoard).then(function (result) {
+            return await postBoard(bodyBoard).then(async function (result) {
                 let param;
                 if (result.responseCode == '200') {
                     param = {
                         type: 'success',
                         text: result.responseMessage
                     };
-                    console.log('the post board');
-                    getBoard();
+                    try {
+                        loadingActivated();
+                        await getBoard();
+                    } catch (error) {
+                        loadingDeactivated();
+                    }
                 } else {
                     param = {
                         type: 'error',

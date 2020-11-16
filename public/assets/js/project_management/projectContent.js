@@ -20,7 +20,6 @@ async function domBoardContent() {
   let boardName = $('#addGroupTask').data('boardname');
   let camelizedBoard = $('#addGroupTask').data('concern');
   let boardType = $('#addGroupTask').data('boardtype');
-  // let boardMember = JSON.stringify($('#addGroupTask').data('member'));
   let boardMember = window['groupTask' + id + ''];
   if(boardType == 'Private') await appendLegend(id);
   window['groupTask' + id + ''].forEach(element => {

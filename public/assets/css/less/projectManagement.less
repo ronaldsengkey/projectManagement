@@ -25,6 +25,16 @@
   border: none;
 }
 
+.boardListPlaceMain {
+  max-height: 35vh;
+  overflow-y: scroll;
+}
+
+.boardListPlacePrivate {
+  max-height: 35vh;
+  overflow-y: scroll;
+}
+
 .menuRow {
   &:hover{
     background: #ffca28;
@@ -33,7 +43,8 @@
 }
 
 #sidebar-wrapper {
-  min-height: 100vh;
+  min-height: 93vh;
+  max-height: 93vh;
   margin-left: -15rem;
   -webkit-transition: margin .25s ease-out;
   -moz-transition: margin .25s ease-out;
@@ -377,4 +388,10 @@ textarea {
 .table {
   border-collapse: separate;
   border-spacing:1em 20px;
+}
+
+.warp-boundary{
+  min-height: 93vh;
+  max-height: 93vh;
+  overflow-y: hidden;
 }

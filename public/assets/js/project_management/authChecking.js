@@ -50,7 +50,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
                         })
-                        if(isMember.length > 0 && isPic.length > 0) return e;
+                        if(isMember.length > 0 || isPic.length > 0) return e;
                     })
                 }
                 return processedData;
@@ -68,7 +68,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
                         })
-                        if(isMember.length > 0 && isPic.length > 0) return e;
+                        if(isMember.length > 0 || isPic.length > 0) return e;
                     })
                 }
                 return processedData;
@@ -86,7 +86,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
                         })
-                        if(isMember.length > 0 && isPic.length > 0) return e;
+                        if(isMember.length > 0 || isPic.length > 0) return e;
                     })
                 }
                 return processedData;
@@ -104,7 +104,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
                         })
-                        if(isMember.length > 0 && isPic.length > 0) return e;
+                        if(isMember.length > 0 || isPic.length > 0) return e;
                     })
                 }
                 return processedData;
@@ -122,7 +122,7 @@ async function globalGradeChecking(concern,data,type = ''){
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
                         })
-                        if(isMember.length > 0 && isPic.length > 0) return e;
+                        if(isMember.length > 0 || isPic.length > 0) return e;
                     })
                 }
                 return processedData;

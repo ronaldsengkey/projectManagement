@@ -9,7 +9,7 @@ const mainChatService = "http://192.168.0.59";
 const localUrl = "localhost";
 
 // ANCHOR MAIN IP NAME AND PORT
-const mainIpKey = "SERVER_SYAFRI";
+const mainIpKey = "SERVER_WAHYU";
 // const mainIpKey = "AWS_SERVER";
 const backendPortKey = "PORT_BACKEND_AWS";
 const transactionPortKey = "PORT_TRANSACTION_AWS";

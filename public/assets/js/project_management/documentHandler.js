@@ -411,26 +411,28 @@ $(document).on('click', '.commentTask', async function () {
       }
     }
 
-    let intervalComment = setInterval(async () => {
-      $('.commentContent[data-id=' + id + ']').empty();
-      $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
-      let commentData = await getComment(id);
-      if (commentData != 500) {
-        if (commentData.length > 0) {
-          $('.commentContent[data-id=' + id + ']').empty('');
-          await domComment(commentData, id);
-        } else {
-          $('.commentContent[data-id=' + id + ']').empty();
-        }
-      }
-    }, 10000);
-
-    $('#commentModal').on('hidden.bs.modal', function (e) {
-      clearInterval(intervalComment);
-    })
+    
   } else {
     $('.commentContent[data-id=' + id + ']').empty();
   }
+
+  let intervalComment = setInterval(async () => {
+    $('.commentContent[data-id=' + id + ']').empty();
+    $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
+    let commentData = await getComment(id);
+    if (commentData != 500) {
+      if (commentData.length > 0) {
+        $('.commentContent[data-id=' + id + ']').empty('');
+        await domComment(commentData, id);
+      } else {
+        $('.commentContent[data-id=' + id + ']').empty();
+      }
+    }
+  }, 10000);
+
+  $('#commentModal').on('hidden.bs.modal', function (e) {
+    clearInterval(intervalComment);
+  })
 
   // write task name and member 
   $('.commentTaskName').html(taskName);
@@ -781,6 +783,7 @@ $(document).on('click', '.duedate', function () {
   );
 
   $(".dateDue").datepicker({
+    minDate: new Date(),
     onSelect: function (date) {
       let updateDueDate = {
         '_id': id,
@@ -815,8 +818,13 @@ $(document).on('click', '.timeline', function () {
   );
 
   $('input[name="datesPicker"][data-id="' + $(this).data('id') + '"]').daterangepicker({
-    opens: 'left',
+    opens: 'center',
     autoUpdateInput: false,
+    ranges: {
+        'Next 7 Days': [moment().add(6, 'days'), moment()],
+        'Next 30 Days': [moment().add(29, 'days'), moment()],
+        'Rest of this month': [moment(), moment().endOf('month')],
+    },
     locale: {
       cancelLabel: 'Clear'
     }
