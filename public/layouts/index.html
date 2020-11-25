@@ -54,16 +54,33 @@
     </div>
   </div>
 
-  <div class="modal fade" id="modalUpdateForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  <div class="modal fade modalConfirmToken" id="modalConfirmToken" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     style="display: none;" aria-hidden="true">
     <div class="modal-dialog cascading-modal modal-lg" role="document">
+
       <!--Content-->
       <div class="modal-content">
-
-
-        <div class="modal-body mb-1">
+        <div class="modal-header amber lighten-1">
+          <p class="heading lead white-text">Token</p>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" class="white-text">×</span>
+          </button>
         </div>
 
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-lg-12 align-self-center">
+                <input type="text" class="form-control tokenPlace" placeholder="Paste your token here">
+                
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-warning btnConfirm" type="button">Confirm Token</button>
+        </div>
+
+        
       </div>
       <!--/.Content-->
     </div>
@@ -114,8 +131,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
   <script defer src="public/assets/js/config.js"></script>
   <script defer src="public/assets/js/global.js"></script>
+  <script defer src="public/assets/js/project_management/trelloCall.js"></script>
   <script defer src="public/assets/js/dashboard.js"></script>
-  <script defer src="public/assets/js/socket.js"></script>
 </body>
 
 </html>

@@ -37,10 +37,11 @@ $(document).on('click', '.removeSidebar', function () {
         $('#sidebar-wrapper').removeClass('w767');
         $('#sidebar-wrapper').addClass('w768');
         $('.removeSidebar').remove();
-        $('.headerWrapper').append('<div class="removeSidebar"><i data-feather="arrow-left"></i></div>');
+        $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
     } else if ($('#sidebar-wrapper').hasClass('w768')) {
         $('#sidebar-wrapper').removeClass('w768');
         $('#sidebar-wrapper').addClass('w767');
+        $('.removeSidebar').remove();
         $('.boardPlaceHeader').prepend('<span class="removeSidebar"><i data-feather="arrow-right"></i>&nbsp;</span>');
     }
     feather.replace();
@@ -539,7 +540,6 @@ async function deleteBoard(bodyDelete) {
 
 async function getGroupTask(id) {
     return new Promise(async function (resolve, reject) {
-
         $.ajax({
             url: 'getGroupTask',
             method: 'GET',
@@ -602,7 +602,7 @@ $(document).on('click', '.boardList', async function () {
     $('.boardContentData').empty();
     $('.boardContent').empty();
     $('.boardHeader').empty();
-    if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
+    // if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
     try {
         let groupTask = await getGroupTask(id);
         loadingDeactivated();
@@ -686,7 +686,7 @@ function domBoardTools(data) {
         '</div>' +
         '</div>';
     $('.boardHeader').append(tools);
-    if ($('.removeSidebar').length == 0) $('.headerWrapper').append('<div class="removeSidebar"><i data-feather="arrow-left"></i></div>');
+    if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
 }
 
 let boardMemberJoin = [];
@@ -983,6 +983,96 @@ async function getDivision() {
 $(document).on('click', '.addBoard', async function () {
     callNotifBoard('Add Board');
 })
+
+$(document).on('click', '.goTrello', async function () {
+    loadingActivated();
+    let authRes = await goAuth();
+    if(authRes.responseCode == '200'){
+        sessionStorage.setItem('meId',JSON.parse(authRes.data).id);
+        // $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloCall.js", function (data, textStatus, jqxhr) {})
+        $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
+    } else if(authRes.responseCode == '476') {
+        activeModalConfirmToken()
+        window.open(authRes.data, "_blank", "width=750,height=750,top=400,left=900");
+    } else {
+        let param = {
+            type: 'error',
+            text: authRes.responseMessage
+        };
+        callNotif(param)
+    }
+})
+
+$(document).on('click','.btnConfirm',async function(){
+    let tokenData = $('.tokenPlace').val();
+    let confirmRes = await confirmAuthToken(tokenData);
+    if(confirmRes.responseCode == '200'){
+        let param = {
+            type: 'success',
+            text: confirmRes.responseMessage
+        };
+        callNotif(param);
+        $('#modalConfirmToken').modal('toggle');
+    } else {
+        let param = {
+            type: 'error',
+            text: confirmRes.responseMessage
+        };
+        callNotif(param);
+    }
+})
+
+function activeModalConfirmToken() {
+    $('#modalConfirmToken').modal({
+        show: true,
+        backdrop: 'static', 
+        keyboard: false
+    });
+}
+
+async function goAuth() {
+    return new Promise(async function (resolve, reject) {
+        $.ajax({
+            url: goAuth.name,
+            method: 'GET',
+            headers: {
+                // "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            },
+            success: async function (result) {
+                loadingDeactivated()
+                resolve(result);
+            }
+        })
+    });
+}
+
+async function confirmAuthToken(tokenAuth) {
+    loadingActivated();
+    return new Promise(async function (resolve, reject) {
+        $.ajax({
+            url: confirmAuthToken.name,
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            },
+            data: JSON.stringify({'token':tokenAuth}),
+            success: async function (result) {
+                loadingDeactivated()
+                resolve(result);
+            }
+        })
+    });
+}
 
 $(document).on('click', '#addGroupTask', function () {
     let thisId = $(this).data('id');

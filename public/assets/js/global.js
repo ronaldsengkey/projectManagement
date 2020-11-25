@@ -70,6 +70,7 @@ function onMaintenance(text) {
 function logout() {
     localStorage.removeItem('accountProfile');
     localStorage.removeItem('accountLogin');
+    sessionStorage.clear();
     window.location = "login";
 }
 

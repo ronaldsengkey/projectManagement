@@ -168,7 +168,7 @@ async function domTaskTable(data, id, result, boardMember) {
         else statusClass = 'lowPrio';
         htmlTask += '<td class="status ' + statusClass + ' text-white" data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + haveStatus + '</td>';
       } else {
-        htmlTask += '<td class="status" data-name="' + element.name + '" data-identity="stat' + element._id + '" data-status="No Status" data-groupid="' + element.group_id + '" data-id="' + element._id + '">no status yet</td>';
+        htmlTask += '<td class="status" data-name="' + element.name + '" data-identity="stat' + element._id + '" data-status="No Status" data-groupid="' + element.group_id + '" data-id="' + element._id + '">No Status Yet</td>';
       }
 
 
