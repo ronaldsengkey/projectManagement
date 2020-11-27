@@ -19,20 +19,34 @@ async function globalGradeChecking(concern,data,type = ''){
             break;
         case 'chartBoard':          
         if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2' || ct.grade == '3'){ // Super Admin Ultipay, CEO, CTO, Manager 
-                await getSummaryBoard('boardType', data);
-                await getSummaryBoard('boardDivision', data);
-                await getSummaryBoard('boardMember', data);
-                await getSummaryBoard('boardTask', data);
-                await getSummaryBoard('taskByDivision', data);
-                await getSummaryBoard('taskByStatus', data);
-                await getSummaryBoard('taskByPriority', data);
-                await getSummaryBoard('taskByDivisionAndStatus', data);
-                await getSummaryBoard('taskByDeadLine', data);
+                // default 7 days
+                var startDate = moment().subtract(7,'d').format('YYYY-MM-DD');
+                var endDate = moment().format('YYYY-MM-DD');
+                var param = {
+                    "start_date" :startDate,
+                    "end_date" : endDate
+                };
+                await getSummaryBoard('boardType', param);
+                // await getSummaryBoard('boardDivision', data);
+                // await getSummaryBoard('boardMember', data);
+                // await getSummaryBoard('boardTask', data);
+                // await getSummaryBoard('taskByDivision', data);
+                // await getSummaryBoard('taskByStatus', data);
+                // await getSummaryBoard('taskByPriority', data);
+                // await getSummaryBoard('taskByDivisionAndStatus', data);
+                // await getSummaryBoard('taskByDeadLine', data);
                 
             }else if(ct.grade == '4' || ct.grade == '5'){ // Supervisor, Staff
-                await getSummaryBoard('boardTypeForMe',data);
-                await getSummaryBoard('taskForMe',data);
-                await getSummaryBoard('taskForMeByStatus',data);
+                // default 7 days
+                var startDate = moment().subtract(7,'d').format('YYYY-MM-DD');
+                var endDate = moment().format('YYYY-MM-DD');
+                var param = {
+                    "start_date" :startDate,
+                    "end_date" : endDate
+                };
+                await getSummaryBoard('boardTypeForMe',param);
+                // await getSummaryBoard('taskForMe',data);
+                // await getSummaryBoard('taskForMeByStatus',data);
             }else{
             }
             break;
@@ -189,7 +203,6 @@ async function groupTaskChecking(data,type){
 }
 
 async function chartBoardChecking(data=''){
-    console.log('chartBoardChecking')
-    // get group task checking
+    // get chart board checking
     return await globalGradeChecking('chartBoard',data)
 }

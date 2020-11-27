@@ -13,7 +13,12 @@ $(async function () {
     await getBoard();
     await chartBoardChecking();
     // appendFilter();
-    appendFilter([filterTimeRanges]);
+    // appendFilter([filterTimeRanges]);
+    if(ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges,filterChart]);
+    else appendFilter([filterTimeRanges,filterChartUp]);
+
+    $('.filterChartName').html('Board Type');
+    $('.filterTimeName').html('Last 7 Days');
 })
 
 function loadingActivated() {
@@ -110,16 +115,22 @@ async function getSummaryBoard(category,param='') {
             "signature": ct.signature
         },
         success: function (result) {
+            loadingDeactivated();
             console.log('category =>',category, ' =>', result);
             // if(category == 'taskForMeByStatus'){
             // }
-            result.category=category;
-            if (result.responseCode == '200') {                
-                manageSummaryBoardData(result);
-            } else if (result.responseCode == '404') {
-                manageNullBoardData(result);
-                // amaranNotifFull(result.responseMessage);
+            if(ct.grade == '4' || ct.grade == '5'){
+                result.category = 'boardTypeForMe';
+                result.names = category;
             } else {
+                result.category = 'boardType';
+                result.names = category;
+            }
+            // result.category = category;
+            if (result.responseCode == '200' || result.responseCode == '404') {                
+                manageSummaryBoardData(result);
+            }
+            else {
                 let param = {
                     type: 'error',
                     text: result.responseMessage
@@ -132,10 +143,10 @@ async function getSummaryBoard(category,param='') {
 
 async function manageBoardData(data) {
     let boardMain = data.filter(function (e) {
-        return e.type == 'Main'
+        return e.type.toUpperCase() == 'MAIN' 
     });
     let boardPrivate = data.filter(function (e) {
-        return e.type == 'Private'
+        return e.type.toUpperCase() == 'PRIVATE'
     });
 
 
@@ -180,27 +191,42 @@ async function manageBoardData(data) {
 }
 
 async function manageSummaryBoardData(data) {
-    var result = JSON.stringify(data.data);
-    var divId = data.category;
-    var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
-    var chartId = 'chart'+chartName;
-    console.log('data summary',data);
-
-    if(data.category == 'taskByDivisionAndStatus'){
-        $('#taskByDivisionAndStatus').empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Division And Status</div>';
-        html += '<canvas id="chartTaskByDivisionAndStatus" class="p-2"></canvas>';
-        $('#taskByDivisionAndStatus').html(html);
-        // await getBarChart('taskByDivisionAndStatus',result);
-        await getDoubleBarChart('taskByDivisionAndStatus',result);                
-    }else{
-        $('#'+divId).empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Board Chart For Me By Type</div>';
-        html += '<canvas id="'+chartId+'" class="p-2"></canvas>';
-        $('#'+divId).html(html);
-        await getBarChart(divId,result);
-
-    }    
+    
+    if(data.data != undefined || data.data != null) {
+        var result = JSON.stringify(data.data);
+        var divId = data.category;
+        var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
+        var chartId = 'chart'+chartName;
+        console.log('data summary',data);
+    
+        if(data.names == 'taskByDivisionAndStatus'){
+            $('#'+divId).empty();
+            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">'+splitCamel(data.names)+'</div>';
+            html += '<canvas id="'+chartId+'" class="p-2"></canvas>';
+            $('#'+divId).html(html);
+            await getDoubleBarChart(data.names,result);                
+        }else{
+            $('#'+divId).empty();
+            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">'+splitCamel(data.names)+'</div>';
+            html += '<canvas id="'+chartId+'" class="p-2"></canvas>';
+            $('#'+divId).html(html);
+            await getBarChart(data.names,result);
+        }
+    } else {
+        let names;
+        if(ct.grade == '4' || ct.grade == '5'){
+            names = 'boardTypeForMe';
+        } else {
+            names = 'boardType';
+        }
+        var divId = data.category;
+        var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
+        
+        $('#'+names).empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(data.names)+'<p><img style="max-width: 500px;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
+        $('#'+names).html(html);
+    }
+        
     // if(data.category == 'type'){
     //     $('#boardChartType').empty();
     //     let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Type</div>';
@@ -298,7 +324,7 @@ async function manageNullBoardData(data) {
     // let html = node.outerHTML;
 
     $('#'+divId).empty();
-    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(chartName)+'<img class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></div>';
+    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id='+labelused+'>Chart '+splitCamel(chartName)+'<p><img style="max-width: 500px;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
     $('#'+divId).html(html);
 
     // if(data.category == 'boardType'){
@@ -657,7 +683,7 @@ $(document).on('click', '.boardList', async function () {
                     };
                     domBoardTools(pass)
 
-                    let appendEmptyImage = '<img class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png"></img>';
+                    let appendEmptyImage = '<p><img style="max-width: 500px;" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png"></p></img>';
                     $('.boardContentData').addClass('h-100');
                     $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
                     $('#boardAccordion').css({'height':'inherit','padding-bottom':'35vh','opacity':'0.4'});
@@ -1245,7 +1271,14 @@ async function getDoubleBarChart(chartName, data) {
         waitingForReviewArray[index] = item.waiting_for_review;        
     });
 
-    var ctxB = document.getElementById('chartTaskByDivisionAndStatus')
+    let chartUsed;
+    if(ct.grade == '4' || ct.grade == '5'){
+        chartUsed = 'chartBoardTypeForMe';
+    } else {
+        chartUsed = 'chartBoardType';
+    }
+
+    var ctxB = document.getElementById(chartUsed)
         .getContext('2d');
     var myBarChart = new Chart(ctxB, {
         type: 'bar',
@@ -1306,45 +1339,91 @@ async function getBarChart(chartName, data) {
     
     // $('#'+divId).empty();
     var chartType = 'pie';
-    if (chartName === 'boardMember' || chartName === 'boardTask') {
+    if (chartName.toUpperCase() === 'BOARDMEMBER' || chartName.toUpperCase() === 'BOARDTASK') {
         chartType = 'bar';
     }
-    if (chartName === 'boardType') {
-        $('#lbl'+barName).html('Board Chart By Type');
-    } else if (chartName === 'boardTypeForMe') {
-        $('#lbl'+barName).html('Board Chart For Me By Type');
-    } else if (chartName === 'boardDivision') {
-        $('#lbl'+barName).html('Board Chart By Division');
-    } else if (chartName === 'boardByMember') {
-        $('#lbl'+barName).html('Board Chart By Member');
-    } else if (chartName === 'boardTask') {
-        $('#lbl'+barName).html('Board Chart By Task');
-    } else if (chartName === 'taskForMe') {
+    // if (chartName === 'boardType') {
+    //     $('#lbl'+barName).html('Board Chart By Type');
+    // } else if (chartName === 'boardTypeForMe') {
+    //     $('#lbl'+barName).html('Board Chart For Me By Type');
+    // } else if (chartName === 'boardDivision') {
+    //     $('#lbl'+barName).html('Board Chart By Division');
+    // } else if (chartName === 'boardByMember') {
+    //     $('#lbl'+barName).html('Board Chart By Member');
+    // } else if (chartName === 'boardTask') {
+    //     $('#lbl'+barName).html('Board Chart By Task');
+    // } else if (chartName === 'taskForMe') {
+    //     // barId = 'chartTaskForMe';
+    //     // labelName = 'Chart Task For Me';
+    //     $('#lbl'+barName).html('Chart Task For Me');
+    // } else if (chartName === 'taskForMeByStatus') {
+    //     // barId = 'chartTaskForMeByStatus';
+    //     // labelName = 'Chart Task For Me By Status';
+    //     $('#lbl'+barName).html('Chart Task For Me By Status');
+    // } else if (chartName === 'taskByDivision') {
+    //     // barId = 'chartTaskByDivision';
+    //     // labelName = 'Chart Task By Division';
+    //     $('#lbl'+barName).html('Chart Task By Division');
+    // } else if (chartName === 'taskByStatus') {
+    //     // barId = 'chartTaskByStatus';
+    //     // labelName = 'Chart Task By Status';
+    //     $('#lbl'+barName).html('Chart Task By Status');
+    // } else if (chartName === 'taskByPriority') {
+    //     // barId = 'chartTaskByPriority';
+    //     // labelName = 'Chart Task By Priority';
+    //     $('#lbl'+barName).html('Chart Task By Priority');
+
+    // } else if (chartName === 'taskByDeadLine') {
+    //     // barId = 'chartTaskByDeadLine';
+    //     // labelName = 'Chart Task By Deadline';
+    //     $('#lbl'+barName).html('Chart Task By Deadline');
+
+    // }
+    let labelused;
+    let chartUsed;
+    if(ct.grade == '4' || ct.grade == '5'){
+        labelused = 'lblBoardTypeForMe';
+        chartUsed = 'chartBoardTypeForMe';
+    } else {
+        labelused = 'lblBoardType';
+        chartUsed = 'chartBoardType';
+    }
+
+    if (chartName.toUpperCase() === 'BOARDTYPE') {
+        $('#'+labelused).html('Board Chart By Type');
+    } else if (chartName.toUpperCase() === 'BOARDTYPEFORME') {
+        $('#'+labelused).html('Board Chart For Me By Type');
+    } else if (chartName.toUpperCase() === 'BOARDDIVISION') {
+        $('#'+labelused).html('Board Chart By Division');
+    } else if (chartName.toUpperCase() === 'BOAARDBYMEMBER') {
+        $('#'+labelused).html('Board Chart By Member');
+    } else if (chartName.toUpperCase() === 'BOARDTASK') {
+        $('#'+labelused).html('Board Chart By Task');
+    } else if (chartName.toUpperCase() === 'TASKFORME') {
         // barId = 'chartTaskForMe';
         // labelName = 'Chart Task For Me';
-        $('#lbl'+barName).html('Chart Task For Me');
-    } else if (chartName === 'taskForMeByStatus') {
+        $('#'+labelused).html('Chart Task For Me');
+    } else if (chartName.toUpperCase() === 'TASKFORMEBYSTATUS') {
         // barId = 'chartTaskForMeByStatus';
         // labelName = 'Chart Task For Me By Status';
-        $('#lbl'+barName).html('Chart Task For Me By Status');
-    } else if (chartName === 'taskByDivision') {
+        $('#'+labelused).html('Chart Task For Me By Status');
+    } else if (chartName.toUpperCase() === 'TASKBYDIVISION') {
         // barId = 'chartTaskByDivision';
         // labelName = 'Chart Task By Division';
-        $('#lbl'+barName).html('Chart Task By Division');
-    } else if (chartName === 'taskByStatus') {
+        $('#'+labelused).html('Chart Task By Division');
+    } else if (chartName.toUpperCase() === 'TASKBYSTATUS') {
         // barId = 'chartTaskByStatus';
         // labelName = 'Chart Task By Status';
-        $('#lbl'+barName).html('Chart Task By Status');
-    } else if (chartName === 'taskByPriority') {
+        $('#'+labelused).html('Chart Task By Status');
+    } else if (chartName.toUpperCase() === 'TASKBYPRIORITY') {
         // barId = 'chartTaskByPriority';
         // labelName = 'Chart Task By Priority';
-        $('#lbl'+barName).html('Chart Task By Priority');
+        $('#'+labelused).html('Chart Task By Priority');
 
-    } else if (chartName === 'taskByDeadLine') {
+    } else if (chartName.toUpperCase() === 'TASKBYDEADLINE') {
         // barId = 'chartTaskByDeadLine';
         // labelName = 'Chart Task By Deadline';
-        $('#lbl'+barName).html('Chart Task By Deadline');
-
+        $('#'+labelused).html('Chart Task By Deadline');
     }
 
     if(data !== undefined) {
@@ -1361,7 +1440,7 @@ async function getBarChart(chartName, data) {
             });
         }
 
-        var ctxB = document.getElementById(barId).getContext('2d');
+        var ctxB = document.getElementById(chartUsed).getContext('2d');
         var myBarChart = new Chart(ctxB, {
             type: chartType,
             data: {

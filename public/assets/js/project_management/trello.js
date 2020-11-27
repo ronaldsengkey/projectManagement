@@ -1,5 +1,4 @@
 $(async function(){
-    loadingActivated();
     await getTrelloPage();
     await getTrelloBoard();
     await checkSessionSettings();
@@ -30,11 +29,13 @@ async function getTrelloPage(){
 
 async function manageTrelloBoard(data){
     let boardPublic = data.filter(function (e) {
-        return e.prefs.permissionLevel == 'public'
+        return e.prefs.permissionLevel == 'public';
+        return e.type == 'public' && e.idTrello != undefined
     });
 
     let boardPrivate = data.filter(function (e) {
         return e.prefs.permissionLevel == 'private' || e.prefs.permissionLevel == "org"
+        // return (e.type == 'private' || e.type == 'org') && e.idTrello != undefined
     });
 
     $('.trelloMain').empty();
@@ -54,6 +55,8 @@ async function manageTrelloBoard(data){
         let htmlPrivate = '<a class="list-group-item list-group-item-action trelloBoardList" data-creator='+element.idMemberCreator+' data-id="' + element.id + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
         $('.trelloPrivate').append(htmlPrivate);
     })
+
+    loadingDeactivated();
 
     feather.replace();
 }
