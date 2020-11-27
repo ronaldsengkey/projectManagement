@@ -4,7 +4,7 @@
 
 <div class="modal fade right" id="commentModal" tabindex="-1" role="dialog" data-backdrop="true" style="display: none;"
   aria-hidden="true">
-  <div class="modal-dialog modal-full-height modal-right modal-notify modal-warning" role="document">
+  <div class="modal-dialog modal-full-height modal-right modal-notify modal-warning" role="document" style="width: 125vw;">
     <div class="modal-content">
       <div class="modal-header amber darken-3">
         <p class="heading lead">Comment</p>
@@ -26,9 +26,27 @@
         </div>
         <div class="containerComment"></div>
         <div class="commentForm">
-          <input type="text" class="form-control commentInputText" placeholder="Write a comment here">
-          <textarea placeholder="Write a comment here (press enter to submit)"
-            class="form-control commentInputArea d-none" rows="3"></textarea>
+          <!-- <div class="row">
+            <div class="col-lg-10">
+              <input type="text" class="form-control commentInputText" placeholder="Write a comment here">
+            </div>
+            <div class="col-lg-2 align-self-center inputTextAttachment d-none">
+              <img src="../public/assets/img/attachment.svg" width="30" height="30" />
+            </div>
+          </div> -->
+          
+          <div class="row">
+            <div class="col-lg-9">
+              <textarea placeholder="Write a comment here (press enter to submit)" class="form-control commentInputArea" rows="3"></textarea>
+            </div>
+            <div class="col-lg-3 text-center align-self-center inputCommentAreaAttachment">
+              <label for="commentFile" id="commentFileLabel">
+                <img src="../public/assets/img/attachment.svg" width="30" height="30" />
+                <p class="commentFileName"></p>
+              </label>
+              <input id="commentFile" type="file" />
+            </div>
+          </div>
         </div>
         <div class="containerComment"></div>
         <div class="commentContent">

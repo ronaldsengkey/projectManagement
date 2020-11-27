@@ -26,6 +26,7 @@ async function renameBoard(id,newName) {
 }
 
 async function getTrelloBoard(){
+    loadingActivated();
     $.ajax({
         url: 'trelloBoard',
         method: 'GET',
@@ -33,13 +34,27 @@ async function getTrelloBoard(){
             "Content-Type": "application/json",
             "Accept": "*/*",
             "Cache-Control": "no-cache",
+            "param": JSON.stringify({
+                "_id": "",
+                "type": "",
+                "name": "",
+                "account_id": ""
+            }),
             "secretKey": ctProf.secretKey,
             "token": ctProf.token,
             "signature": ctProf.signature
         },
         success: async function (result) {
-            loadingDeactivated();
-            await manageTrelloBoard(result);
+            if(result.responseCode == '200'){
+                await manageTrelloBoard(JSON.parse(result.data));
+            } else {
+                loadingDeactivated();
+                let param = {
+                    type: 'error',
+                    text: result.responseMessage
+                };
+                callNotif(param);
+            }
         }
     })
 }
@@ -55,11 +70,22 @@ async function getTrelloList(id) {
                 "Cache-Control": "no-cache",
                 "secretKey": ctProf.secretKey,
                 "token": ctProf.token,
-                "board_id": id,
+                "param": JSON.stringify({
+                    'board_id': id
+                }),
                 "signature": ctProf.signature
             },
             success: function (result) {
-                resolve(result);
+                if(result.responseCode == '200'){
+                    resolve(JSON.parse(result.data));
+                } else {
+                    loadingDeactivated();
+                    let param = {
+                        type: 'error',
+                        text: result.responseMessage
+                    };
+                    callNotif(param);
+                }
             }
         })
     });
@@ -149,7 +175,7 @@ async function deleteTaskTrello(body) {
     });
 }
 
-async function getCardData(id, data, boardMember) {
+async function getCardData(id, data) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
             url: getCardData.name,
@@ -160,24 +186,23 @@ async function getCardData(id, data, boardMember) {
                 "Cache-Control": "no-cache",
                 "secretKey": ctProf.secretKey,
                 "token": ctProf.token,
-                'list_id': id,
+                "param": JSON.stringify({
+                    'list_id': id
+                }),
                 "signature": ctProf.signature
             },
             success: async function (result) {
-                // resolve(result);
-                let newRes = await selectedTask(result);
-                await domCardData(newRes, id, data, boardMember);
-                // if (result.responseCode == '200') {
-                //     await domTaskTable(result.data, id, data, boardMember);
-                // } else if (result.responseCode == '404') {
-                //     await domTaskTable([], id, data);
-                // } else {
-                //     let param = {
-                //         type: 'error',
-                //         text: result.responseMessage
-                //     };
-                //     callNotif(param);
-                // }
+                console.log('res card',JSON.parse(result.data));
+                if(result.responseCode == '200'){
+                    let newRes = await selectedTask(result);
+                    await domCardData(JSON.parse(newRes.data), id, data);
+                } else {
+                    let param = {
+                        type: 'error',
+                        text: result.responseMessage
+                    };
+                    callNotif(param);
+                }
             }
         })
     });

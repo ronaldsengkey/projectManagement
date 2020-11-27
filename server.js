@@ -30,7 +30,7 @@ const myKey = efs.readFileSync("./server.key", 'utf-8');
 //   applyMiddleware
 // } = require("redux");
 // // Declare a routen
-
+fastify.register(require('fastify-multipart'));
 fastify.register(require('fastify-static'), {
     root: path.join(__dirname, 'public'),
     prefix: '/public/', // optional: default '/'
@@ -160,31 +160,6 @@ fastify.get("/displayOnTable", async function (req, reply) {
   reply.sendFile("layouts/displayOnTable.html");
 });
 
-function actionGetPure(data) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let settings = data.settings;
-      r.get(settings, function (error, response, body) {
-        if (error) {
-          if(error.toString().includes('TIMEDOUT')) reject(999)
-          else reject(process.env.ERRORINTERNAL_RESPONSE);
-        } else {
-          let result;
-          try {
-            result = JSON.parse(body);
-          } catch (r) {
-            result = body;
-          }
-          resolve(result);
-        }
-      });
-    } catch (err) {
-      console.log("error action get", err);
-      reject(process.env.ERRORINTERNAL_RESPONSE);
-    }
-  });
-}
-
 function actionGet(data) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -203,11 +178,12 @@ function actionGet(data) {
           if(error.toString().includes('TIMEDOUT')) reject(999)
           else reject(process.env.ERRORINTERNAL_RESPONSE);
         } else {
-          console.log("action Get body data => ", body);
+          // console.log("action Get body data => ", body);
           let result = "";
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
-            if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
+            if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
+            else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
             else result.data = cryptography.decryptMessage(result.data);
           } else {
             try {
@@ -226,12 +202,42 @@ function actionGet(data) {
   });
 }
 
+fastify.post("/sendEmailReset", async function (req, reply) {
+  try {
+    let data = req.body;
+    data.settings.url = hostIP + ":" + accPort + data.settings.url;
+
+    data.settings.body = encryptPostBody(data);
+
+    console.log("coba send email", data);
+    let a = await actionPost(data);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.put("/sendNewPassword", async function (req, reply) {
+  try {
+    let data = req.body;
+    data.settings.url = hostIP + ":" + accPort + data.settings.url;
+    data.settings.body = encryptPostBody(data);
+    console.log("coba send new password", data);
+    let a = await actionPut(data);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 function iterateObject(obj) {
   Object.keys(obj).forEach((key) => {
     if (typeof obj[key] === "object") {
       iterateObject(obj[key]);
     } else {
-      obj[key] = cryptography.encryptMessage(obj[key]);
+      if(obj[key] != 'comment_file') obj[key] = cryptography.encryptMessage(obj[key]);
     }
   });
   return obj;
@@ -788,27 +794,27 @@ fastify.get("/trelloBoard", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        // url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
-        url: 'https://api.trello.com/1/members/me/boards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/board',
+        // url: 'https://api.trello.com/1/members/me/boards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          // target:'getBoard',
-          // signature:cryptography.aesEncrypt(req.headers.signature),
-          // secretkey:cryptography.aesEncrypt(
-          //   req.headers.secretkey
-          // ),
-          // token: cryptography.aesEncrypt(
-          //   token
-          // ),
-          // param:cryptography.aesEncrypt(
-          //   req.headers.param
-          // ),
+          "target": 'trello',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param:cryptography.aesEncrypt(
+            req.headers.param
+          ),
         },
       },
     };
-    let a = await actionGetPure(data);
+    let a = await actionGet(data);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -819,32 +825,31 @@ fastify.get("/trelloBoard", async function (req, reply) {
 fastify.get("/trelloList", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    let boardId = req.headers.board_id;
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        // url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
-        url: 'https://api.trello.com/1/boards/'+boardId+'/lists?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/list',
+        // url: 'https://api.trello.com/1/boards/'+boardId+'/lists?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          // target:'getBoard',
-          // signature:cryptography.aesEncrypt(req.headers.signature),
-          // secretkey:cryptography.aesEncrypt(
-          //   req.headers.secretkey
-          // ),
-          // token: cryptography.aesEncrypt(
-          //   token
-          // ),
-          // param:cryptography.aesEncrypt(
-          //   req.headers.param
-          // ),
+          "target": 'trello',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param:cryptography.aesEncrypt(
+            req.headers.param
+          ),
         },
       },
     };
-    let a = await actionGetPure(data);
+    let a = await actionGet(data);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -855,32 +860,31 @@ fastify.get("/trelloList", async function (req, reply) {
 fastify.get("/getCardData", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    let listId = req.headers.list_id;
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        // url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
-        url: 'https://api.trello.com/1/lists/'+listId+'/cards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/card',
+        // url: 'https://api.trello.com/1/lists/'+listId+'/cards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          // target:'getBoard',
-          // signature:cryptography.aesEncrypt(req.headers.signature),
-          // secretkey:cryptography.aesEncrypt(
-          //   req.headers.secretkey
-          // ),
-          // token: cryptography.aesEncrypt(
-          //   token
-          // ),
-          // param:cryptography.aesEncrypt(
-          //   req.headers.param
-          // ),
+          "target": 'trello',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param:cryptography.aesEncrypt(
+            req.headers.param
+          ),
         },
       },
     };
-    let a = await actionGetPure(data);
+    let a = await actionGet(data);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1230,9 +1234,9 @@ fastify.get("/comment", async function (req, reply) {
       },
     };
 
-    console.log("coba get comment", data);
+    // console.log("coba get comment", data);
     let a = await actionGet(data);
-    console.log('komen',a);
+    // console.log('komen',a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1317,41 +1321,57 @@ fastify.put("/putTask", async function (req, reply) {
   }
 });
 
-fastify.post("/commentUpdate", async function (req, reply) {
+fastify.post("/commentUpdate", async function (request, reply) {
   try {
-    console.log('req',req.body);
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
-        },
-        body: req.body.settings.body
-      },
-    };
-
-    data.settings.body = encryptPostBody(data)
-
-    console.log("coba post comment", data);
-    let a = await actionPost(data);
-    console.log('post comment',a);
-    reply.send(a);
-  } catch (err) {
-    console.log("Error apa sih", err);
-    reply.send(500);
+    if (!request.isMultipart()) {
+      reply.code(400).send(new Error('Request is not multipart'))
+      return
+    }
+    let data = [];
+    const mp = request.multipart(handler, onEnd)
+  
+    mp.on('field', function (key, value) {
+      data[key] = value;
+    })
+  
+    async function onEnd(err) {
+      let token = extToken ? extToken : request.headers.token;
+      data = Object.assign({}, data);
+      var dataSend = {
+          settings: {
+              "async": true,
+              "crossDomain": true,
+              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
+              method: "POST",
+              headers: {
+                Accept: "*/*",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                signature:cryptography.aesEncrypt(request.headers.signature),
+                secretkey:cryptography.aesEncrypt(
+                  request.headers.secretkey
+                ),
+                token: cryptography.aesEncrypt(
+                  token
+                ),
+              },
+          }
+      };
+      data.task_id = cryptography.encryptMessage(data.task_id);
+      data.comment = cryptography.encryptMessage(data.comment);
+      data.comment_file = data.comment_file;
+      data.user_create = cryptography.encryptMessage(data.user_create);
+      dataSend.settings.formData = data;
+      let a = await actionPost(dataSend);
+      console.log('a form data',a);
+      reply.send(a);
+    }
+    function handler (field, file, filename, encoding, mimetype) {
+      
+    }
+  } catch (error) {
+    console.log("eroor: ", error);
+    reply.send(error);
   }
 });
 
@@ -1393,82 +1413,149 @@ fastify.delete("/commentUpdate", async function (req, reply) {
   }
 });
 
-fastify.post("/commentReply", async function (req, reply) {
+fastify.post("/commentReply", async function (request, reply) {
   try {
-    console.log('req',req.body);
-    let realBody = JSON.parse(req.body.settings.body);
-    delete realBody.idComment
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply?comment=' + JSON.parse(req.body.settings.body).idComment,
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
-        },
-        body: JSON.stringify(realBody)
-      },
-    };
-
-    data.settings.body = encryptPostBody(data)
-
-    console.log("coba reply post comment", data);
-    let a = await actionPost(data);
-    console.log('post reply comment',a);
-    reply.send(a);
-  } catch (err) {
-    console.log("Error apa sih", err);
-    reply.send(500);
+    if (!request.isMultipart()) {
+      reply.code(400).send(new Error('Request is not multipart'))
+      return
+    }
+    let data = [];
+    const mp = request.multipart(handler, onEnd)
+  
+    mp.on('field', function (key, value) {
+      data[key] = value;
+    })
+  
+    async function onEnd(err) {
+      let token = extToken ? extToken : request.headers.token;
+      data = Object.assign({}, data);
+      var dataSend = {
+          settings: {
+              "async": true,
+              "crossDomain": true,
+              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
+              method: "POST",
+              headers: {
+                Accept: "*/*",
+                "Cache-Control": "no-cache",
+                signature:cryptography.aesEncrypt(request.headers.signature),
+                secretkey:cryptography.aesEncrypt(
+                  request.headers.secretkey
+                ),
+                token: cryptography.aesEncrypt(
+                  token
+                ),
+              },
+          }
+      };
+      data.comment_id = cryptography.encryptMessage(data.comment_id);
+      data.comment = cryptography.encryptMessage(data.comment);
+      data.comment_file = data.comment_file;
+      data.user_create = cryptography.encryptMessage(data.user_create);
+      dataSend.settings.formData = data;
+      let a = await actionPost(dataSend);
+      console.log('a form data',a);
+      reply.send(a);
+    }
+    function handler (field, file, filename, encoding, mimetype) {
+      
+    }
+  } catch (error) {
+    console.log("eroor: ", error);
+    reply.send(error);
   }
 });
 
-fastify.put("/commentReply", async function (req, reply) {
+fastify.put("/commentReply", async function (request, reply) {
+
   try {
-    console.log('req',req.body);
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
-        method: "PUT",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
-        },
-        body: req.body.settings.body
-      },
-    };
-
-    data.settings.body = encryptPostBody(data)
-
-    console.log("coba reply put comment", data);
-    let a = await actionPut(data);
-    console.log('put reply comment',a);
-    reply.send(a);
-  } catch (err) {
-    console.log("Error apa sih", err);
-    reply.send(500);
+    if (!request.isMultipart()) {
+      reply.code(400).send(new Error('Request is not multipart'))
+      return
+    }
+    let data = [];
+    const mp = request.multipart(handler, onEnd)
+  
+    mp.on('field', function (key, value) {
+      data[key] = value;
+    })
+  
+    async function onEnd(err) {
+      let token = extToken ? extToken : request.headers.token;
+      data = Object.assign({}, data);
+      var dataSend = {
+          settings: {
+              "async": true,
+              "crossDomain": true,
+              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
+              method: "PUT",
+              headers: {
+                Accept: "*/*",
+                "Cache-Control": "no-cache",
+                signature:cryptography.aesEncrypt(request.headers.signature),
+                secretkey:cryptography.aesEncrypt(
+                  request.headers.secretkey
+                ),
+                token: cryptography.aesEncrypt(
+                  token
+                ),
+              },
+          }
+      };
+      data._id = cryptography.encryptMessage(data._id);
+      data.comment_id = cryptography.encryptMessage(data.comment_id);
+      data.comment = cryptography.encryptMessage(data.comment);
+      data.comment_file = data.comment_file;
+      data.user_create = cryptography.encryptMessage(data.user_create);
+      dataSend.settings.formData = data;
+      let a = await actionPut(dataSend);
+      console.log('a form data',a);
+      reply.send(a);
+    }
+    function handler (field, file, filename, encoding, mimetype) {
+      
+    }
+  } catch (error) {
+    console.log("eroor: ", error);
+    reply.send(error);
   }
+
+
+  // try {
+  //   console.log('req',req.body);
+  //   let token = extToken ? extToken : req.body.settings.headers.token;
+  //   let data = {
+  //     settings: {
+  //       async: true,
+  //       crossDomain: true,
+  //       url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
+  //       method: "PUT",
+  //       headers: {
+  //         Accept: "*/*",
+  //         "Content-Type": "application/json",
+  //         "Cache-Control": "no-cache",
+  //         signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
+  //         secretkey:cryptography.aesEncrypt(
+  //           req.body.settings.headers.secretKey
+  //         ),
+  //         token: cryptography.aesEncrypt(
+  //           token
+  //         ),
+  //       },
+  //       body: req.body.settings.body
+  //     },
+  //   };
+
+  //   data.settings.body = encryptPostBody(data)
+
+  //   console.log("coba reply put comment", data);
+  //   let a = await actionPut(data);
+  //   console.log('put reply comment',a);
+  //   reply.send(a);
+  // } catch (err) {
+  //   console.log("Error apa sih", err);
+  //   reply.send(500);
+  // }
 });
 
 fastify.delete("/commentReply", async function (req, reply) {

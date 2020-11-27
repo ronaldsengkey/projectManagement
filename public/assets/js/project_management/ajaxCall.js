@@ -31,7 +31,6 @@ function parseUserData() {
         } catch (e) {
             // something failed
             if (e.code === 5) {
-                console.log('masuk acc Profile tapi fail')
                 userData = JSON.parse(localStorage.getItem('accountProfile'));
             }
         }
@@ -291,33 +290,38 @@ function globalUpdateTask(concern, data) {
 
 async function globalAddComment(data) {
     return new Promise(async function (resolve, reject) {
-        let settingComment = {
-            settings: {
-                "async": true,
-                "crossDomain": true,
-                "url": "/commentUpdate",
-                "method": 'POST',
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Accept": "*/*",
-                    "Cache-Control": "no-cache",
-                    "secretKey": ct.secretKey,
-                    "token": ct.token,
-                    "signature": ct.signature
-                },
-                "processData": false,
-                "body": JSON.stringify(data),
-            }
-        }
+        // let settingComment = {
+        //     settings: {
+        //         "async": true,
+        //         "crossDomain": true,
+        //         "url": "/commentUpdate",
+        //         "method": 'POST',
+        //         "headers": {
+        //             "Content-Type": "application/json",
+        //             "Accept": "*/*",
+        //             "Cache-Control": "no-cache",
+        //             "secretKey": ct.secretKey,
+        //             "token": ct.token,
+        //             "signature": ct.signature
+        //         },
+        //         "processData": false,
+        //         "contentType": false,
+        //         "data": data
+        //     }
+        // }
         $.ajax({
             url: 'commentUpdate',
             method: 'POST',
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "*/*",
                 "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
             },
-            data: JSON.stringify(settingComment),
+            processData: false,
+            contentType: false,
+            data: data,
             success: async function (result) {
                 if (result.responseCode == '200') {
                     amaranNotifFull('commenting success')
@@ -371,43 +375,73 @@ function globalUpdateComment(method, data) {
 
 async function globalUpdateReplyComment(method, data) {
     return new Promise(function (resolve, reject) {
-        let settingComment = {
-            settings: {
-                "async": true,
-                "crossDomain": true,
-                "url": "/commentReply",
-                "method": method,
-                "headers": {
+        if(method == 'DELETE' || method == 'delete'){
+            let settingComment = {
+                settings: {
+                    "async": true,
+                    "crossDomain": true,
+                    "url": "/commentReply",
+                    "method": method,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Accept": "*/*",
+                        "Cache-Control": "no-cache",
+                        "secretKey": ct.secretKey,
+                        "token": ct.token,
+                        "signature": ct.signature
+                    },
+                    "processData": false,
+                    "body": JSON.stringify(data),
+                }
+            }
+            $.ajax({
+                url: 'commentReply',
+                method: method,
+                headers: {
+                    "Accept": "*/*",
                     "Content-Type": "application/json",
+                    "Cache-Control": "no-cache",
+                    "secretKey": ct.secretKey,
+                    "token": ct.token,
+                    "signature": ct.signature
+                },
+                data: JSON.stringify(settingComment),
+                success: function (result) {
+                    if (result.responseCode == '200') {
+                        resolve(result);
+                        amaranNotifFull('commenting success')
+                    } else {
+                        reject(500);
+                        amaranNotifFull('commenting failed')
+                    }
+                }
+            })
+        } else {
+            $.ajax({
+                url: 'commentReply',
+                method: method,
+                headers: {
                     "Accept": "*/*",
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
                     "signature": ct.signature
                 },
-                "processData": false,
-                "body": JSON.stringify(data),
-            }
-        }
-        $.ajax({
-            url: 'commentReply',
-            method: method,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            data: JSON.stringify(settingComment),
-            success: function (result) {
-                if (result.responseCode == '200') {
-                    resolve(result);
-                    amaranNotifFull('commenting success')
-                } else {
-                    reject(500);
-                    amaranNotifFull('commenting failed')
+                processData: false,
+                contentType: false,
+                data: data,
+                success: function (result) {
+                    if (result.responseCode == '200') {
+                        resolve(result);
+                        amaranNotifFull('commenting success')
+                    } else {
+                        reject(500);
+                        amaranNotifFull('commenting failed')
+                    }
                 }
-            }
-        })
+            })
+        }
+        
     })
 
 }

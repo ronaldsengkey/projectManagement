@@ -18,7 +18,6 @@ async function domTrelloList() {
             '<div class="row"><div class="col-lg-10">' +
             '<h2 class="mb-0">' +
             '<button class="btn btn-link btn-block text-left toCollapse" type="button" data-toggle="collapse" data-target="#' + joinBoardAndId.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '" aria-expanded="true" aria-controls="' + joinBoardAndId.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '">' +
-            // '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
             element.name + '</button>' +
             '</h2>' +
             '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element.id + ' data-trigger="focus" data-toggle="popover"><i class="menu" data-board="' + element.idBoard + '" data-feather="menu"></i></a></div></div>' +
@@ -63,10 +62,10 @@ async function domTrelloList() {
     feather.replace();
 }
 
-async function domCardData(data, id, result, boardMember) {
+async function domCardData(data, id, result) {
     let htmlTask;
     let emptyTable = '<div class="row w-100">' +
-        '<div class="progressBar col-12 mb-2" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>' +
+        '<div class="progressBar col-12 mb-2" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.idBoard + '"></div>' +
         '</div>' +
         '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
         '<thead class="text-center">' +

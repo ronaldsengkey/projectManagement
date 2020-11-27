@@ -568,17 +568,42 @@ function processReplyData(replyData, replyId, id) {
     dataReply = dataReply.reverse()
     dataReply.forEach(function (element, index) {
       let htmlReply;
+      let haveFile = element.file == 'null' ? false : element.file;
       if (element.user_create != ct.name) {
         let choose;
         if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
         else choose = window['colorName'+element.user_create];
-        htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+
+        if(haveFile){
+          htmlReply = '<div class="row mb-3"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+        } else {
+          htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+        }
+        
       } else {
         let choose;
         if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
         else choose = window['colorName'+element.user_create];
-        htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+
+        if(haveFile){
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
+        } else {
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+        }
+
+        
+
       }
+
+      // $('.editReplyFile[data-id='+element._id+']').click(function(){
+      //   console.log('has');
+      // })
+      // $('.editReplyFile[data-id='+element._id+']').change(function(){
+      //   alert('lalass');
+      //   let checkTag = '<i class="fa fa-check position-absolute" style="color:green; top:95px; left:20px;"></i>';
+      //   $('.placeReply[data-id='+element._id+']').append(checkTag);
+      // })
+
       $('.replyComment[data-id=' + replyId + ']').append(htmlReply);
 
     });
@@ -590,9 +615,11 @@ async function domComment(commentData, id) {
   $('.commentContent[data-id=' + id + ']').empty();
   let dataComment = commentData.reverse();
   dataComment.forEach(function (element, index) {
-    console.log('ele comm',element);
     let haveReply = element.reply ?? false;
     let cardComment = '<div class="card p-3 mb-3 cardForComment" data-id=' + element._id + '>';
+    let bodyComment;
+
+    let haveFile = element.file == 'null' ? false : element.file;
 
     if (element.user_create == ct.name) {
       cardComment += '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + element._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
@@ -601,8 +628,14 @@ async function domComment(commentData, id) {
         '<a class="dropdown-item deleteComment" data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Delete Comment</a></div></div></div>';
     }
 
+    if(haveFile) {
+      bodyComment = '<div class="commentBody mb-3" data-id=' + element._id + '><p data-comment="' + element.comment + '">' + element.comment + '</p><a data-fancybox="gallery" href="'+element.file+'"><img src="'+element.file+'" width="100" height="100" /></a></div>';
+    } else {
+      bodyComment = '<div class="commentBody" data-id=' + element._id + '><p data-comment="' + element.comment + '">' + element.comment + '</p></div>';
+    }
+
     cardComment += '<blockquote class="blockquote mb-0 card-body" style="border-left:none;">' +
-      '<div class="commentBody" data-id=' + element._id + '><p data-comment="' + element.comment + '">' + element.comment + '</p></div>' +
+      bodyComment+
       '<footer class="blockquote-footer">' +
       '<small class="text-muted">' + element.user_create + '</small>' +
       '</footer>' +
@@ -612,7 +645,7 @@ async function domComment(commentData, id) {
       if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
         else choose = window['colorName'+element.user_create];
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div><hr/>';
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/attachment.svg" width="30" height="30" /><p id="commentFileAll" class="commentFileName'+element._id+'"></p></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 

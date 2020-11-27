@@ -1,20 +1,51 @@
 'use strict'
 
+$(document).on('change','#commentFile',function(e){
+    // let filename = e.target.files[0].name;
+    // $('.commentFileName').html(filename);
+    let checkTag = '<i class="fa fa-check position-absolute" style="color:green;""></i>';
+    $(this).parent().append(checkTag);
+})
+
+$(document).on('change','.commentPictEach',function(e){
+  // let filename = e.target.files[0].name;
+  // let id = $(this).data('id');
+  // $('.commentFileName'+id+'').html(filename);
+
+  let checkTag = '<i class="fa fa-check position-absolute" style="color:green;""></i>';
+  $(this).parent().append(checkTag);
+})
+
+$(document).on('change','.editReplyFile',function(){
+  let checkTag = '<i class="fa fa-check position-absolute" style="color:green; top:95px; left:20px;"></i>';
+  $(this).parent().append(checkTag);
+})
+
 $(document).on('keydown', '.commentInputArea', async function (ev) {
   if (ev.key === 'Enter') {
     let id = $(this).data('id');
     let newCommentValue = $(this).val();
+    let commentFile;
+    let base64CommentFile;
+    commentFile = document.querySelector(`#commentFile`).files[0];
+    if(commentFile){
+        let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
+        base64CommentFile = await toBase64Comment(compressedFile);
+    }
+
     if (newCommentValue != '') {
-      let updateComment = {
-        'task_id': id,
-        'comment': newCommentValue,
-        'user_create': ct.name
-      }
+      let formUpdateComment = new FormData();
+    
+      formUpdateComment.append('task_id', id);
+      formUpdateComment.append('comment', newCommentValue);
+      formUpdateComment.append('comment_file', base64CommentFile);
+      formUpdateComment.append('user_create', ct.name);
+
       $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
       $(this).val('');
       $(this).blur();
       $(this).mouseleave();
-      let addComment = await globalAddComment(updateComment);
+      let addComment = await globalAddComment(formUpdateComment);
       console.log("addComment::", addComment);
       $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
       if (addComment != 500) {
@@ -34,7 +65,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
           '</footer>' +
           '</blockquote>';
 
-        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-10"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div></div></div></div>';
+        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/attachment.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
 
         cardCommentNew += '<hr/>';
         cardCommentNew += emptyComment;
@@ -54,25 +85,54 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
   }
 });
 
+async function toCompress(file){
+  return new Promise(async function(resolve,reject){
+      new Compressor(file, {
+          quality: 0.6,
+          success(result) {
+              resolve(result);
+          },
+          error(err) {
+              resolve(500);
+          },
+        });
+  })
+}
 
+const toBase64Comment = file => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = error => reject(error);
+});
 
 $(document).on('keydown', '.txtAreaEdit', async function (ev) {
   if (ev.key === 'Enter') {
     let replyEditComment = $(this).val();
     let aidi = $(this).data('aidi');
-    let id = $(this).data('idonly');
+    let replyId = $(this).data('replyid');
     if (replyEditComment == '') {
       amaranNotifFull('please fill comment reply');
     } else {
 
-      let replyingComment = {
-        '_id': aidi,
-        'task_id': id,
-        'comment': replyEditComment,
-        'user_create': ct.name
+      let commentFile;
+      let base64CommentFile;
+      commentFile = document.querySelector(`#editReplyFile`+aidi).files[0];
+      if(commentFile){
+          let compressedFile = await toCompress(document.querySelector(`#editReplyFile`+aidi).files[0])
+          base64CommentFile = await toBase64Comment(compressedFile);
       }
+
+      let formPutComment = new FormData();
+    
+      formPutComment.append('_id', aidi);
+      formPutComment.append('comment_id', replyId);
+      formPutComment.append('comment_file', base64CommentFile);
+      formPutComment.append('comment', replyEditComment);
+      formPutComment.append('user_create', ct.name);
+
       $(this).attr('readonly', true);
-      await globalUpdateReplyComment('PUT', replyingComment);
+      await globalUpdateReplyComment('PUT', formPutComment);
       $(this).removeAttr('readonly');
     }
 
@@ -84,20 +144,42 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
   }
 })
 
+$(document).on('change','.editReplyImage',async function(){
+  
+})
+
+$(document).on('click','.filePrev',async function(){
+  let imageData = $(this).data('image');
+  $.fancybox.open('<img src="'+imageData+'"/>');
+})
+
 $(document).on('keydown', '.txtAreaReply', async function (ev) {
   if (ev.key === 'Enter') {
     let replyComment = $(this).val();
     if (replyComment == '') {
       amaranNotifFull('please fill comment reply');
     } else {
-      let replyingComment = {
-        'comment_id': $(this).data('replyid'),
-        'comment': replyComment,
-        'user_create': ct.name
+
+      let commentFile;
+      let base64CommentFile;
+      commentFile = document.querySelector(`.commentPictEach`).files[0];
+      if(commentFile){
+          let compressedFile = await toCompress(document.querySelector(`.commentPictEach`).files[0])
+          base64CommentFile = await toBase64Comment(compressedFile);
       }
-      console.log('reply atas', replyingComment);
+
+      let formUpdateComment = new FormData();
+    
+      formUpdateComment.append('comment_id', $(this).data('replyid'));
+      formUpdateComment.append('comment', replyComment);
+      formUpdateComment.append('comment_file', base64CommentFile);
+      formUpdateComment.append('user_create', ct.name);
+
+      let replyId = $(this).data('replyid');
+
+      // console.log('reply atas', replyingComment);
       $(this).attr('readonly', true);
-      let res = await globalUpdateReplyComment('POST', replyingComment);
+      let res = await globalUpdateReplyComment('POST', formUpdateComment);
       $(this).removeAttr('readonly');
       if (res != 500) {
         res.data = res.data[0];
@@ -106,7 +188,7 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
           maxId = Math.max(maxId, $(this).data('index'))
         });
         let indexNew = maxId + 1;
-        let htmlReply = '<div class="row mb-3 rowDelete" data-index=' + indexNew + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+res.data.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + res.data.comment + '"><span class="initialName">' + getInitials(res.data.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + res.data._id + ' data-index=' + indexNew + ' class="form-control txtAreaEdit" placeholder="Write a reply here (press enter to submit)">' + res.data.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + res.data._id + ' data-aidi=' + res.data._id + ' data-index=' + indexNew + ' data-id=' + res.data._id + ' data-feather="trash-2"></i></div></div></div></div></div>';
+        let htmlReply = '<div class="row mb-3 rowDelete" data-index=' + indexNew + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+res.data.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + res.data.comment + '"><span class="initialName">' + getInitials(res.data.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + res.data._id + ' data-index=' + indexNew + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + res.data.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + res.data._id + ' data-aidi=' + res.data._id + ' data-index=' + indexNew + ' data-id=' + res.data._id + ' data-feather="trash-2"></i></div></div></div></div></div>';
         $(htmlReply).insertBefore($('.rowDelete').first());
         feather.replace();
         $(this).val('');
@@ -357,7 +439,6 @@ $(document).on('click', '.deleteComment', function () {
   notifDeleteComment(deletedComment);
 })
 
-
 $(document).on('click', '.deleteReply', function () {
   let indexDelete = $(this).data('index');
   let indexComment = $(this).data('id');
@@ -455,21 +536,24 @@ $(document).on('click', '.commentTask', async function () {
 
 
 
-$(document).on('mouseenter', '.commentInputText', function () {
-  $(this).addClass('d-none');
-  $('.commentInputArea').removeClass('d-none');
-});
+// $(document).on('mouseenter', '.commentInputText', function () {
+//   $(this).addClass('d-none');
+//   $('.inputTextAttachment').addClass('d-none');
+//   $('.commentInputArea').removeClass('d-none');
+//   $('.inputCommentAreaAttachment').removeClass('d-none');
+// });
 
-$(document).on('mouseleave', '.commentInputArea', function () {
-  $(this).addClass('d-none');
-  $('.commentInputText').removeClass('d-none');
-});
+// $(document).on('mouseleave', '.commentInputArea', function () {
+//   $(this).addClass('d-none');
+//   $('.commentInputText').removeClass('d-none');
+//   $('.inputTextAttachment').removeClass('d-none');
+// });
 
-$(document).on('focus', '.commentInputText', function () {
-  $(this).addClass('d-none');
-  $('.commentInputArea').removeClass('d-none');
-  $('.commentInputArea').focus();
-});
+// $(document).on('focus', '.commentInputText', function () {
+//   $(this).addClass('d-none');
+//   $('.commentInputArea').removeClass('d-none');
+//   $('.commentInputArea').focus();
+// });
 
 
 $(document).on('mouseenter', '.pic', function () {
