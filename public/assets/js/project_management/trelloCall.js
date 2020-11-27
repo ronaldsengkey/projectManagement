@@ -194,8 +194,8 @@ async function getCardData(id, data) {
             success: async function (result) {
                 console.log('res card',JSON.parse(result.data));
                 if(result.responseCode == '200'){
-                    let newRes = await selectedTask(result);
-                    await domCardData(JSON.parse(newRes.data), id, data);
+                    let newRes = await selectedTask(JSON.parse(result.data));
+                    await domCardData(newRes, id, data);
                 } else {
                     let param = {
                         type: 'error',
