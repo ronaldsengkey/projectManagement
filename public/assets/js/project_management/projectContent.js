@@ -9,7 +9,11 @@ $(async function () {
 async function appendLegend(id){
   let gridTag = '<div class="gridLayout3">';
   window['dataBoardMember' + id + ''].forEach(function(e){
-    gridTag += '<div class="text-center"><span class="picLogo text-white mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+    let checkColor = lightOrDark(e.color);
+    let colorFont;
+    if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+    else colorFont = 'text-white';
+    gridTag += '<div class="text-center"><span class="picLogo '+colorFont+' mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
   })
   gridTag += '</div>';
   $(gridTag).insertBefore($('.accordionBoard'))
@@ -28,23 +32,27 @@ async function domBoardContent() {
         window['dataBoardMember' + id + ''].forEach(element2 => {
           window['color'+element2.account_id] = element2.color;
           window['colorName'+element2.account_name] = element2.color;
+          let colorCheck = lightOrDark(element2.color);
+          if(colorCheck == 'light') window['colorClass'+element2.account_id] = 'text-dark fontWeight400';
+          else window['colorClass'+element2.account_id] = 'text-white';
         });
       } else {
         window['color'+JSON.parse(element.pic)[0].account_id] = getRandomColor();
+        window['colorClass'+JSON.parse(element.pic)[0].account_id] = '';
       }
     }catch(e){
       console.log('catch color define');
     }
-    let rand = (Math.floor(Math.random() * 4) + 1);
     let camelizeBoard = camelize(element.name);
     let joinBoardAndId = camelize(element.name) + element.board_id;
+
     let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
     let htmlAccordion = '<div class="card mt-3 mb-3" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
       '<div class="card-header" id="' + camelizeBoard + '">' +
       '<div class="row"><div class="col-lg-10">' +
       '<h2 class="mb-0">' +
       '<button class="btn btn-link btn-block text-left toCollapse" type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
-      '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
+      '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
       '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element._id + ' data-trigger="focus" data-toggle="popover"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>' +
@@ -146,9 +154,15 @@ async function domTaskTable(data, id, result, boardMember) {
       htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
 
       if (havePic) {
-        let rand = (Math.floor(Math.random() * 4) + 1);
         window['picTask' + element._id + ''] = element.pic;
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic text-white">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
+        try {
+          let colorCheck = lightOrDark(window['color'+element.account_id]);
+          if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+          else window['colorClass'+element.account_id] = 'text-white';
+        } catch (error) {
+          window['colorClass'+element.account_id] = 'text-white';
+        }
+        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
       }
@@ -574,10 +588,18 @@ function processReplyData(replyData, replyId, id) {
         if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
         else choose = window['colorName'+element.user_create];
 
+        try {
+          let colorCheck = lightOrDark(window['colorName'+element.user_create]);
+          if(colorCheck == 'light') window['colorClass'+element.user_create] = 'text-dark fontWeight400';
+          else window['colorClass'+element.user_create] = 'text-white';
+        } catch (error) {
+          window['colorClass'+element.user_create] = 'text-white';
+        }
+
         if(haveFile){
-          htmlReply = '<div class="row mb-3"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+          htmlReply = '<div class="row mb-3"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div></div></div>';
         } else {
-          htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div></div></div>';
+          htmlReply = '<div class="row mb-3"><div class="col-lg-10"><textarea data-aidi=' + element._id + ' data-index=' + index + ' class="form-control txtAreaEdit" readonly style="background-color:unset;" placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div></div></div>';
         }
         
       } else {
@@ -585,10 +607,18 @@ function processReplyData(replyData, replyId, id) {
         if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
         else choose = window['colorName'+element.user_create];
 
+        try {
+          let colorCheck = lightOrDark(window['colorName'+element.user_create]);
+          if(colorCheck == 'light') window['colorClass'+element.user_create] = 'text-dark fontWeight400';
+          else window['colorClass'+element.user_create] = 'text-white';
+        } catch (error) {
+          window['colorClass'+element.user_create] = 'text-white';
+        }
+
         if(haveFile){
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
         } else {
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
         }
 
         
@@ -616,7 +646,7 @@ async function domComment(commentData, id) {
   let dataComment = commentData.reverse();
   dataComment.forEach(function (element, index) {
     let haveReply = element.reply ?? false;
-    let cardComment = '<div class="card p-3 mb-3 cardForComment" data-id=' + element._id + '>';
+    let cardComment = '<div class="card p-3 mb-3 cardForComment" data-id=' + element._id + ' style="border:7px solid #FFD6A2; border-radius:20px;">';
     let bodyComment;
 
     let haveFile = element.file == 'null' ? false : element.file;
@@ -643,9 +673,17 @@ async function domComment(commentData, id) {
 
       let choose;
       if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
-        else choose = window['colorName'+element.user_create];
+      else choose = window['colorName'+element.user_create];
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/attachment.svg" width="30" height="30" /><p id="commentFileAll" class="commentFileName'+element._id+'"></p></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
+      try {
+        let colorCheck = lightOrDark(choose);
+        if(colorCheck == 'light') window['colorClass'+element.user_create] = 'text-dark fontWeight400';
+        else window['colorClass'+element.user_create] = 'text-white';
+      } catch (error) {
+        window['colorClass'+element.user_create] = 'text-white';
+      }
+
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 
@@ -666,11 +704,19 @@ function processTeamData(data) {
   let html = '';
   data.member = JSON.parse(data.member);
   data.member.forEach(element => {
-    let rand = Math.floor(Math.random() * 4) + 1;
     let choose;
     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
     else choose = window['color'+element.account_id];
-    html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>';
+
+    try {
+      let colorCheck = lightOrDark(window['color'+element.account_id]);
+      if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+      else window['colorClass'+element.account_id] = 'text-white';
+    } catch (error) {
+      window['colorClass'+element.account_id] = 'text-white';
+    }
+
+    html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
   });
   return html;
 }

@@ -1,5 +1,11 @@
 'use strict'
 
+function lightOrDark(color) {
+  let brightness = tinycolor(color).getBrightness();
+  if(brightness >= 140) return 'light';
+  else return 'dark;'
+}
+
 $(document).on('change','#commentFile',function(e){
     // let filename = e.target.files[0].name;
     // $('.commentFileName').html(filename);
@@ -49,9 +55,6 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
       console.log("addComment::", addComment);
       $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
       if (addComment != 500) {
-        console.log('tastas', id, window['dataComment' + id + '']);
-        // window['dataComment' + id + ''] = JSON.parse(window['dataComment' + id + '']);
-        // window['dataComment' + id + ''].push(addComment);
         let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
           '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
           '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
@@ -65,7 +68,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
           '</footer>' +
           '</blockquote>';
 
-        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/attachment.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
+        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
 
         cardCommentNew += '<hr/>';
         cardCommentNew += emptyComment;
@@ -137,15 +140,11 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
     }
 
     setTimeout(() => {
-      if (replyComment == '') replyComment = $(this).data('name');
+      if (replyEditComment == '') replyEditComment = $(this).data('name');
       $(this).mouseleave();
-      $(this).html(replyComment);
+      $(this).html(replyEditComment);
     }, 200);
   }
-})
-
-$(document).on('change','.editReplyImage',async function(){
-  
 })
 
 $(document).on('click','.filePrev',async function(){
@@ -509,7 +508,7 @@ $(document).on('click', '.commentTask', async function () {
         $('.commentContent[data-id=' + id + ']').empty();
       }
     }
-  }, 10000);
+  }, 20000);
 
   $('#commentModal').on('hidden.bs.modal', function (e) {
     clearInterval(intervalComment);
@@ -519,11 +518,19 @@ $(document).on('click', '.commentTask', async function () {
   $('.commentTaskName').html(taskName);
   try {
     window['dataCommentTeam' + groupid + ''].forEach(element => {
-      let random = Math.floor(Math.random() * 4) + 1;
       let choose;
       if(window['color'+element.account_id] == undefined) choose = getRandomColor();
       else choose = window['color'+element.account_id];
-      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+choose+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>');
+
+      try {
+        let colorCheck = lightOrDark(choose);
+        if(colorCheck == 'light') window['colorClass'+element.user_create] = 'text-dark fontWeight400';
+        else window['colorClass'+element.user_create] = 'text-white';
+      } catch (error) {
+        window['colorClass'+element.user_create] = 'text-white';
+      }
+
+      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+choose+'"><span class="initialPic '+window['colorClass'+element.user_create]+'">' + getInitials(element.account_name) + '</span></div>');
     });
   } catch (e) {
     $('.commentTaskMember').append('<div>No member yet</div>');
