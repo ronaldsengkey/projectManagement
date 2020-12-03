@@ -1,7 +1,7 @@
 const filterTimeRanges = `<div id="filterTimeRanges" class="dropdown mx-1">
         <a class="btn btn-lg btn-trigger z-depth-0 m-0 py-2 px-3 text-capitalize" href="#">
             <i class="far mr-2 fa-calendar-alt"></i>
-            <span class="filterTimeName">Time Ranges</span> <span id="onFilter" class="text-success"><i class="fas fa-check-circle"></i></span>
+            <span class="filterTimeName">Time Ranges</span> <span id="onFilter" class="text-success"></span>
             <i class="fas ml-2 fa-chevron-down"></i>
         </a>
         <div class="dropdown-menu dropdown-menu-right">
