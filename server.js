@@ -1913,7 +1913,7 @@ async function checkAndGetConfigFromMainDB(){
         console.log('failed to connect to main DB');
       } else {
         updateConfig(JSON.parse(body).data)
-        console.log('the config',returnedConfig);
+        console.log('config',returnedConfig);
       }
     });
   setInterval(() => {
