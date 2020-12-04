@@ -1718,6 +1718,34 @@ fastify.post("/getRData", async function (request, reply) {
   }
 });
 
+fastify.post('/updateConfig', async function (request, reply) {
+  try {
+    console.log('request: ', request.headers.serverkey);
+    let key = request.headers.serverkey;
+    console.log('key: ', key);
+    console.log('serverKey: ', myKey);
+    if (myKey == key) {
+      returnedConfig = request.body;
+      redisKey = request.body;
+      reply.send({
+        responseCode: "200",
+        responseMessage: "success!!"
+      });  
+    } else {
+      reply.send({
+        responseCode: "500",
+        responseMessage: "fail!!"
+      });
+    }
+  } catch (err) {
+    console.log('err: ', err);
+    reply.send({
+      responseCode: "500",
+      responseMessage: "fail!!"
+    });
+  }
+})
+
 async function convertURLRedis(data) {
   try {
     let url;
@@ -1885,6 +1913,7 @@ async function checkAndGetConfigFromMainDB(){
         console.log('failed to connect to main DB');
       } else {
         updateConfig(JSON.parse(body).data)
+        console.log('the config',returnedConfig);
       }
     });
   setInterval(() => {
