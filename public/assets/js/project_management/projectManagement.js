@@ -75,7 +75,7 @@ async function getBoard() {
             if (result.responseCode == '200') {
                 manageBoardData(result.data);
             } else if (result.responseCode == '404') {
-                amaranNotifFull(result.responseMessage);
+                toastrNotifFull(result.responseMessage,'error');
             } else {
                 let param = {
                     type: 'error',
@@ -775,7 +775,7 @@ function callNotifBoard(title) {
                         text: result.responseMessage
                     };
                 }
-                return amaranNotifFull(result.responseMessage);
+                return toastrNotifFull(result.responseMessage);
             });
         },
         allowOutsideClick: () => !Swal.isLoading()
@@ -925,7 +925,7 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
                 }
                 Swal.hideLoading()
             } catch (error) {
-                amaranNotifFull('failed to get data');
+                toastrNotifFull('failed to get data','error');
                 Swal.hideLoading();
             }
             

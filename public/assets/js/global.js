@@ -74,29 +74,10 @@ function logout() {
     window.location = "login";
 }
 
-function amaranNotifFull(title,position){
-    if(position == undefined){
-        $.amaran({
-            content: {
-                'message'           :title,
-                'cssanimationIn'    :'bounceInDown',
-                'cssanimationOut'   :'zoomOutUp',
-                'position'          :'top right'
-            },
-            theme:'default ok'
-        });
-    } else {
-        $.amaran({
-            content: {
-                'message'           :title,
-                'cssanimationIn'    :'bounceInDown',
-                'cssanimationOut'   :'zoomOutUp',
-                'position'          :position
-            },
-            theme:'default ok'
-        });
-    }
-    
+function toastrNotifFull(title,type="success"){
+    if(type == 'success') toastr.success(title);
+    else if(type == 'warning') toastr.warning(title);
+    else toastr.error(title);
 }
 
 function callNotif(param) {
