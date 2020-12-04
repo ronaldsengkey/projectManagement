@@ -22,7 +22,6 @@ const path = require("path");
 const r = require("request");
 const request = require("request");
 const efs = require('fs');
-const fsConfig = efs.readFileSync('./config.json', 'utf-8');
 const cryptography = require("./crypto.js");
 const myKey = efs.readFileSync("./server.key", 'utf-8');
 // const {
@@ -38,7 +37,6 @@ fastify.register(require('fastify-static'), {
 
 // var Monitor = require('monitor');
 let signatureLogin = require("./signature.js");
-let jsonConfig = require("./config.json");
 let mainDBKey = efs.readFileSync('./mainDB.key', 'utf8');
 const fs = require('fs');
 let redisKey = [];
@@ -56,10 +54,6 @@ fastify.get("/:origin", async function (req, reply) {
   let paramTemp;
   try {
     switch (req.params.origin) {
-      case 'config':
-        const fsConfigRaw = efs.readFileSync('./config.json', 'utf-8');
-        reply.send(fsConfigRaw);
-        break;
       case "getConfig":
         let resp = {};
         if (req.headers.serverkey == myKey) {
@@ -76,9 +70,6 @@ fastify.get("/:origin", async function (req, reply) {
       case "":
         // reply.type('text/html').send(await getSource());
         reply.redirect("/login");
-        break;
-      case "register":
-        reply.sendFile("layouts/register.html");
         break;
       case "reqpassword":
         reply.sendFile("layouts/login.html");

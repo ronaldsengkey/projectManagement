@@ -1,8 +1,5 @@
 const fs = require('fs');
 let serverKey = fs.readFileSync('./server.key', 'utf8');
-let privateKEY = fs.readFileSync('./private.key', 'utf8');
-let publicKEY = fs.readFileSync('./public.key', 'utf8');
-let publicKey = fs.readFileSync('./publicRsa.key', 'utf8');
 const Cryptr = require('cryptr');
 const crypto = require('crypto');
 const cryptr = new Cryptr(serverKey);

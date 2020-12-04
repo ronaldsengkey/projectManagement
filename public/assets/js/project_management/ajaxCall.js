@@ -220,7 +220,7 @@ async function addTask(value, groupId) {
             data: JSON.stringify(settingsTask),
             success: async function (result) {
                 if (result.responseCode == '200') {
-                    amaranNotifFull('success add task');
+                    toastrNotifFull('success add task');
                     result.data = result.data[0];
                     let htmlTaskTag =
                         '<tr><td class="name" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">' + value + '</td>' +
@@ -280,9 +280,9 @@ function globalUpdateTask(concern, data) {
         data: JSON.stringify(settingUpdate),
         success: function (result) {
             if (result.responseCode == '200') {
-                amaranNotifFull('update ' + concern + ' success')
+                toastrNotifFull('update ' + concern + ' success')
             } else {
-                amaranNotifFull('update ' + concern + ' failed')
+                toastrNotifFull('update ' + concern + ' failed','error')
             }
         }
     })
@@ -324,11 +324,11 @@ async function globalAddComment(data) {
             data: data,
             success: async function (result) {
                 if (result.responseCode == '200') {
-                    amaranNotifFull('commenting success')
+                    toastrNotifFull('commenting success')
                     resolve(result.data[0]);
                 } else {
-                    reject(500);
-                    amaranNotifFull('commenting failed')
+                    toastrNotifFull('commenting failed','error')
+                    resolve(500);
                 }
             }
         })
@@ -365,9 +365,9 @@ function globalUpdateComment(method, data) {
         data: JSON.stringify(settingComment),
         success: function (result) {
             if (result.responseCode == '200') {
-                amaranNotifFull('commenting success')
+                toastrNotifFull('commenting success')
             } else {
-                amaranNotifFull('commenting failed')
+                toastrNotifFull('commenting failed','error')
             }
         }
     })
@@ -409,10 +409,10 @@ async function globalUpdateReplyComment(method, data) {
                 success: function (result) {
                     if (result.responseCode == '200') {
                         resolve(result);
-                        amaranNotifFull('commenting success')
+                        toastrNotifFull('commenting success')
                     } else {
                         reject(500);
-                        amaranNotifFull('commenting failed')
+                        toastrNotifFull('commenting failed','error')
                     }
                 }
             })
@@ -433,10 +433,10 @@ async function globalUpdateReplyComment(method, data) {
                 success: function (result) {
                     if (result.responseCode == '200') {
                         resolve(result);
-                        amaranNotifFull('commenting success')
+                        toastrNotifFull('commenting success')
                     } else {
                         reject(500);
-                        amaranNotifFull('commenting failed')
+                        toastrNotifFull('commenting failed','error')
                     }
                 }
             })

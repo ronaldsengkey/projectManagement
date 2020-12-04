@@ -186,7 +186,7 @@ $(document).on('click', '.renameBoard', function () {
         preConfirm: async () => {
             return await renameBoard(renameId,newName).then(async function (result) {
                 if(result.responseCode == '200'){
-                    amaranNotifFull(result.responseMessage);
+                    toastrNotifFull(result.responseMessage);
                     await getTrelloPage();
                     await getTrelloBoard();
                 } else {
@@ -214,7 +214,7 @@ $(document).on('click', '.deleteBoard', function () {
         preConfirm: async () => {
             return await deleteBoardTrello(deleteId).then(async function (result) {
                 if(result.responseCode == '200'){
-                    amaranNotifFull(result.responseMessage);
+                    toastrNotifFull(result.responseMessage);
                     await getTrelloPage();
                     await getTrelloBoard();
                     

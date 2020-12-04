@@ -169,7 +169,7 @@ $(document).on('click', '.menuRenameTrello', function () {
         preConfirm: async () => {
             return await renameList(renameId, newName).then(async function (result) {
                 if (result.responseCode == '200') {
-                    amaranNotifFull(result.responseMessage);
+                    toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + renameBoardId + ']').click();
                     $('#chartSection').remove();
                 } else {
@@ -198,7 +198,7 @@ $(document).on('click', '.menuDeleteTrello', function () {
         preConfirm: async () => {
             return await deleteList(deleteId).then(async function (result) {
                 if (result.responseCode == '200') {
-                    amaranNotifFull(result.responseMessage);
+                    toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + deleteBoardId + ']').click();
                     $('#chartSection').remove();
                 } else {

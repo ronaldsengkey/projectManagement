@@ -115,7 +115,7 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
     let aidi = $(this).data('aidi');
     let replyId = $(this).data('replyid');
     if (replyEditComment == '') {
-      amaranNotifFull('please fill comment reply');
+      toastrNotifFull('please fill comment reply','warning');
     } else {
 
       let commentFile;
@@ -156,7 +156,7 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
   if (ev.key === 'Enter') {
     let replyComment = $(this).val();
     if (replyComment == '') {
-      amaranNotifFull('please fill comment reply');
+      toastrNotifFull('please fill comment reply','warning');
     } else {
 
       let commentFile;

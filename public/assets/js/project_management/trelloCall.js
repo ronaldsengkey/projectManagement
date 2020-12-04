@@ -237,9 +237,9 @@ function globalUpdateTaskTrello(concern, data) {
         data: JSON.stringify(data),
         success: function (result) {
             if (result.responseCode == '200') {
-                amaranNotifFull('update ' + concern + ' success')
+                toastrNotifFull('update ' + concern + ' success')
             } else {
-                amaranNotifFull('update ' + concern + ' failed')
+                toastrNotifFull('update ' + concern + ' failed','error')
             }
         }
     })
