@@ -942,10 +942,12 @@ $(document).on('change', '#divisionId', async function () {
         let currentDivision = $('select#divisionId option:selected').text()
         $('#employeeId').attr('data-concern', currentDivision);
         let employeeDivision = await boardEmployeeChecking(window['employeeData']);
-        employeeDivision.forEach(element => {
-            let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
-            $('#employeeId').append(html);
-        });
+        if(ct.division_id == currentVal){
+            employeeDivision.forEach(element => {
+                let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+                $('#employeeId').append(html);
+            });
+        }
     
         let dataBoard = boardMemberJoin.filter(function (e) {
             return e.departmen_id == currentVal;
@@ -1141,7 +1143,7 @@ $(document).on('click', '#addGroupTask', function () {
                 case 'Private':
                     $('#picGroup').empty();
                     boardMember.forEach(element => {
-                        let htmlPrivate = '<option value=' + element.account_id + '>' + element.employee_name + '</option>';
+                        let htmlPrivate = '<option value=' + element.account_id + '>' + element.account_name + '</option>';
                         $('#picGroup').append(htmlPrivate);
                     });
                     Swal.hideLoading()
