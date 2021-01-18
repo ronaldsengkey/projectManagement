@@ -6,7 +6,7 @@
 const localUrl = "http://sandbox.dashboard.ultipay.id";
 const mainIpService = "https://sandbox.api.ultipay.id";
 const mainChatService = "https://sandbox.api.ultipay.id";
-// const localUrl = "localhost";
+// const localUrl = "http://localhost";
 
 // ANCHOR MAIN IP NAME AND PORT
 // const mainIpKey = "SERVER_SYAFRI";

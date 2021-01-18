@@ -91,7 +91,7 @@ $(document).on('click', '.trelloBoardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloContent.js", function (data, textStatus, jqxhr) {})
+                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloContent.js", function (data, textStatus, jqxhr) {})
                 $('.trelloContentData').html(result);
                 let pass = {
                     boardName: boardName,

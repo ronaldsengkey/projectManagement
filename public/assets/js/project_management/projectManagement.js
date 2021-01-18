@@ -647,7 +647,7 @@ $(document).on('click', '.boardList', async function () {
                     "Cache-Control": "no-cache",
                 },
                 success: function (result) {
-                    $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                    $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
                     $('.boardContentData').html(result);
                     let pass = {
                         boardName: boardName,
@@ -1016,7 +1016,7 @@ $(document).on('click', '.goTrello', async function () {
     if(authRes.responseCode == '200'){
         sessionStorage.setItem('meId',JSON.parse(authRes.data).id);
         // $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloCall.js", function (data, textStatus, jqxhr) {})
-        $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
+        $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
     } else if(authRes.responseCode == '476') {
         activeModalConfirmToken()
         window.open(authRes.data, "_blank", "width=750,height=750,top=400,left=900");
@@ -1190,7 +1190,7 @@ $(document).on('click', '#addGroupTask', function () {
                                 "Cache-Control": "no-cache",
                             },
                             success: function (result) {
-                                $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
+                                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
                                 $('.boardContentData').html(result);
                                 let pass = {
                                     boardName: boardName,

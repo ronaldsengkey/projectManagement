@@ -585,11 +585,11 @@ function getProjectManagement(){
             "Cache-Control": "no-cache"
         },
         success: function (callback) {
-            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
-            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
-            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
-            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/page-filter.js", function (data, textStatus, jqxhr) {})
-            $.getScript("http://" + localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
+            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
+            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
+            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
+            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/page-filter.js", function (data, textStatus, jqxhr) {})
+            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
             $('#mainContent').append(callback);
         }
     })

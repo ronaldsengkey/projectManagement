@@ -196,7 +196,7 @@ $(document).on('click','button', function(){
                 var resetEmail = $('#emailReset').val();
                 var send = {
                     "email":resetEmail,
-                    "link": localUrl + ":" + mainLocalPort + '/reqpassword'
+                    "link": localUrl + ":" + projectManagementLocalPort + '/reqpassword'
                 }
                 var dataSendEmail = {
                     settings:{
