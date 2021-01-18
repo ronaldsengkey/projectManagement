@@ -18,10 +18,8 @@ function handleReqPassword(ori){
         decode64 = window.atob(replaceStr);
         // ? mark combine with decode result
         decode64 = searchSubStr + decode64;
-        // serialize URL search param of combined result
-        getURLparam = new URLSearchParams(decode64);
-        // get email param
-        getEmailParam = getURLparam.get('email');
+        // split email param
+        getURLparam = decode64.split('email=')[1];
     }
 
     let formField = '<div class="row">'+
@@ -34,7 +32,7 @@ function handleReqPassword(ori){
         passwordField+
         confirmPasswordField+
     '<div class="text-center mt-4 mb-2">'+
-            '<input type="hidden" id="emailParam" value="'+getEmailParam+'"><button class="btn orange darken-1 text-white waves-effect waves-light" type="button" data-target="resetPassword" id="confirmForgotPassword">Submit'+
+            '<input type="hidden" id="emailParam" value="'+getURLparam+'"><button class="btn orange darken-1 text-white waves-effect waves-light" type="button" data-target="resetPassword" id="confirmForgotPassword">Submit'+
             '<i class="fas fa-send ml-2"></i>'+
             '</button>'+
             '</div>'+
