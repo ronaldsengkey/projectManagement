@@ -594,7 +594,7 @@ $(document).on('mouseenter', '.pic', function () {
         let employee = await getEmployee();
         if (employee != 500) {
           employee.forEach(element => {
-            let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.employee_id + '>' + element.employee_name + '</option>';
+            let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.employee_id + '>' + element.name + '</option>';
             $('.emploPic[data-id=' + id + ']').append(html);
           });
         }
@@ -713,7 +713,7 @@ $(document).on('mouseenter', '.team', function () {
         let employee = await getEmployee();
         if (employee != 500) {
           employee.forEach(element => {
-            let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.employee_name + '</option>';
+            let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.name + '</option>';
             $('.emploTeam[data-id=' + id + ']').append(html);
           });
         }

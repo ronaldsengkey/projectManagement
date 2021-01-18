@@ -943,7 +943,7 @@ $(document).on('change', '#divisionId', async function () {
         $('#employeeId').attr('data-concern', currentDivision);
         let employeeDivision = await boardEmployeeChecking(window['employeeData']);
         employeeDivision.forEach(element => {
-            let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+            let html = '<option value=' + element.employee_id + '>' + element.name + '</option>';
             $('#employeeId').append(html);
         });
     
@@ -1129,7 +1129,7 @@ $(document).on('click', '#addGroupTask', function () {
                         if (employee != 500) {
                             $('#picGroup').empty();
                             employee.forEach(element => {
-                                let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+                                let html = '<option value=' + element.employee_id + '>' + element.name + '</option>';
                                 $('#picGroup').append(html);
                             });
                         }

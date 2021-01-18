@@ -708,6 +708,74 @@ fastify.get("/board", async function (req, reply) {
   }
 });
 
+fastify.get("/getEmployee", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/customerService/list/employee',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          target:'getEmployee',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+        },
+      },
+    };
+
+    console.log("coba get employee", data);
+    let a = await actionGet(data);
+    console.log('aaaaa employee',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.get("/getDivision", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/customerService/list/division',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          target:'getDivision',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+        },
+      },
+    };
+
+    console.log("coba get division", data);
+    let a = await actionGet(data);
+    console.log('aaaaa division',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 fastify.get("/goAuth", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
