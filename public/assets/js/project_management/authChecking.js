@@ -146,7 +146,7 @@ async function globalGradeChecking(concern,data,type = ''){
             // Super Admin Ultipay, CEO, CTO
             if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
                 processedData = data.filter(function(e){
-                    return (parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id) || e.employee_id == ct.id_employee
+                    return (parseInt(e.grade ?? e.auth_id) == (parseInt(ct.grade)+1) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             } 
@@ -154,7 +154,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '3') {
                 let managerDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return (e.division_id == managerDivision && parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id) || e.employee_id == ct.id_employee
+                    return (e.division_id == managerDivision && parseInt(e.grade ?? e.auth_id) == (parseInt(ct.grade)+1) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             }
@@ -162,7 +162,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '4') {
                 let spvDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return (e.division_id == spvDivision && parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id) || e.employee_id == ct.id_employee
+                    return (e.division_id == spvDivision && parseInt(e.grade ?? e.auth_id) == (parseInt(ct.grade)+1) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             }
@@ -170,7 +170,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '5') {
                 let staffDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return (e.division_id == staffDivision && parseInt(e.grade) == (parseInt(ct.grade)+1) && e.company_id == ct.company_id) || e.employee_id == ct.id_employee
+                    return (e.division_id == staffDivision && parseInt(e.grade ?? e.auth_id) == (parseInt(ct.grade)+1) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             }
@@ -178,7 +178,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '6') {
                 let partTimerDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return (e.division_id == partTimerDivision && e.grade == ct.grade && e.company_id == ct.company_id) || e.employee_id == ct.id_employee
+                    return (e.division_id == partTimerDivision && (e.grade ?? e.auth_id) == ct.grade && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             }
