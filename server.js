@@ -1935,12 +1935,12 @@ async function convertURLRedis(data) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  // hostIP = returnedConfig.SERVER_WAHYU;
-  // hostNameServer = 'SERVER_WAHYU';
-  hostIP = returnedConfig.AWS_SERVER;
-  hostNameServer = "AWS_SERVER";
+  hostIP = returnedConfig.SERVER_SYAFRI;
+  hostNameServer = 'SERVER_SYAFRI';
+  // hostIP = returnedConfig.AWS_SERVER;
+  // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.AWS_SERVER;
+  hostIPAlt = returnedConfig.SERVER_SYAFRI;
 
   // ANCHOR MAIN SERVER PORT NAME AND LINK
   accPort = "8443/account";
@@ -1956,8 +1956,8 @@ async function defineConfig() {
 
 async function defineLocalConfig(){
   // ANCHOR LOCAL URL
-  localUrl = "http://sandbox.dashboard.ultipay.id";
-  // localUrl = "http://localhost";
+  // localUrl = "http://sandbox.dashboard.ultipay.id";
+  localUrl = "http://localhost";
 
   // ANCHOR LOCAL PORT
   mainLocalPort = '8100'
