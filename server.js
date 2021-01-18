@@ -1886,8 +1886,8 @@ async function defineConfig() {
 
 async function defineLocalConfig(){
   // ANCHOR LOCAL URL
-  // localUrl = "http://sandbox.dashboard.ultipay.id";
-  localUrl = "http://localhost";
+  localUrl = "http://sandbox.dashboard.ultipay.id";
+  // localUrl = "http://localhost";
 
   // ANCHOR LOCAL PORT
   mainLocalPort = '8100'
