@@ -57,9 +57,14 @@ async function globalGradeChecking(concern,data,type = ''){
                     processedData = data;
                 } else {
                     processedData = data.filter(function(e){
-                        let isMember = JSON.parse(e.member).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
+                        let isMember;
+                        try {
+                            isMember = JSON.parse(e.member).filter(function(s){
+                                if(s.account_id == ct.id_employee) return true;
+                            })
+                        } catch (error) {
+                            isMember = 0;
+                        }
 
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
@@ -75,9 +80,14 @@ async function globalGradeChecking(concern,data,type = ''){
                     processedData = data;
                 } else {
                     processedData = data.filter(function(e){
-                        let isMember = JSON.parse(e.member).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
+                        let isMember;
+                        try {
+                            isMember = JSON.parse(e.member).filter(function(s){
+                                if(s.account_id == ct.id_employee) return true;
+                            })
+                        } catch (error) {
+                            isMember = 0;
+                        }
 
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
@@ -93,9 +103,14 @@ async function globalGradeChecking(concern,data,type = ''){
                     processedData = data;
                 } else {
                     processedData = data.filter(function(e){
-                        let isMember = JSON.parse(e.member).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
+                        let isMember;
+                        try {
+                            isMember = JSON.parse(e.member).filter(function(s){
+                                if(s.account_id == ct.id_employee) return true;
+                            })
+                        } catch (error) {
+                            isMember = 0;
+                        }
 
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
@@ -111,9 +126,14 @@ async function globalGradeChecking(concern,data,type = ''){
                     processedData = data;
                 } else {
                     processedData = data.filter(function(e){
-                        let isMember = JSON.parse(e.member).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
+                        let isMember;
+                        try {
+                            isMember = JSON.parse(e.member).filter(function(s){
+                                if(s.account_id == ct.id_employee) return true;
+                            })
+                        } catch (error) {
+                            isMember = 0;
+                        }
 
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
@@ -129,9 +149,14 @@ async function globalGradeChecking(concern,data,type = ''){
                     processedData = data;
                 } else {
                     processedData = data.filter(function(e){
-                        let isMember = JSON.parse(e.member).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
+                        let isMember;
+                        try {
+                            isMember = JSON.parse(e.member).filter(function(s){
+                                if(s.account_id == ct.id_employee) return true;
+                            })
+                        } catch (error) {
+                            isMember = 0;
+                        }
 
                         let isPic = JSON.parse(e.pic).filter(function(s){
                             if(s.account_id == ct.id_employee) return true;
