@@ -1973,40 +1973,50 @@ async function updateConfig(data){
 }
 
 async function checkAndGetConfigFromMainDB(){
-  await defineLocalConfig();
-  r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
-    "headers": {
-        "serverKey": mainDBKey
-      }
-    }, function (error, response, body) {
-      if(body == undefined){
-        console.log('failed to connect to main DB');
-      } else {
-        updateConfig(JSON.parse(body).data)
-        console.log('config',returnedConfig);
-      }
-    });
-  setInterval(() => {
+  return new Promise(async function(resolve,reject){
+    await defineLocalConfig();
     r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
-    "headers": {
-        "serverKey": mainDBKey
-      }
-    }, function (error, response, body) {
-      if(body == undefined){
-        console.log('failed to connect to main DB');
-      } else {
-        updateConfig(JSON.parse(body).data)
-      }
-    });
-  }, 5000);
+      "headers": {
+          "serverKey": mainDBKey
+        }
+      }, function (error, response, body) {
+        if(body == undefined){
+          console.log('failed to connect to main DB');
+        } else {
+          resolve(updateConfig(JSON.parse(body).data))
+          console.log('config',returnedConfig);
+        }
+      });
+    setInterval(() => {
+      r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
+      "headers": {
+          "serverKey": mainDBKey
+        }
+      }, function (error, response, body) {
+        if(body == undefined){
+          console.log('failed to connect to main DB');
+        } else {
+          resolve(updateConfig(JSON.parse(body).data))
+        }
+      });
+    }, 5000);
+  })
+  
 }
 
+let sockets = require("./socket.js");
 
 // Run the server!
 const start = async () => {
   try {
     await fastify.listen(8110,'0.0.0.0')
     await checkAndGetConfigFromMainDB();
+    let conf = {
+      hostNameServer: hostNameServer,
+      hostIp: hostIP,
+      port: fastify.server.address().port
+    }
+    await sockets.openSocket(conf)
     // fastify.log.info(`server listening on ${fastify.server.address().port}`)
   } catch (err) {
     fastify.log.error(err)
