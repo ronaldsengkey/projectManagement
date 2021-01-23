@@ -655,7 +655,8 @@ $(document).on('click', '.boardList', async function () {
                         name: name,
                         type: type,
                         id: id,
-                        member: JSON.stringify(window['dataBoardMember' + id + ''])
+                        member: JSON.stringify(window['dataBoardMember' + id + '']),
+                        groupTask: window['groupTask'+id]
                     };
                     domBoardTools(pass)
                 }
@@ -679,7 +680,8 @@ $(document).on('click', '.boardList', async function () {
                         name: name,
                         type: type,
                         id: id,
-                        member: JSON.stringify(window['dataBoardMember' + id + ''])
+                        member: JSON.stringify(window['dataBoardMember' + id + '']),
+                        groupTask: []
                     };
                     domBoardTools(pass)
 
@@ -703,17 +705,106 @@ $(document).on('click', '.boardList', async function () {
 })
 
 function domBoardTools(data) {
+    console.log('wz',data);
+    let addTeam = false;
+    let html = '';
+    if(data.groupTask != []){
+        let gtData = data.groupTask;
+        // check apa ada group task yang pic nya adalah orang yang login dan yang membuat group task bukan orang yang login juga
+        let isPic = gtData.forEach(element => {
+            if(JSON.parse(element.pic)[0].account_id == ct.id_employee && element.user_create != ct.name){
+                addTeam = true;
+            }
+        });
+    }
+    if(addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
     let tools = '<div class="row p-3 ml-1 mr-1">' +
         '<div class="col-lg-6" style="align-self: center;">' +
         '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
         '</div>' +
         '<div class="col-lg-6" style="text-align: end;">' +
+        html +
         '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
         '</div>' +
         '</div>';
     $('.boardHeader').append(tools);
     if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
 }
+
+$(document).on('click','#addTeam',function(){
+    Swal.fire({
+        title: 'Please select member list',
+        html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input style="height:auto;""></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
+        onOpen: async () => {
+            Swal.showLoading();
+            let employee;
+            let empDone = false;
+            try {
+                employee = await getEmployee();
+                if (employee != 500) {
+                    $('#emptyMember').remove();
+                    $('#memberGroup').empty()
+                    empDone = !empDone;
+                    console.log('eee',employee);
+                    employee.forEach(element => {
+                        if(parseInt(element.division_id) == ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
+                        $('#memberGroup').append('<option value='+element.employee_id+'>'+element.employee_name+'</option>')
+                    });
+                }
+                if(empDone){
+                    $('#employeeId').prop('disabled', false);
+                }
+                Swal.hideLoading()
+            } catch (error) {
+                toastrNotifFull('failed to get data','error');
+                Swal.hideLoading();
+            }
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Submit',
+        showLoaderOnConfirm: true,
+        preConfirm: async () => {
+            if(boardTeamMember.length == 0){
+                toastrNotifFull('please add team member','error');
+                return false;
+            } else {
+                console.log('ss',boardTeamMember)
+            }
+            // let bodyGroup = {
+            //     'board_id': thisId,
+            //     'name': taskValue,
+            //     'pic': JSON.stringify(pic),
+            //     "division_id": ct.division_id,
+            //     "grade": ct.grade,
+            //     "user_create": ct.name
+            // }
+            // return await postGroupTask(bodyGroup).then(async function (result) {
+            //     let param;
+            //     if (result.responseCode == '200') {
+            //         param = {
+            //             type: 'success',
+            //             text: result.responseMessage
+            //         };
+            //         callNotif(param);
+            //         $('.boardContentData').empty();
+            //         $('.boardContent').empty();
+            //         $('.boardHeader').empty();
+            //         let gt = await getGroupTask(thisId);
+            //         if (gt.responseCode == '200') {
+                        
+            //         } else {
+            //             param = {
+            //                 type: 'error',
+            //                 text: result.responseMessage
+            //             };
+            //             callNotif(param);
+            //         }
+            //     }
+            // })
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    })
+})
 
 let boardMemberJoin = [];
 
@@ -781,6 +872,37 @@ function callNotifBoard(title) {
         allowOutsideClick: () => !Swal.isLoading()
     })
 }
+let boardTeamMember = [];
+$(document).on('click', '.addTeamMember', function () {
+    let boardMemberId = $('#memberGroup option:selected').toArray().map(item => item.value);
+    let boardMemberName = $('#memberGroup option:selected').toArray().map(item => item.text);
+    
+    boardMemberId.forEach(function (e, index) {
+        boardTeamMember.push({
+            'account_id': e,
+            'account_name': boardMemberName[index]
+        });
+        $('option[value=' + e + ']').remove();
+    })
+    addTemAccordion(boardTeamMember);
+})
+
+function addTemAccordion(boardTeamMember){
+    $('.accordionPlace').empty();
+    boardTeamMember.forEach(element => {
+        let splitCamelAccName = camelize(element.account_name);
+        if ($('.beefup__head').length == 0){
+            let htmlAccordion = '<article class="beefup">' +
+            '<h2 class="beefup__head" data-toggle="collapse" data-target="#' + splitCamelAccName + '" aria-expanded="true" aria-controls="' + splitCamelAccName + '" id=' + element.account_id + '>Member List</h2>' +
+            '<div id="' + splitCamelAccName + '" class="collapse beefup__body">' +
+            '<div id="forMemberList"><div class="row rowData" data-name="' + element.account_name + '"><div class="col-lg-9">' + element.account_name + '</div><div class="col-lg-3"><i class="fa fa-times text-danger close removeDataTeam" data-for="' + splitCamelAccName + '" data-id=' + element.account_id + ' data-name="' + element.account_name + '" style="float:none; cursor:pointer;"></i></div></div></div>' +
+            '</div></article>';
+        $('.accordionPlace').append(htmlAccordion);
+        } else {
+            $('#forMemberList').append('<div class="row rowData" data-name="' + element.account_name + '" ><div class="col-lg-9">' + element.account_name + '</div><div class="col-lg-3"><i class="fa fa-times text-danger close removeDataTeam" data-for="' + splitCamelAccName + '" data-id=' + element.account_id + ' data-name="' + element.account_name + '" style="float:none; cursor:pointer;"></i></div></div></div>');
+        }
+    });
+}
 
 $(document).on('click', '.addMember', function () {
     let boardMemberId = $('#employeeId option:selected').toArray().map(item => item.value);
@@ -801,7 +923,6 @@ $(document).on('click', '.addMember', function () {
 
 function addAccordion(boardMemberJoin) {
     $('.accordionPlace').empty();
-    console.log('boaaa', boardMemberJoin);
     boardMemberJoin.forEach(element => {
         let camelizeDepartment = camelize(element.departmen_name);
         let splitCamelAccName = camelize(element.account_name);
@@ -819,6 +940,21 @@ function addAccordion(boardMemberJoin) {
     });
 
 }
+
+$(document).on('click', '.removeDataTeam', function () {
+    let dataNama = $(this).data("name");
+    let empId = $(this).data('id')
+    $('.rowData[data-name="' + dataNama + '"]').remove();
+    boardTeamMember = boardTeamMember.filter(function (e) {
+        return e.account_name != dataNama && e.account_id != empId
+    })
+
+    if ($('#forMemberList').children().length == 0) {
+        $('.beefup').remove();
+    }
+
+    $('#memberGroup').append('<option value=' + empId + '>' + dataNama + '</option>');
+})
 
 $(document).on('click', '.removeData', function () {
     let dataNama = $(this).data("name");
@@ -1201,6 +1337,7 @@ $(document).on('click', '#addGroupTask', function () {
                                     id: thisId,
                                     type: boardType,
                                     member: boardMember,
+                                    groupTask: window['groupTask'+thisId]
                                 };
                                 console.log('the pass', pass);
                                 domBoardTools(pass)

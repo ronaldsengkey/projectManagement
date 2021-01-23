@@ -56,20 +56,31 @@ async function globalGradeChecking(concern,data,type = ''){
                 if(type == 'Main'){
                     processedData = data;
                 } else {
-                    processedData = data.filter(function(e){
-                        let isMember;
-                        try {
-                            isMember = JSON.parse(e.member).filter(function(s){
-                                if(s.account_id == ct.id_employee) return true;
-                            })
-                        } catch (error) {
-                            isMember = 0;
-                        }
+                    processedData = data.filter(function(element){
+                        // let isMember;
+                        // try {
+                        //     isMember = JSON.parse(e.member).filter(function(s){
+                        //         if(s.account_id == ct.id_employee) return true;
+                        //     })
+                        // } catch (error) {
+                        //     isMember = 0;
+                        // }
 
-                        let isPic = JSON.parse(e.pic).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
-                        if(isMember.length > 0 || isPic.length > 0) return e;
+                        // let isPic = JSON.parse(e.pic).filter(function(s){
+                        //     if(s.account_id == ct.id_employee) return true;
+                        // })
+                        // if(isMember.length > 0 || isPic.length > 0) return e;
+                        try {
+                            if(ct.id_employee != JSON.parse(element.pic)[0].account_id){
+                                element['state'] = 'readonly';
+                            } else {
+                                element['state'] = 'available';
+                            }
+                        } catch (error) {
+                            element['state'] = 'readonly';
+                        }
+                        // if(isMember.length > 0 || isPic.length > 0) return e;
+                        return element;
                     })
                 }
                 return processedData;
@@ -79,20 +90,18 @@ async function globalGradeChecking(concern,data,type = ''){
                 if(type == 'Main'){
                     processedData = data;
                 } else {
-                    processedData = data.filter(function(e){
-                        let isMember;
+                    processedData = data.filter(function(element){
                         try {
-                            isMember = JSON.parse(e.member).filter(function(s){
-                                if(s.account_id == ct.id_employee) return true;
-                            })
+                            if(ct.id_employee != JSON.parse(element.pic)[0].account_id){
+                                element['state'] = 'readonly';
+                            } else {
+                                element['state'] = 'available';
+                            }
                         } catch (error) {
-                            isMember = 0;
+                            element['state'] = 'readonly';
                         }
-
-                        let isPic = JSON.parse(e.pic).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
-                        if(isMember.length > 0 || isPic.length > 0) return e;
+                        // if(isMember.length > 0 || isPic.length > 0) return e;
+                        return element;
                     })
                 }
                 return processedData;
@@ -102,20 +111,17 @@ async function globalGradeChecking(concern,data,type = ''){
                 if(type == 'Main'){
                     processedData = data;
                 } else {
-                    processedData = data.filter(function(e){
-                        let isMember;
+                    processedData = data.filter(function(element) {
                         try {
-                            isMember = JSON.parse(e.member).filter(function(s){
-                                if(s.account_id == ct.id_employee) return true;
-                            })
+                            if(ct.id_employee != JSON.parse(element.pic)[0].account_id){
+                                element['state'] = 'readonly';
+                            } else {
+                                element['state'] = 'available';
+                            }
                         } catch (error) {
-                            isMember = 0;
+                            element['state'] = 'readonly';
                         }
-
-                        let isPic = JSON.parse(e.pic).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
-                        if(isMember.length > 0 || isPic.length > 0) return e;
+                        return element;
                     })
                 }
                 return processedData;
@@ -125,20 +131,18 @@ async function globalGradeChecking(concern,data,type = ''){
                 if(type == 'Main'){
                     processedData = data;
                 } else {
-                    processedData = data.filter(function(e){
-                        let isMember;
+                    processedData = data.filter(function(element){
                         try {
-                            isMember = JSON.parse(e.member).filter(function(s){
-                                if(s.account_id == ct.id_employee) return true;
-                            })
+                            if(ct.id_employee != JSON.parse(element.pic)[0].account_id){
+                                element['state'] = 'readonly';
+                            } else {
+                                element['state'] = 'available';
+                            }
                         } catch (error) {
-                            isMember = 0;
+                            element['state'] = 'readonly';
                         }
-
-                        let isPic = JSON.parse(e.pic).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
-                        if(isMember.length > 0 || isPic.length > 0) return e;
+                        // if(isMember.length > 0 || isPic.length > 0) return e;
+                        return element;
                     })
                 }
                 return processedData;
@@ -148,20 +152,18 @@ async function globalGradeChecking(concern,data,type = ''){
                 if(type == 'Main'){
                     processedData = data;
                 } else {
-                    processedData = data.filter(function(e){
-                        let isMember;
+                    processedData = data.filter(function(element){
                         try {
-                            isMember = JSON.parse(e.member).filter(function(s){
-                                if(s.account_id == ct.id_employee) return true;
-                            })
+                            if(ct.id_employee != JSON.parse(element.pic)[0].account_id){
+                                element['state'] = 'readonly';
+                            } else {
+                                element['state'] = 'available';
+                            }
                         } catch (error) {
-                            isMember = 0;
+                            element['state'] = 'readonly';
                         }
-
-                        let isPic = JSON.parse(e.pic).filter(function(s){
-                            if(s.account_id == ct.id_employee) return true;
-                        })
-                        if(isMember.length > 0 || isPic.length > 0) return e;
+                        // if(isMember.length > 0 || isPic.length > 0) return e;
+                        return element;l
                     })
                 }
                 return processedData;

@@ -124,7 +124,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '</tr>' +
     '</tbody>' +
     '</table>';
-
+  
   $('.card-body[data-id="' + id + '"]').empty();
   if (data.length > 0) {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
@@ -232,10 +232,16 @@ async function domTaskTable(data, id, result, boardMember) {
       if (haveComment) {
         $('.commentTask[data-id=' + element._id + '] :first-child').css('color', 'blue');
       }
+
+      
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
     $('.progressBarPrio[data-id=' + id + ']').append(progPrioBar);
+
+    if(result.state  == 'readonly'){
+      $('table[id=table'+id+']').addClass('disableTable');
+    }
 
     feather.replace();
   } else {
