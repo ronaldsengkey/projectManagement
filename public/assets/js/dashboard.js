@@ -27,10 +27,11 @@ async function globalScopeCheck(parameter, method, callbackFunc, onErrorCallback
     }
 }
 
-var userData = JSON.parse(localStorage.getItem('accountProfile'));
-if (userData) {
-    var token = userData.token;
-}
+var userData;
+var token;
+let accountProfile;
+var fromOther=false;
+
 
 // let pageRequest = localStorage.getItem('pageRequest');
 let pageRequest = 'employee';
@@ -40,7 +41,7 @@ if ($(btn).data('target') == 'login') {
     $(btn).attr('data-origin', pageRequest.origin);
 }
 // localStorage.removeItem('accountProfile');
-let accountProfile = localStorage.getItem('accountProfile');
+
 
 function toTitleCase(str) {
     return str.replace(/(?:^|\s)\w/g, function (match) {
@@ -56,7 +57,71 @@ $(async function () {
     loadingActivated();
     // disableDevTools();
     try {
-        await setTimeout(function () {
+        let getUrl = window.location.search;
+        let getUserFrom = new URLSearchParams(getUrl).get('from');
+        let getUserId = new URLSearchParams(getUrl).get('idEmployee');
+        if(getUserFrom=="other")
+        {
+            fromOther=true;
+            $.ajax({
+                url: 'getSession',
+                crossDomain: true,
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "*/*",
+                    "Cache-Control": "no-cache",
+                    "for": getUserId
+                },
+                tryCount : 0,
+                retryLimit : 3,
+                timeout : 6000,
+                success: async function(callback){
+                    
+                    var callback = JSON.parse(callback);
+                    console.log("callback::", callback);
+                    localStorage.setItem("accountProfile", JSON.stringify(callback));
+                    userData = JSON.parse(localStorage.getItem('accountProfile'));
+                    if (userData) {
+                        token = userData.token;
+                    }
+                    accountProfile = localStorage.getItem('accountProfile');
+                    let ct = JSON.parse(accountProfile);
+                    // let loginTime = localStorage.getItem('loginTime');
+                    let getUrl = window.location.search;
+                    let getUserId = new URLSearchParams(getUrl).get('use');
+                    if(getUserId == 'project_management'){
+                        getPage('project_management');
+                    } else {
+                        getPage('home');
+                        getPage('project_management');
+                    }
+                    $('#empName').html(ct.fullname);
+                    $('#navHeaderPM').remove();
+                    await initializeServerPort();
+                    
+                },
+                error: function(callback,timeout){
+                    if(timeout === 'timeout'){
+                        this.tryCount++;
+                        if (this.tryCount <= this.retryLimit) {
+                            //try again
+                            $.ajax(this);
+                            return;
+                        }            
+                        return;
+                    }
+                }
+            });
+        }
+        else
+        {
+            userData = JSON.parse(localStorage.getItem('accountProfile'));
+            if (userData) {
+                token = userData.token;
+            }
+            accountProfile = localStorage.getItem('accountProfile');
+            await setTimeout(function () {
             Swal.fire({
                 type: "error",
                 title: 'Expired session',
@@ -86,6 +151,7 @@ $(async function () {
         }
         $('#empName').html(ct.fullname);
         await initializeServerPort();
+    }
 
     } catch (err) {
         console.log("error read document processing", err);

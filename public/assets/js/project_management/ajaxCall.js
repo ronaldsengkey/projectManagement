@@ -218,6 +218,7 @@ async function addTask(value, groupId) {
                 "Cache-Control": "no-cache",
             },
             data: JSON.stringify(settingsTask),
+            timeout: 30000,
             success: async function (result) {
                 if (result.responseCode == '200') {
                     toastrNotifFull('success add task');

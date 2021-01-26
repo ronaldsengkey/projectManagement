@@ -24,6 +24,8 @@ const request = require("request");
 const efs = require('fs');
 const cryptography = require("./crypto.js");
 const myKey = efs.readFileSync("./server.key", 'utf-8');
+var redis = require("redis");
+var client = redis.createClient();
 // const {
 //   createStore,
 //   applyMiddleware
@@ -191,6 +193,31 @@ function actionGet(data) {
       reject(process.env.ERRORINTERNAL_RESPONSE);
     }
   });
+}
+
+fastify.get('/getSession', async function (req, reply) {
+  console.log('sesos');
+  let sessionGet = await getSession(req.headers.for);
+  reply.send(sessionGet);
+})
+
+function getSession(idEmployee){
+  return new Promise(async (resolve, reject) => {
+    console.log("get session neh")
+    try {
+      client.get('projectManagement'+idEmployee, async function(err, result) {
+        console.log(result);
+        let resultLogin = JSON.parse(result);
+        if(resultLogin != null){
+          resolve(result);
+        } else reject(404);
+      });
+    } catch (err) {
+        console.log(err);
+        reject(500);
+    }
+})
+  
 }
 
 fastify.post("/sendEmailReset", async function (req, reply) {
@@ -1973,40 +2000,50 @@ async function updateConfig(data){
 }
 
 async function checkAndGetConfigFromMainDB(){
-  await defineLocalConfig();
-  r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
-    "headers": {
-        "serverKey": mainDBKey
-      }
-    }, function (error, response, body) {
-      if(body == undefined){
-        console.log('failed to connect to main DB');
-      } else {
-        updateConfig(JSON.parse(body).data)
-        console.log('config',returnedConfig);
-      }
-    });
-  setInterval(() => {
+  return new Promise(async function(resolve,reject){
+    await defineLocalConfig();
     r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
-    "headers": {
-        "serverKey": mainDBKey
-      }
-    }, function (error, response, body) {
-      if(body == undefined){
-        console.log('failed to connect to main DB');
-      } else {
-        updateConfig(JSON.parse(body).data)
-      }
-    });
-  }, 5000);
+      "headers": {
+          "serverKey": mainDBKey
+        }
+      }, function (error, response, body) {
+        if(body == undefined){
+          console.log('failed to connect to main DB');
+        } else {
+          resolve(updateConfig(JSON.parse(body).data))
+          console.log('config',returnedConfig);
+        }
+      });
+    setInterval(() => {
+      r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
+      "headers": {
+          "serverKey": mainDBKey
+        }
+      }, function (error, response, body) {
+        if(body == undefined){
+          console.log('failed to connect to main DB');
+        } else {
+          resolve(updateConfig(JSON.parse(body).data))
+        }
+      });
+    }, 5000);
+  })
+  
 }
 
+let sockets = require("./socket.js");
 
 // Run the server!
 const start = async () => {
   try {
     await fastify.listen(8110,'0.0.0.0')
     await checkAndGetConfigFromMainDB();
+    let conf = {
+      hostNameServer: hostNameServer,
+      hostIp: hostIP,
+      port: fastify.server.address().port
+    }
+    await sockets.openSocket(conf)
     // fastify.log.info(`server listening on ${fastify.server.address().port}`)
   } catch (err) {
     fastify.log.error(err)
