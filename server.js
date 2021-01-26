@@ -24,6 +24,8 @@ const request = require("request");
 const efs = require('fs');
 const cryptography = require("./crypto.js");
 const myKey = efs.readFileSync("./server.key", 'utf-8');
+var redis = require("redis");
+var client = redis.createClient();
 // const {
 //   createStore,
 //   applyMiddleware
@@ -191,6 +193,31 @@ function actionGet(data) {
       reject(process.env.ERRORINTERNAL_RESPONSE);
     }
   });
+}
+
+fastify.get('/getSession', async function (req, reply) {
+  console.log('sesos');
+  let sessionGet = await getSession(req.headers.for);
+  reply.send(sessionGet);
+})
+
+function getSession(idEmployee){
+  return new Promise(async (resolve, reject) => {
+    console.log("get session neh")
+    try {
+      client.get('projectManagement'+idEmployee, async function(err, result) {
+        console.log(result);
+        let resultLogin = JSON.parse(result);
+        if(resultLogin != null){
+          resolve(result);
+        } else reject(404);
+      });
+    } catch (err) {
+        console.log(err);
+        reject(500);
+    }
+})
+  
 }
 
 fastify.post("/sendEmailReset", async function (req, reply) {
