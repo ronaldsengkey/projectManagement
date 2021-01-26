@@ -189,7 +189,7 @@ async function globalGradeChecking(concern,data,type = ''){
             else if(ct.grade == '4') {
                 let spvDivision = ct.division_id;
                 processedData = data.filter(function(e){
-                    return (e.division_id == spvDivision && parseInt(e.grade ?? e.auth_id) == (parseInt(ct.grade)+1) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
+                    return (e.division_id == spvDivision && parseInt(e.grade ?? e.auth_id) > (parseInt(ct.grade)) && (e.company_id ?? e.company_profile_id) == ct.company_id) || e.employee_id == ct.id_employee
                 })
                 return processedData;
             }

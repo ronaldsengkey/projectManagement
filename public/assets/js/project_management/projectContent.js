@@ -149,7 +149,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
       let haveComment = element.comment == undefined || element.comment == '0' ? false : element.comment;
 
-      htmlTask = '<tr class="taskRow" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
+      htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
       htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
 
@@ -226,26 +226,52 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       }
 
-      $('#table' + id + ' > .dataTask').prepend(htmlTask);
-
       feather.replace();
       if (haveComment) {
         $('.commentTask[data-id=' + element._id + '] :first-child').css('color', 'blue');
       }
 
+      //if pic of group task is login user then he / she is allowed to edit tasks
+      if(JSON.parse(result.pic)[0].account_name == ct.name){
+        result.condition = true;
+        $('#table' + id + ' > .dataTask').prepend(htmlTask);
+      } else if(result.user_create == ct.name){
+        $('#table' + id + ' > .dataTask').prepend(htmlTask);
+      }
+
+      //only if login user is part of member that is allowed to see his/her own task
+      if(haveTeam){
+        let member = element.member;
+        member.forEach(element => {
+          if(element.account_id == ct.id_employee){
+            result.condition = true;
+            $('#table' + id + ' > .dataTask').prepend(htmlTask);
+          }
+        });
+      }
       
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
     $('.progressBarPrio[data-id=' + id + ']').append(progPrioBar);
-
-    if(result.state  == 'readonly'){
+    
+    if(result.state  == 'readonly' && !result.condition){
       $('table[id=table'+id+']').addClass('disableTable');
+    }
+
+    //if pic of group task is not login user then he / she is not allowed to add tasks
+    if(JSON.parse(result.pic)[0].account_name != ct.name){
+      $('.newTask[data-id='+result._id+']').remove();
     }
 
     feather.replace();
   } else {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
+
+    //if pic of group task is not login user then he / she is not allowed to add tasks
+    if(JSON.parse(result.pic)[0].account_name != ct.name){
+      $('.newTask[data-id='+result._id+']').remove();
+    }
   }
 
   $('table[id=table' + id + ']').bootstrapTable({

@@ -1962,12 +1962,12 @@ async function convertURLRedis(data) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  hostIP = returnedConfig.SERVER_SYAFRI;
-  hostNameServer = 'SERVER_SYAFRI';
+  hostIP = returnedConfig.SERVER_WAHYU;
+  hostNameServer = 'SERVER_WAHYU';
   // hostIP = returnedConfig.AWS_SERVER;
   // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.SERVER_SYAFRI;
+  hostIPAlt = returnedConfig.SERVER_WAHYU;
 
   // ANCHOR MAIN SERVER PORT NAME AND LINK
   accPort = "8443/account";

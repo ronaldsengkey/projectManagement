@@ -1,5 +1,4 @@
 'use strict'
-
 var arrBackground = ["rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"];
 var arrBackground2 = ["rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)", "rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"];
 var arrbBorder = ["rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"];
@@ -160,10 +159,10 @@ async function manageBoardData(data) {
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
         if (element.user_create == ct.name) {
-            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlaceMain').append(htmlMain);
         } else {
-            let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+            let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
             $('.boardListPlaceMain').append(htmlMain);
         }
 
@@ -173,14 +172,14 @@ async function manageBoardData(data) {
         if (element.user_create == ct.name) {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
-            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
         } else {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
             element.member.forEach(elementMember => {
                 if (elementMember.account_id == ct.id_employee) {
-                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
                     $('.boardListPlacePrivate').append(htmlPrivate);
                 }
             });
@@ -620,6 +619,7 @@ $(document).on('click', '.boardList', async function () {
     let type = $(this).data('type');
     let name = $(this).data('name');
     let id = $(this).data('id');
+    let boardCreated = $(this).data('create');
     let member = $(this).data('member');
     $('a[class*="boardList"]').removeClass('amber');
     $('a[class*="boardList"]').removeClass('lighten-1');
@@ -656,6 +656,7 @@ $(document).on('click', '.boardList', async function () {
                         type: type,
                         id: id,
                         member: JSON.stringify(window['dataBoardMember' + id + '']),
+                        created: boardCreated,
                         groupTask: window['groupTask'+id]
                     };
                     domBoardTools(pass)
@@ -680,6 +681,7 @@ $(document).on('click', '.boardList', async function () {
                         name: name,
                         type: type,
                         id: id,
+                        created: boardCreated,
                         member: JSON.stringify(window['dataBoardMember' + id + '']),
                         groupTask: []
                     };
@@ -709,22 +711,19 @@ function domBoardTools(data) {
     let addTeam = false;
     let html = '';
     if(data.groupTask != []){
-        let gtData = data.groupTask;
-        // check apa ada group task yang pic nya adalah orang yang login dan yang membuat group task bukan orang yang login juga
-        let isPic = gtData.forEach(element => {
-            if(JSON.parse(element.pic)[0].account_id == ct.id_employee && element.user_create != ct.name){
-                addTeam = true;
-            }
-        });
+        // check apa yang bikin board adalah yang login atau grade nya minimal supervisor ke atas
+        if(data.created == ct.name || ct.grade < 5){
+            addTeam = true;
+        }
     }
-    if(addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
+    if(addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-division='+data.division_id+' data-grade='+data.grade+' data-usercreate="'+data.user_create+'" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
     let tools = '<div class="row p-3 ml-1 mr-1">' +
         '<div class="col-lg-6" style="align-self: center;">' +
         '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
         '</div>' +
         '<div class="col-lg-6" style="text-align: end;">' +
         html +
-        '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
+        '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
         '</div>' +
         '</div>';
     $('.boardHeader').append(tools);
@@ -732,6 +731,9 @@ function domBoardTools(data) {
 }
 
 $(document).on('click','#addTeam',function(){
+    let boardId = $(this).data('id');
+    let boardName = $(this).data('boardname');
+    let boardType = $(this).data('boardtype');
     Swal.fire({
         title: 'Please select member list',
         html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input style="height:auto;""></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
@@ -745,10 +747,12 @@ $(document).on('click','#addTeam',function(){
                     $('#emptyMember').remove();
                     $('#memberGroup').empty()
                     empDone = !empDone;
-                    console.log('eee',employee);
                     employee.forEach(element => {
                         if(parseInt(element.division_id) == ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
                         $('#memberGroup').append('<option value='+element.employee_id+'>'+element.employee_name+'</option>')
+                    });
+                    window['dataBoardMember' + boardId + ''].forEach(element => {
+                        $('option[value='+element.account_id+']').remove();
                     });
                 }
                 if(empDone){
@@ -768,39 +772,21 @@ $(document).on('click','#addTeam',function(){
                 toastrNotifFull('please add team member','error');
                 return false;
             } else {
-                console.log('ss',boardTeamMember)
+                let oldMember= window['dataBoardMember' + boardId + ''];
+                oldMember.forEach(element => {
+                    delete element.departmen_id;
+                    delete element.departmen_name;
+                    delete element.color;
+                });
+                let allMember = boardTeamMember.concat(oldMember);
+                let param = {
+                    '_id': boardId,
+                    'name': boardName,
+                    'type': capitalize(boardType),
+                    'member': JSON.stringify(allMember)
+                };
+                await editBoard(param);
             }
-            // let bodyGroup = {
-            //     'board_id': thisId,
-            //     'name': taskValue,
-            //     'pic': JSON.stringify(pic),
-            //     "division_id": ct.division_id,
-            //     "grade": ct.grade,
-            //     "user_create": ct.name
-            // }
-            // return await postGroupTask(bodyGroup).then(async function (result) {
-            //     let param;
-            //     if (result.responseCode == '200') {
-            //         param = {
-            //             type: 'success',
-            //             text: result.responseMessage
-            //         };
-            //         callNotif(param);
-            //         $('.boardContentData').empty();
-            //         $('.boardContent').empty();
-            //         $('.boardHeader').empty();
-            //         let gt = await getGroupTask(thisId);
-            //         if (gt.responseCode == '200') {
-                        
-            //         } else {
-            //             param = {
-            //                 type: 'error',
-            //                 text: result.responseMessage
-            //             };
-            //             callNotif(param);
-            //         }
-            //     }
-            // })
         },
         allowOutsideClick: () => !Swal.isLoading()
     })
@@ -1243,6 +1229,7 @@ $(document).on('click', '#addGroupTask', function () {
     let boardName = $(this).data('boardname');
     let camelized = $(this).data('concern');
     let boardType = $(this).data('boardtype');
+    let boardCreated = $(this).data('created');
     let boardMember = window['dataBoardMember' + thisId + ''];
     let taskValue;
 
@@ -1337,6 +1324,7 @@ $(document).on('click', '#addGroupTask', function () {
                                     id: thisId,
                                     type: boardType,
                                     member: boardMember,
+                                    created:boardCreated,
                                     groupTask: window['groupTask'+thisId]
                                 };
                                 console.log('the pass', pass);
