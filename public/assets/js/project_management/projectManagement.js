@@ -1064,6 +1064,7 @@ $(document).on('change', '#divisionId', async function () {
         let currentDivision = $('select#divisionId option:selected').text()
         $('#employeeId').attr('data-concern', currentDivision);
         let employeeDivision = await boardEmployeeChecking(window['employeeData']);
+        
         if(ct.division_id == currentVal){
             employeeDivision.forEach(element => {
                 let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
