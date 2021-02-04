@@ -4,13 +4,50 @@
 
   <div class="text-white ml-3">Hello, <span class="whiteColor" id="empName"></span></div>
 
-  <ul class="navbar-nav ml-auto nav-flex-icons pull-right" id="logout">
-    <li class="nav-item avatar alignSelfCenter">
+  <ul class="navbar-nav ml-auto nav-flex-icons pull-right">
+    <!-- <li class="nav-item avatar alignSelfCenter">
       
       <img src="../public/assets/img/log-out.svg" width="25" height="25" />
-    </li>
+    </li> -->
+    <a class="nav-link p-0 px-3 text-white d-flex align-items-center waves-effect waves-light" id="modalMenu" data-toggle="modal" data-target="#modalNav">
+      <i _ngcontent-ijs-c19="" class="material-icons icon-image-preview" style="color: white;">menu</i>
+    </a>
   </ul>
+  
 </nav>
+
+<section>
+  <div class="modal fade right position-fixed" id="modalNav" tabindex="-1" role="dialog"
+      aria-labelledby="exampleModalLabel" data-backdrop="true" aria-hidden="true" style="display: none">
+      <div class="modal-dialog modal-full-height modal-right modal-notify" role="document">
+          <div class="modal-content position-absolute h-100">
+              <!--Header-->
+              <div class="modal-header shadow-none grey py-4 lighten-5 align-items-center">
+                  <div class="px-3">
+                      <h4 class="font-weight-bold text-warning text-uppercase m-0">Project Management</h4>
+                  </div>
+                  <button
+                      class="btn btn-outline-dark z-depth-0 btn-logout shadow-sm p-0 d-flex justify-content-center align-items-center rounded-circle"
+                      type="button" id="logout"><i class="fas fa-sign-out-alt"></i></button>
+              </div>
+
+              <!--Body-->
+              <div class="modal-body side-btn-container overflow-auto px-0 py-3">
+                  <a class="arrow-r px-4 d-flex align-items-center active" onclick="location.reload()">
+                      <span class="menu-icon d-block mr-2"><i class="fas fa-home"></i></span>
+                      Home
+                  </a>
+                  <a class="arrow-r px-4 d-flex align-items-center active toProfile" data-from="pm">
+                      <span class="menu-icon d-block mr-2"><i class="fas fa-user"></i></span>
+                      Profile
+                  </a>
+                  <div class="nav-menu">
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</section>
 
 <section id="shortcutSection">
   <div class="modal fade" id="modalCommentCS" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"

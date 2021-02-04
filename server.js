@@ -1960,14 +1960,330 @@ async function convertURLRedis(data) {
   }
 }
 
+fastify.get("/getEmployeeDetail", async function (req, reply) {
+  try {
+    let idEmployee = req.headers.employeeid;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let token = req.headers.token;
+    let dataEmployee = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: (await getRedisData(hostNameServer)) +
+          ":" +
+          (await getRedisData(backendPort)) +
+          "/data/employee",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          secretKey: cryptography.aesEncrypt(secretKey),
+          token: cryptography.aesEncrypt(token),
+          param: cryptography.aesEncrypt(
+            JSON.stringify({
+              employeeId: idEmployee,
+            })
+          ),
+          signature: cryptography.aesEncrypt(signature),
+        },
+      },
+    };
+    console.log("data kirim employee", dataEmployee);
+    let a = await actionGet(dataEmployee);
+    reply.send(a);
+  } catch (err) {
+    console.log("error apa", err);
+    reply.send(500);
+  }
+});
+
+fastify.get('/employeeDetail',async function(req,reply){
+  reply.sendFile('layouts/profileMember.html');
+})
+
+fastify.get("/getMethod", async function (req, reply) {
+  try {
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let param = req.headers.param;
+    let hostNameData = await getRedisData(hostNameServer);
+    let backendPortData = await getRedisData(backendPort);
+
+    console.log("token get", req.headers);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostNameData + ":" + backendPortData + "/master/method",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          param: cryptography.aesEncrypt(param),
+          token: cryptography.aesEncrypt(token),
+          signature: cryptography.aesEncrypt(signature),
+          secretKey: cryptography.aesEncrypt(secretKey),
+        },
+      },
+    };
+    console.log("ww", data);
+    let a = await actionGet(data);
+    console.log("reply", a);
+    reply.send(a);
+  } catch (err) {
+    reply.send(500);
+  }
+});
+
+fastify.get("/getMethodOnly", async function (req, reply) {
+  try {
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let hostNameData = await getRedisData(hostNameServer);
+    let backendPortData = await getRedisData(backendPort);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostNameData + ":" + backendPortData + "/master/method",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          token: cryptography.aesEncrypt(token),
+          signature: cryptography.aesEncrypt(signature),
+          secretKey: cryptography.aesEncrypt(secretKey),
+        },
+      },
+    };
+    let a = await actionGet(data);
+    console.log("reply", a);
+    reply.send(a);
+  } catch (err) {
+    reply.send(500);
+  }
+});
+
+fastify.get("/getMethodParam", async function (req, reply) {
+  try {
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let empid = req.headers.empid;
+    let hostNameData = await getRedisData(hostNameServer);
+    let backendPortData = await getRedisData(backendPort);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostNameData + ":" + backendPortData + "/employee/account/scope",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          token: cryptography.aesEncrypt(token),
+          // "param" : puaram,
+          signature: cryptography.aesEncrypt(signature),
+          secretKey: cryptography.aesEncrypt(secretKey),
+          param: cryptography.aesEncrypt(
+            JSON.stringify({
+              employeeId: empid,
+            })
+          ),
+        },
+      },
+    };
+    console.log("kirim param", data);
+    let a = await actionGet(data);
+    console.log("kembalian paramaa", a);
+    reply.send(a);
+  } catch (err) {
+    reply.send(500);
+  }
+});
+
+fastify.get("/getScopeEmployee", async function (req, reply) {
+  try {
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let hostNameData = await getRedisData(hostNameServer);
+    let backendPortData = await getRedisData(backendPort);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostNameData + ":" + backendPortData + "/master/access",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          token: cryptography.aesEncrypt(token),
+          secretKey: cryptography.aesEncrypt(secretKey),
+          signature: cryptography.aesEncrypt(signature),
+        },
+      },
+    };
+    let a = await actionGet(data);
+    reply.send(a);
+  } catch (err) {
+    reply.send(500);
+  }
+});
+
+fastify.post("/deleteEmployeeMethod", async function (req, res) {
+  try {
+    let data = req.body;
+    let hostNameData = await getRedisData(hostNameServer);
+    let accPortData = await getRedisData(portAcc);
+
+    data.settings.body = encryptPostBody(data);
+    data.settings.headers.token = cryptography.aesEncrypt(
+      data.settings.headers.token
+    );
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      data.settings.headers.signature
+    );
+    data.settings.headers.secretKey = cryptography.aesEncrypt(
+      data.settings.headers.secretKey
+    );
+    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+
+    console.log("data url", data.settings.url);
+    let a = await actionPost(data);
+    console.log("woe broku a", a);
+    res.send(a);
+  } catch (error) {
+    console.log("Error gaes", error);
+    res.send(500);
+  }
+});
+
+fastify.put("/updateEmployeeMethod", async function (req, res) {
+  try {
+    let data = req.body;
+    let hostNameData = await getRedisData(hostNameServer);
+    let accPortData = await getRedisData(portAcc);
+
+    data.settings.body = encryptPostBody(data);
+    data.settings.headers.token = cryptography.aesEncrypt(
+      data.settings.headers.token
+    );
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      data.settings.headers.signature
+    );
+    data.settings.headers.secretKey = cryptography.aesEncrypt(
+      data.settings.headers.secretKey
+    );
+    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+
+    console.log("settung akhir", data.settings);
+    let a = await actionPut(data);
+    console.log("muethod", a);
+    res.send(a);
+  } catch (error) {
+    console.log("Error gaes", error);
+    res.send(500);
+  }
+});
+
+fastify.put("/updateEmployeeRole", async function (req, res) {
+  try {
+    let data = req.body;
+    console.log("updateEmployeeRole => ", data);
+    let hostNameData = await getRedisData(hostNameServer);
+    let accPortData = await getRedisData(portAcc);
+
+    data.settings.body = encryptPostBody(data);
+    data.settings.headers.token = cryptography.aesEncrypt(
+      data.settings.headers.token
+    );
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      data.settings.headers.signature
+    );
+    data.settings.headers.secretKey = cryptography.aesEncrypt(
+      data.settings.headers.secretKey
+    );
+    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+
+    console.log("settung akhir", data.settings);
+    let a = await actionPut(data);
+    console.log("muethod", a);
+    res.send(a);
+  } catch (error) {
+    console.log("Error gaes", error);
+    res.send(500);
+  }
+});
+
+fastify.get('/getRole',async function(req,reply){
+  try {
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let token = req.headers.token;
+    let getRole = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: (await getRedisData(hostNameServer)) +
+          ":" +
+          (await getRedisData(backendPort)) +
+          "/master/role",
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          signature: cryptography.aesEncrypt(signature),
+          secretKey: cryptography.aesEncrypt(secretKey),
+          token: cryptography.aesEncrypt(token),
+        },
+      },
+    };
+    let getRoleSend = await actionGet(getRole);
+    reply.send(getRoleSend);
+  } catch (err) {
+    console.log("error apa", err);
+    reply.send(500);
+  }
+})
+
+fastify.put("/updateEmployee", async function (req, reply) {
+  try {
+    let data = req.body;
+    data.settings.url =
+      (await getRedisData(hostNameServer)) +
+      ":" +
+      (await getRedisData(portAcc)) +
+      "/account/profile/employee";
+    data.settings.body = encryptPostBody(data);
+    data.settings.headers.token = cryptography.aesEncrypt(
+      data.settings.headers.token
+    );
+    data.settings.headers.secretKey = cryptography.aesEncrypt(
+      data.settings.headers.secretKey
+    );
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      data.settings.headers.signature
+    );
+    let a = await actionPut(data);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  hostIP = returnedConfig.SERVER_SYAFRI;
-  hostNameServer = 'SERVER_SYAFRI';
+  hostIP = returnedConfig.SERVER_JIMBO;
+  hostNameServer = 'SERVER_JIMBO';
   // hostIP = returnedConfig.AWS_SERVER;
   // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.SERVER_SYAFRI;
+  hostIPAlt = returnedConfig.SERVER_JIMBO;
 
   // ANCHOR MAIN SERVER PORT NAME AND LINK
   accPort = "8443/account";

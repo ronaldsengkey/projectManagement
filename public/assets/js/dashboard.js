@@ -55,7 +55,7 @@ $(document).on('click', '.profilePict', function () {
 
 $(async function () {
     loadingActivated();
-    // disableDevTools();
+    disableDevTools();
     try {
         let getUrl = window.location.search;
         let getUserFrom = new URLSearchParams(getUrl).get('from');
@@ -99,7 +99,7 @@ $(async function () {
                     $('#empName').html(ct.fullname);
                     $('#navHeaderPM').remove();
                     await initializeServerPort();
-                    
+                    openProfile()
                 },
                 error: function(callback,timeout){
                     if(timeout === 'timeout'){
@@ -151,12 +151,20 @@ $(async function () {
         }
         $('#empName').html(ct.fullname);
         await initializeServerPort();
+        openProfile()
     }
 
     } catch (err) {
         console.log("error read document processing", err);
     }
 });
+
+async function openProfile(){
+    if($('.toProfile').length > 0){
+        $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/profile.js", function (data, textStatus, jqxhr) {})
+        $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/updateScope.js", function (data, textStatus, jqxhr) {})
+    }
+}
 
 async function initializeServerPort() {
     return new Promise(async function (resolve, reject) {
