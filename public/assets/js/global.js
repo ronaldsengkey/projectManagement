@@ -22,11 +22,32 @@ function getInitials(string) {
     return initials;
   }
 
+  function disablePrintScreenAndPrint(){
+    /** TO DISABLE SCREEN CAPTURE **/
+    document.addEventListener('keyup', (e) => {
+        if (e.key == 'PrintScreen') {
+            navigator.clipboard.writeText('');
+            
+        }
+    });
+
+    /** TO DISABLE PRINTS WHIT CTRL+P **/
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key == 'p') {
+            e.cancelBubble = true;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+    });
+}
+
 function disableDevTools(){
     // disable right click
     $(document).bind("contextmenu",function(e){
         return false;
     });
+
+    disablePrintScreenAndPrint();
     
     // disable f12 etc
     $(document).keydown(function (event) {
