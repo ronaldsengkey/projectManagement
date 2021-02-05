@@ -32,6 +32,7 @@ loadingDeactivated();
 
 $(function () {
     disableDevTools();
+    $.getScript(location.protocol + '//' + location.hostname + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname

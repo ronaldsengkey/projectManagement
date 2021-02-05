@@ -2193,7 +2193,6 @@ fastify.put("/updateEmployeeMethod", async function (req, res) {
 fastify.put("/updateEmployeeRole", async function (req, res) {
   try {
     let data = req.body;
-    console.log("updateEmployeeRole => ", data);
     let hostNameData = await getRedisData(hostNameServer);
     let accPortData = await getRedisData(portAcc);
 
@@ -2256,7 +2255,7 @@ fastify.put("/updateEmployee", async function (req, reply) {
     data.settings.url =
       (await getRedisData(hostNameServer)) +
       ":" +
-      (await getRedisData(portAcc)) +
+      (await getRedisData(backendPort)) +
       "/account/profile/employee";
     data.settings.body = encryptPostBody(data);
     data.settings.headers.token = cryptography.aesEncrypt(
