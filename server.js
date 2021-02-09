@@ -1,5 +1,6 @@
 "use strict";
 
+require('dotenv').config()
 let hostIP;
 let hostIPAlt;
 let hostNameServer;
@@ -26,6 +27,7 @@ const cryptography = require("./crypto.js");
 const myKey = efs.readFileSync("./server.key", 'utf-8');
 var redis = require("redis");
 var client = redis.createClient();
+
 // const {
 //   createStore,
 //   applyMiddleware
@@ -2348,22 +2350,10 @@ async function checkAndGetConfigFromMainDB(){
 
 async function getBranch(){
   return new Promise(async function(resolve,reject){
-    const { exec } = require('child_process');
-    exec('git rev-parse --abbrev-ref HEAD', (err, stdout, stderr) => {
-        if (err) {
-          return;
-        }
-        if (stdout.trim() === 'master' || stdout.trim() === 'main') {
-          localUrl = 'sandbox.dashboard.ultipay.id';
-          
-          //ini kalo mau tes tembak sandbox tpi dari localhost
-          // localUrl = 'localhost';
-        } else {
-          localUrl = 'localhost'
-        }
-        mainLocalPort = '8100';
-        resolve(localUrl);
-    });
+    let branch = process.env.DOMAIN;
+    localUrl = branch == 'master' ? 'sandbox.dashboard.ultipay.id' : 'localhost';
+    mainLocalPort = '8100';
+    resolve(localUrl);
   })
 }
 
