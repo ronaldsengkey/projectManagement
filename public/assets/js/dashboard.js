@@ -56,6 +56,7 @@ $(document).on('click', '.profilePict', function () {
 $(async function () {
     loadingActivated();
     disableDevTools();
+    await getEnvData();
     try {
         let getUrl = window.location.search;
         let getUserFrom = new URLSearchParams(getUrl).get('from');
@@ -90,14 +91,14 @@ $(async function () {
                     // let loginTime = localStorage.getItem('loginTime');
                     let getUrl = window.location.search;
                     let getUserId = new URLSearchParams(getUrl).get('use');
+                    $('#navHeaderPM').remove();
+                    $('#empName').html(ct.fullname);
                     if(getUserId == 'project_management'){
                         getPage('project_management');
                     } else {
                         getPage('home');
                         getPage('project_management');
                     }
-                    $('#empName').html(ct.fullname);
-                    $('#navHeaderPM').remove();
                     await initializeServerPort();
                     openProfile()
                 },

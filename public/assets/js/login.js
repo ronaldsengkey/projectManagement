@@ -30,8 +30,9 @@ function loadingDeactivated() {
 
 loadingDeactivated();
 
-$(function () {
+$(async function () {
     disableDevTools();
+    await getEnvData();
     $.getScript(location.protocol + '//' + location.hostname + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');

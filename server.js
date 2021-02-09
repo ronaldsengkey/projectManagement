@@ -87,7 +87,7 @@ fastify.get("/:origin", async function (req, reply) {
               "Cache-Control": "no-cache",
               "Content-type": "plain/text",
             },
-            url: localUrl + ":" + port + "/dashboard?token=" + token,
+            url: "http://"+ localUrl + ":" + port + "/dashboard?token=" + token,
           },
           function (err, response, body) {
             reply.send(body);
@@ -2277,32 +2277,32 @@ fastify.put("/updateEmployee", async function (req, reply) {
 
 async function defineConfig() {
   // ANCHOR MAIN SERVER IP
-  hostIP = returnedConfig.SERVER_JIMBO;
-  hostNameServer = 'SERVER_JIMBO';
-  // hostIP = returnedConfig.AWS_SERVER;
-  // hostNameServer = "AWS_SERVER";
+  // hostIP = returnedConfig.SERVER_JIMBO;
+  // hostNameServer = 'SERVER_JIMBO';
+  // // hostIP = returnedConfig.AWS_SERVER;
+  // // hostNameServer = "AWS_SERVER";
 
-  hostIPAlt = returnedConfig.SERVER_JIMBO;
+  // hostIPAlt = returnedConfig.SERVER_JIMBO;
 
-  // ANCHOR MAIN SERVER PORT NAME AND LINK
-  accPort = "8443/account";
-  backendPort = "PORT_BACKEND_AWS";
-  portAcc = "PORT_ACC_AWS";
-  portAuth = "PORT_AUTH_AWS";
-  portTrans = "PORT_TRANSACTION_AWS";
+  // // ANCHOR MAIN SERVER PORT NAME AND LINK
+  // accPort = "8443/account";
+  // backendPort = "PORT_BACKEND_AWS";
+  // portAcc = "PORT_ACC_AWS";
+  // portAuth = "PORT_AUTH_AWS";
+  // portTrans = "PORT_TRANSACTION_AWS";
 
-  // ANCHOR LOCAL PORT
-  employeeLocalPort = "8103";
-  csLocalPort = "8105";
+  // // ANCHOR LOCAL PORT
+  // employeeLocalPort = "8103";
+  // csLocalPort = "8105";
 }
 
 async function defineLocalConfig(){
   // ANCHOR LOCAL URL
-  // localUrl = "http://sandbox.dashboard.ultipay.id";
-  localUrl = "http://localhost";
+  // // localUrl = "http://sandbox.dashboard.ultipay.id";
+  // localUrl = "http://localhost";
 
-  // ANCHOR LOCAL PORT
-  mainLocalPort = '8100'
+  // // ANCHOR LOCAL PORT
+  // mainLocalPort = '8100'
 }
 
 async function updateConfig(data){
@@ -2311,13 +2311,13 @@ async function updateConfig(data){
     returnedConfig[key] = data[key];
     redisKey[key] = data[key];
   }
-  defineConfig();
+  // defineConfig();
 }
 
 async function checkAndGetConfigFromMainDB(){
   return new Promise(async function(resolve,reject){
-    await defineLocalConfig();
-    r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
+    // await defineLocalConfig();
+    r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/getConfig', {
       "headers": {
           "serverKey": mainDBKey
         }
@@ -2330,7 +2330,7 @@ async function checkAndGetConfigFromMainDB(){
         }
       });
     setInterval(() => {
-      r.get( localUrl+ ':' + mainLocalPort + '/getConfig', {
+      r.get( "http://" + localUrl+ ':' + mainLocalPort + '/getConfig', {
       "headers": {
           "serverKey": mainDBKey
         }
@@ -2346,12 +2346,86 @@ async function checkAndGetConfigFromMainDB(){
   
 }
 
+async function getBranch(){
+  return new Promise(async function(resolve,reject){
+    const { exec } = require('child_process');
+    exec('git rev-parse --abbrev-ref HEAD', (err, stdout, stderr) => {
+        if (err) {
+          return;
+        }
+        if (stdout.trim() === 'master' || stdout.trim() === 'main') {
+          localUrl = 'sandbox.dashboard.ultipay.id';
+          
+          //ini kalo mau tes tembak sandbox tpi dari localhost
+          // localUrl = 'localhost';
+        } else {
+          localUrl = 'localhost'
+        }
+        mainLocalPort = '8100';
+        resolve(localUrl);
+    });
+  })
+}
+
+fastify.get('/envConfig', function (req, reply) {
+  r.get({
+    "async": true,
+    "crossDomain": true,
+    "headers": {
+      "Accept": "*/*",
+      "Cache-Control": "no-cache",
+      "Content-type" : "plain/text"
+    },
+      "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
+    }, function (err, response, body) {
+      let data = JSON.parse(body);
+      hostIP = data.MAIN_IP_DESTINATION;
+      hostNameServer = data.MAIN_SERVER_KEY;
+      hostIPAlt = data.MAIN_IP_DESTINATION;
+      accPort = data.ACCOUNT_PORT_SERVICE;
+      backendPort = data.BACKEND_SERVER_KEY;
+      portAcc = data.ACC_SERVER_KEY;
+      portAuth = data.AUTH_SERVER_KEY;
+      portTrans = data.TRANSACTION_SERVER_KEY;
+      employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
+      csLocalPort = data.CS_DASHBOARD_PORT;
+      reply.send(JSON.stringify(data));
+  });
+});
+
+async function restartEnv(){
+  r.get({
+    "async": true,
+    "crossDomain": true,
+    "headers": {
+      "Accept": "*/*",
+      "Cache-Control": "no-cache",
+      "Content-type" : "plain/text"
+    },
+      "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
+    }, function (err, response, body) {
+      let data = JSON.parse(body);
+      hostIP = data.MAIN_IP_DESTINATION;
+      hostNameServer = data.MAIN_SERVER_KEY;
+      hostIPAlt = data.MAIN_IP_DESTINATION;
+      accPort = data.ACCOUNT_PORT_SERVICE;
+      backendPort = data.BACKEND_SERVER_KEY;
+      portAcc = data.ACC_SERVER_KEY;
+      portAuth = data.AUTH_SERVER_KEY;
+      portTrans = data.TRANSACTION_SERVER_KEY;
+      employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
+      csLocalPort = data.CS_DASHBOARD_PORT;
+  });
+}
+
 let sockets = require("./socket.js");
 
 // Run the server!
 const start = async () => {
   try {
     await fastify.listen(8110,'0.0.0.0')
+    await getBranch();
+    await restartEnv();
     await checkAndGetConfigFromMainDB();
     let conf = {
       hostNameServer: hostNameServer,
