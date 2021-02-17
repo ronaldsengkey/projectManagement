@@ -24,6 +24,12 @@ function aesEncrypt(text) {
     let decrypted = decipher.update(text, 'base64', 'utf8');
     return (decrypted + decipher.final('utf8'));
   }
+
+  function aesDecryptClient(text){
+    let decipher = crypto.createDecipheriv('aes-256-cbc', keyAES, ivAES);
+    let decrypted = decipher.update(text, 'base64', 'utf8');
+    return (decrypted + decipher.final('utf8'));
+  }
   
   function rsaEncrypt(text) {
     const keyPub = new NodeRSA(pubServer);
@@ -66,4 +72,4 @@ function aesEncrypt(text) {
     return finalDecrypt;
   }
 
-  module.exports = {aesEncrypt,aesDecrypt,rsaEncrypt,rsaDecrypt,encryptMessage,decryptMessage,pub,priv,cryptr,keyAESClient,ivAESClient};
+  module.exports = {aesEncrypt,aesDecrypt,rsaEncrypt,rsaDecrypt,encryptMessage,decryptMessage,pub,priv,cryptr,keyAESClient,ivAESClient,aesDecryptClient};

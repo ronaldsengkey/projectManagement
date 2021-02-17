@@ -75,6 +75,7 @@ $(document).on('click', 'button', async function () {
                     'password': $('#password').val()
                 }
             };
+            p = iterateObjectEncryptAESLogin(p);
             data = {
                 target: target,
                 origin: origin,
@@ -250,3 +251,25 @@ function postData(data) {
         alert("error", b);
     })
 }
+
+function iterateObjectEncryptAESLogin(obj){
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'object') {
+        iterateObjectEncryptAESLogin(obj[key])
+      } else {
+        obj[key] = aesEncryptLogin(obj[key]);
+      }
+    })
+    return obj;
+  }
+
+  function aesEncryptLogin(data) {
+    let key = 'q6AdXos0hs947oNJqjTpendcKrHYVE2u';
+    let iv = 'G5SHxbZzRVyY1xXJ';
+    let cipher = CryptoJS.AES.encrypt(data, CryptoJS.enc.Utf8.parse(key), {
+        iv: CryptoJS.enc.Utf8.parse(iv),
+        padding: CryptoJS.pad.Pkcs7,
+        mode: CryptoJS.mode.CBC
+    });
+    return cipher.toString();
+ }

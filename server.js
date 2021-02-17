@@ -473,6 +473,18 @@ fastify.get("/getFile", async function (req, reply) {
   }
 });
 
+function iterateObjectDecryptAESLogin(obj) {
+  Object.keys(obj).forEach((key) => {
+    if (typeof obj[key] === "object") {
+      iterateObjectDecryptAESLogin(obj[key]);
+    } else {
+      obj[key] = cryptography.aesDecryptClient(obj[key]);
+    }
+  });
+  return obj;
+}
+
+
 fastify.post("/postData", async function (request, reply) {
   try {
     let data = request.body;
@@ -483,6 +495,10 @@ fastify.post("/postData", async function (request, reply) {
       data.settings.headers.signature = cryptography.aesEncrypt(
         signatureLogin.signatureNew
       );
+    }
+
+    if(data.settings.target == 'login'){
+      data.settings.body = JSON.stringify(iterateObjectDecryptAESLogin(JSON.parse(data.settings.body)));
     }
     data.settings.body = encryptPostBody(data);
 
