@@ -14,6 +14,8 @@ let employeeLocalPort;
 let mainLocalPort;
 let csLocalPort;
 let extToken;
+let localhostIP;
+let serverDomain;
 
 // Require the framework and instantiate it
 const fastify = require("fastify")({
@@ -2384,28 +2386,33 @@ fastify.get('/envConfig', function (req, reply) {
 });
 
 async function restartEnv(){
-  r.get({
-    "async": true,
-    "crossDomain": true,
-    "headers": {
-      "Accept": "*/*",
-      "Cache-Control": "no-cache",
-      "Content-type" : "plain/text"
-    },
-      "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
-    }, function (err, response, body) {
-      let data = JSON.parse(body);
-      hostIP = data.MAIN_IP_DESTINATION;
-      hostNameServer = data.MAIN_SERVER_KEY;
-      hostIPAlt = data.MAIN_IP_DESTINATION;
-      accPort = data.ACCOUNT_PORT_SERVICE;
-      backendPort = data.BACKEND_SERVER_KEY;
-      portAcc = data.ACC_SERVER_KEY;
-      portAuth = data.AUTH_SERVER_KEY;
-      portTrans = data.TRANSACTION_SERVER_KEY;
-      employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
-      csLocalPort = data.CS_DASHBOARD_PORT;
-  });
+  return new Promise(async function(resolve,reject){
+    r.get({
+      "async": true,
+      "crossDomain": true,
+      "headers": {
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+        "Content-type" : "plain/text"
+      },
+        "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
+      }, function (err, response, body) {
+        let data = JSON.parse(body);
+        hostIP = data.MAIN_IP_DESTINATION;
+        hostNameServer = data.MAIN_SERVER_KEY;
+        hostIPAlt = data.MAIN_IP_DESTINATION;
+        accPort = data.ACCOUNT_PORT_SERVICE;
+        backendPort = data.BACKEND_SERVER_KEY;
+        portAcc = data.ACC_SERVER_KEY;
+        portAuth = data.AUTH_SERVER_KEY;
+        portTrans = data.TRANSACTION_SERVER_KEY;
+        employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
+        csLocalPort = data.CS_DASHBOARD_PORT;
+        localhostIP = data.LOCALHOST_IP;
+        serverDomain = data.SERVER;
+        resolve(data);
+    });
+  })
 }
 
 let sockets = require("./socket.js");
@@ -2418,8 +2425,10 @@ const start = async () => {
     await restartEnv();
     await checkAndGetConfigFromMainDB();
     let conf = {
-      hostNameServer: hostNameServer,
+      domainServer: localUrl,
+      fullDomain: localhostIP,
       hostIp: hostIP,
+      server: serverDomain,
       port: fastify.server.address().port
     }
     await sockets.openSocket(conf)

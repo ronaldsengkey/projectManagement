@@ -46,10 +46,10 @@ async function openSocket(config) {
     socketsData.on('connect', async () => {
         let param = {
             serviceName: 'project management',
-            domain: config.hostNameServer == 'AWS_SERVER' ? 'sandbox.dashboard.ultipay.id' : '192.168.0.228',
-            hostName: config.hostNameServer == 'AWS_SERVER' ? 'http://sandbox.dashboard.ultipay.id' : 'http://192.168.0.228',
+            domain: config.domainServer,
+            hostName: config.fullDomain,
             port: config.port,
-            server: 'Indonesia',
+            server: config.server,
             category: 'dashboard',
             status: 'on',
             cpuProfiling: await cpuProfiling()
