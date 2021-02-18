@@ -34,9 +34,11 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
     let commentFile;
     let base64CommentFile;
     commentFile = document.querySelector(`#commentFile`).files[0];
-    if(commentFile){
+    if(commentFile != undefined){
         let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
         base64CommentFile = await toBase64Comment(compressedFile);
+    } else {
+      base64CommentFile = '';
     }
 
     if (newCommentValue != '') {
@@ -403,7 +405,8 @@ $(document).on('click', '.editComment', function () {
           // 'user_create': ct.name
           // 'comment_id': id,
           'comment': newCommentEdited,
-          'user_create': ct.name
+          'user_create': ct.name,
+          'comment_file': ''
         }
         console.log('edited  comment', editedComment);
         globalUpdateComment('PUT', editedComment);
@@ -494,6 +497,18 @@ $(document).on('click', '.commentTask', async function () {
     
   } else {
     $('.commentContent[data-id=' + id + ']').empty();
+    try {
+      let commentData = await getComment(id);
+      if (commentData != 500) {
+        if (commentData.length > 0) {
+          await domComment(commentData, id);
+        } else {
+          $('.commentContent[data-id=' + id + ']').empty();
+        }
+      }
+    } catch (error) {
+      
+    }
   }
 
   let intervalComment = setInterval(async () => {
@@ -593,6 +608,7 @@ $(document).on('mouseenter', '.pic', function () {
         $('.emploPic[data-id=' + id + ']').append(htmlEmptyMain);
         let employee = await getEmployee();
         if (employee != 500) {
+          employee = await boardEmployeeMainChecking(employee);
           employee.forEach(element => {
             let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.employee_id + '>' + element.employee_name + '</option>';
             $('.emploPic[data-id=' + id + ']').append(html);
@@ -798,6 +814,10 @@ $(document).on('change', '.emploTeam', function () {
   let valName = $('select#employeeTeam[data-id=' + id + '] :selected').text();
   let random = Math.floor(Math.random() * 4) + 1;
 
+  if(window['color'+val] == undefined){
+    window['color'+val] = getRandomColor();
+  }
+  
   if (haveTeam) {
     $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
   } else {

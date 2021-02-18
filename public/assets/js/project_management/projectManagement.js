@@ -707,7 +707,6 @@ $(document).on('click', '.boardList', async function () {
 })
 
 function domBoardTools(data) {
-    console.log('wz',data);
     let addTeam = false;
     let html = '';
     if(data.groupTask != []){
@@ -1253,9 +1252,10 @@ $(document).on('click', '#addGroupTask', function () {
                     try {
                         let employee = await getEmployee();
                         if (employee != 500) {
+                            employee = await boardEmployeeMainChecking(employee);
                             $('#picGroup').empty();
                             employee.forEach(element => {
-                                let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
+                                let html = '<option value=' + element.employee_id + '>' + element.employee_name + ' ('+ element.auth_name + ' ' + element.division_name + ') </option>';
                                 $('#picGroup').append(html);
                             });
                         }

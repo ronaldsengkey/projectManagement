@@ -39,6 +39,10 @@ async function domBoardContent() {
       } else {
         window['color'+JSON.parse(element.pic)[0].account_id] = getRandomColor();
         window['colorClass'+JSON.parse(element.pic)[0].account_id] = '';
+        let colorCheck = lightOrDark(window['color'+JSON.parse(element.pic)[0].account_id]);
+        if(colorCheck == 'light') window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-dark fontWeight400';
+        else window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-white';
+
       }
     }catch(e){
       console.log('catch color define');
@@ -105,7 +109,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '<div class="progressBar col-12 mb-2" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>'+
     '<div class="progressBarPrio col-12 mb-3" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '"></div>' +
     '</div>' +
-    '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table">' +
+    '<table id="table' + id + '" data-header-style="headerStyle" class="borderless table-borderless" data-toggle="table" data-type="'+result.boardType+'">' +
     '<thead class="text-center">' +
     '<tr>' +
     '<th>Task Name</th>' +
@@ -124,7 +128,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '</tr>' +
     '</tbody>' +
     '</table>';
-  
+  console.log('res',result,data);
   $('.card-body[data-id="' + id + '"]').empty();
   if (data.length > 0) {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
@@ -157,6 +161,10 @@ async function domTaskTable(data, id, result, boardMember) {
         window['picTask' + element._id + ''] = element.pic;
         try {
           let colorCheck = lightOrDark(window['color'+element.account_id]);
+          if(window['color'+element.account_id] == undefined){
+            window['color'+JSON.parse(element.pic)[0].account_id] = getRandomColor()
+            colorCheck = lightOrDark(window['color'+JSON.parse(element.pic)[0].account_id]);
+          }
           if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
           else window['colorClass'+element.account_id] = 'text-white';
         } catch (error) {
@@ -226,16 +234,16 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       }
 
-      feather.replace();
-      if (haveComment) {
-        $('.commentTask[data-id=' + element._id + '] :first-child').css('color', 'blue');
+      // if board type is main and pic of group task is not user logged in then everyone can see tasks
+      if($('#table'+id).attr('data-type') == 'Main' && JSON.parse(result.pic)[0].account_name != ct.name){
+        $('#table' + id + ' > .dataTask').prepend(htmlTask);
       }
 
       //if pic of group task is login user then he / she is allowed to edit tasks
       if(JSON.parse(result.pic)[0].account_name == ct.name){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
-      } else if(result.user_create == ct.name){
+      } else if(result.user_create == ct.name && $('#table'+id).attr('data-type') != 'Main'){
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       }
 
@@ -249,27 +257,37 @@ async function domTaskTable(data, id, result, boardMember) {
           }
         });
       }
+
+      feather.replace();
       
+      if (haveComment) {
+        $('.commentTask[data-id='+element._id+']:first-child').css('color', 'blue');
+      }
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
     $('.progressBarPrio[data-id=' + id + ']').append(progPrioBar);
+
+    // check if board is public and user logged in match with pic of coresponding group task
+    if($('#table'+id).attr('data-type') == 'Main' && JSON.parse(result.pic)[0].account_id != ct.id_employee){
+      $('table[id=table'+id+']').addClass('disableTable');
+    }
     
     if(result.state  == 'readonly' && !result.condition){
       $('table[id=table'+id+']').addClass('disableTable');
     }
 
     //if pic of group task is not login user then he / she is not allowed to add tasks
-    if(JSON.parse(result.pic)[0].account_name != ct.name){
+    if(JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('.newTask[data-id='+result._id+']').remove();
     }
 
-    feather.replace();
+    // feather.replace();
   } else {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
 
     //if pic of group task is not login user then he / she is not allowed to add tasks
-    if(JSON.parse(result.pic)[0].account_name != ct.name){
+    if(JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('.newTask[data-id='+result._id+']').remove();
     }
   }
