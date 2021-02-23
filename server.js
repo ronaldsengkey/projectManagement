@@ -2382,7 +2382,8 @@ fastify.get('/envConfig', function (req, reply) {
     "headers": {
       "Accept": "*/*",
       "Cache-Control": "no-cache",
-      "Content-type" : "plain/text"
+      "Content-type" : "plain/text",
+      "serverkey": mainDBKey
     },
       "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
     }, function (err, response, body) {
@@ -2409,7 +2410,8 @@ async function restartEnv(){
       "headers": {
         "Accept": "*/*",
         "Cache-Control": "no-cache",
-        "Content-type" : "plain/text"
+        "Content-type" : "plain/text",
+        "serverkey": mainDBKey
       },
         "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
       }, function (err, response, body) {
