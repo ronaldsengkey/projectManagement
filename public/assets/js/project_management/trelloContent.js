@@ -172,6 +172,8 @@ $(document).on('click', '.menuRenameTrello', function () {
                     toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + renameBoardId + ']').click();
                     $('#chartSection').remove();
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -201,6 +203,8 @@ $(document).on('click', '.menuDeleteTrello', function () {
                     toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + deleteBoardId + ']').click();
                     $('#chartSection').remove();
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -315,6 +319,8 @@ async function notifDeleteTaskTrello(bodyDelete, name, status, listId, currentSt
                     bodyDelete['status'] = status;
                     bodyDelete['listId'] = listId;
                     await updateStatusProgressBarTrello(bodyDelete, currentStat, false, true);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',

@@ -71,6 +71,8 @@ async function getTaskData(id, data, boardMember) {
                     await domTaskTable(result.data, id, data, boardMember);
                 } else if (result.responseCode == '404') {
                     await domTaskTable([], id, data);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -146,6 +148,8 @@ async function getComment(taskId) {
                     resolve(result.data);
                 } else if (result.responseCode == '404') {
                     $('.commentContent[data-id=' + taskId + ']').empty();
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -239,6 +243,8 @@ async function addTask(value, groupId) {
                     $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
                     await updateStatusProgressBar(result.data, 'No Status', true);
                     await updatePriorityProgressBar(result.data, 'High', true)
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -282,6 +288,8 @@ function globalUpdateTask(concern, data) {
         success: function (result) {
             if (result.responseCode == '200') {
                 toastrNotifFull('update ' + concern + ' success')
+            } else if (result.responseCode == '401') {
+                logoutNotif();
             } else {
                 toastrNotifFull('update ' + concern + ' failed','error')
             }
@@ -327,6 +335,8 @@ async function globalAddComment(data) {
                 if (result.responseCode == '200') {
                     toastrNotifFull('commenting success')
                     resolve(result.data[0]);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     toastrNotifFull('commenting failed','error')
                     resolve(500);
@@ -367,6 +377,8 @@ function globalUpdateComment(method, data) {
         success: function (result) {
             if (result.responseCode == '200') {
                 toastrNotifFull('commenting success')
+            } else if (result.responseCode == '401') {
+                logoutNotif();
             } else {
                 toastrNotifFull('commenting failed','error')
             }
@@ -411,6 +423,8 @@ async function globalUpdateReplyComment(method, data) {
                     if (result.responseCode == '200') {
                         resolve(result);
                         toastrNotifFull('commenting success')
+                    } else if (result.responseCode == '401') {
+                        logoutNotif();
                     } else {
                         reject(500);
                         toastrNotifFull('commenting failed','error')
@@ -435,6 +449,8 @@ async function globalUpdateReplyComment(method, data) {
                     if (result.responseCode == '200') {
                         resolve(result);
                         toastrNotifFull('commenting success')
+                    } else if (result.responseCode == '401') {
+                        logoutNotif();
                     } else {
                         reject(500);
                         toastrNotifFull('commenting failed','error')

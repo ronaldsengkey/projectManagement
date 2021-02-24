@@ -789,7 +789,9 @@ async function notifDeleteTask(bodyDelete, name, bodyProgress) {
           $('.taskRow[data-id=' + bodyDelete._id + ']').remove();
           await updateStatusProgressBar(bodyProgress, '', false, true);
           await updatePriorityProgressBar(bodyProgress, '', false, true);
-        } else {
+        } else if (result.responseCode == '401') {
+          logoutNotif();
+      } else {
           let param = {
             type: 'error',
             text: result.responseMessage

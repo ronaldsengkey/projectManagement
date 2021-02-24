@@ -75,6 +75,8 @@ async function getBoard() {
                 manageBoardData(result.data);
             } else if (result.responseCode == '404') {
                 toastrNotifFull(result.responseMessage,'error');
+            } else if (result.responseCode == '401') {
+                logoutNotif();
             } else {
                 let param = {
                     type: 'error',
@@ -493,6 +495,8 @@ async function editBoard(bodyEdit) {
                         loadingDeactivated();
                     }
                     
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -551,6 +555,8 @@ async function deleteBoard(bodyDelete) {
                     } catch (error) {
                         loadingDeactivated();
                     }
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -845,6 +851,8 @@ function callNotifBoard(title) {
                     } catch (error) {
                         loadingDeactivated();
                     }
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     param = {
                         type: 'error',
@@ -1332,6 +1340,8 @@ $(document).on('click', '#addGroupTask', function () {
                                 domBoardTools(pass)
                             }
                         })
+                    } else if (result.responseCode == '401') {
+                        logoutNotif();
                     } else {
                         param = {
                             type: 'error',

@@ -280,7 +280,9 @@ $(document).on('click', '.menuRename', function () {
           //   };
           //   callNotif(param);
           // }
-        } else {
+         } else if (result.responseCode == '401') {
+          logoutNotif();
+      } else {
           param = {
             type: 'error',
             text: result.responseMessage
@@ -358,7 +360,9 @@ $(document).on('click', '.menuDelete', function () {
           //   };
           //   callNotif(param);
           // }
-        } else {
+        } else if (result.responseCode == '401') {
+          logoutNotif();
+      } else {
           param = {
             type: 'error',
             text: result.responseMessage

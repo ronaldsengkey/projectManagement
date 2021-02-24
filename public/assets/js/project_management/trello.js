@@ -189,6 +189,8 @@ $(document).on('click', '.renameBoard', function () {
                     toastrNotifFull(result.responseMessage);
                     await getTrelloPage();
                     await getTrelloBoard();
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -218,6 +220,8 @@ $(document).on('click', '.deleteBoard', function () {
                     await getTrelloPage();
                     await getTrelloBoard();
                     
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',

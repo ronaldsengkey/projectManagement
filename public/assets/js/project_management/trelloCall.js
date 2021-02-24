@@ -47,6 +47,8 @@ async function getTrelloBoard(){
         success: async function (result) {
             if(result.responseCode == '200'){
                 await manageTrelloBoard(JSON.parse(result.data));
+            } else if (result.responseCode == '401') {
+                logoutNotif();
             } else {
                 loadingDeactivated();
                 let param = {
@@ -78,6 +80,8 @@ async function getTrelloList(id) {
             success: function (result) {
                 if(result.responseCode == '200'){
                     resolve(JSON.parse(result.data));
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     loadingDeactivated();
                     let param = {
@@ -196,6 +200,8 @@ async function getCardData(id, data) {
                 if(result.responseCode == '200'){
                     let newRes = await selectedTask(JSON.parse(result.data));
                     await domCardData(newRes, id, data);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
                 } else {
                     let param = {
                         type: 'error',
@@ -238,6 +244,8 @@ function globalUpdateTaskTrello(concern, data) {
         success: function (result) {
             if (result.responseCode == '200') {
                 toastrNotifFull('update ' + concern + ' success')
+            } else if (result.responseCode == '401') {
+                logoutNotif();
             } else {
                 toastrNotifFull('update ' + concern + ' failed','error')
             }
