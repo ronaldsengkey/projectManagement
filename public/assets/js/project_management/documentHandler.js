@@ -605,9 +605,11 @@ $(document).on('mouseenter', '.pic', function () {
     let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
     switch (boardParentType) {
       case 'Main':
-        let htmlEmptyMain = '<option selected>Choose</option>';
+        let htmlEmptyMain = '<option selected>Choose PIC</option>';
         $('.emploPic[data-id=' + id + ']').append(htmlEmptyMain);
+        loadingActivated()
         let employee = await getEmployee();
+        loadingDeactivated()
         if (employee != 500) {
           employee = await boardEmployeeMainChecking(employee);
           employee.forEach(element => {
@@ -618,7 +620,7 @@ $(document).on('mouseenter', '.pic', function () {
         break;
       case 'Private':
         let groupWindow = window['dataBoardMember' + boardParent + ''];
-        let htmlEmpty = '<option selected>Choose</option>';
+        let htmlEmpty = '<option selected>Choose PIC</option>';
         $('.emploPic[data-id=' + id + ']').append(htmlEmpty);
         groupWindow.forEach(element => {
           let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.account_id + '>' + element.account_name + '</option>';
@@ -725,9 +727,11 @@ $(document).on('mouseenter', '.team', function () {
     let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
     switch (boardParentType) {
       case 'Main':
-        let htmlEmptyMain = '<option selected>Choose</option>';
-        $('.emploPic[data-id=' + id + ']').append(htmlEmptyMain);
+        let htmlEmptyMain = '<option selected>Choose Team</option>';
+        $('.emploTeam[data-id=' + id + ']').append(htmlEmptyMain);
+        loadingActivated()
         let employee = await getEmployee();
+        loadingDeactivated()
         if (employee != 500) {
           employee.forEach(element => {
             let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.employee_name + '</option>';
@@ -737,7 +741,7 @@ $(document).on('mouseenter', '.team', function () {
         break;
       case 'Private':
         let groupWindow = window['dataBoardMember' + boardParent + ''];
-        let htmlEmpty = '<option selected>Choose</option>';
+        let htmlEmpty = '<option selected>Choose Team</option>';
         $('.emploTeam[data-id=' + id + ']').append(htmlEmpty);
         groupWindow.forEach(element => {
           let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
