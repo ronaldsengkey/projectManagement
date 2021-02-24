@@ -480,6 +480,7 @@ $(document).on('click', '.commentTask', async function () {
   let groupid = $(this).data('groupid');
   let available = $('.commentTask[data-id=' + id + ']').data('available');
   $('.commentContent').attr('data-id', id);
+  $('.commentInputArea').attr('data-id',id);
   $('.commentTaskMember').empty();
   $('.commentContent[data-id=' + id + ']').empty();
   $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
