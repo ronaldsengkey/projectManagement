@@ -131,13 +131,6 @@ async function getSummaryBoard(category,param='') {
             if (result.responseCode == '200' || result.responseCode == '404') {                
                 manageSummaryBoardData(result);
             }
-            else {
-                let param = {
-                    type: 'error',
-                    text: result.responseMessage
-                };
-                callNotif(param);
-            }
         }
     })
 }
