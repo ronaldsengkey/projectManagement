@@ -1256,7 +1256,7 @@ $(document).on('click', '#addGroupTask', function () {
                             employee = await boardEmployeeMainChecking(employee);
                             $('#picGroup').empty();
                             employee.forEach(element => {
-                                let html = '<option value=' + element.employee_id + '>' + element.employee_name + ' ('+ element.auth_name + ' ' + element.division_name + ') </option>';
+                                let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
                                 $('#picGroup').append(html);
                             });
                         }

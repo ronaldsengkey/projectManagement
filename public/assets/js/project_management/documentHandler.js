@@ -589,9 +589,8 @@ $(document).on('mouseenter', '.pic', function () {
   let name = $(this).data('name');
 
   $('[data-original-title]').popover('dispose');
-  let label = '<div class="row p-2 mb-2"><div class="col-lg-12 text-center">Choose PIC</div></div>';
   let empHtml = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeePic" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploPic"></div></div>';
-  let joinHtml = label + empHtml;
+  let joinHtml = empHtml;
 
   $('.pic[data-id=' + id + ']').attr('tabindex', '0');
   $('.pic[data-id=' + id + ']').attr('data-toggle', 'popover');
@@ -709,11 +708,10 @@ $(document).on('mouseenter', '.team', function () {
   // let crew = $('.taskRow[data-id=' + id + ']').data('member');
   $('[data-original-title]').popover('dispose');
 
-  let labelTeam = '<div class="row p-2 mb-2"><div class="col-lg-12 text-center">Choose Team</div></div>';
   let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
   let removeAll = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
   let submitTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-success submitTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Done</button></div></div>';
-  let joinHtmlTeam = labelTeam + empHtmlTeam + removeAll + submitTeam;
+  let joinHtmlTeam =  empHtmlTeam + removeAll + submitTeam;
 
   $('.team[data-id=' + id + ']').attr('tabindex', '0');
   $('.team[data-id=' + id + ']').attr('data-toggle', 'popover');
@@ -777,6 +775,11 @@ $(document).on('mouseenter', '.team', function () {
 
     }
 
+    $('#employeeTeam[data-id=' + id + ']').select2({
+        theme: "bootstrap",
+        width: '100%'
+    });
+
   })
 
 })
@@ -787,6 +790,7 @@ $(document).on('click', '.removeAllTeam', function () {
   let name = $(this).data('name');
 
   window['dataTeam' + id + ''] = [];
+  window['dataCurrentTeam'+id] = [];
   let updateTeam = {
     '_id': id,
     'group_id': groupid,
