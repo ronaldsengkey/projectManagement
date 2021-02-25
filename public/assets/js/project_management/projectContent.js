@@ -59,8 +59,8 @@ async function domBoardContent() {
       '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
-      '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element._id + ' data-trigger="focus" data-toggle="popover"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>' +
-
+      '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
+      
       '<div id="' + joinBoardAndId + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
       'Loading...' +
@@ -68,29 +68,7 @@ async function domBoardContent() {
     '</div>'
     '</div>';
     $('.accordionBoard').append(htmlAccordion);
-
-    $('.btnMenu[data-id=' + element._id + ']').popover({
-      trigger: 'focus',
-      content: menuTemplate,
-      placement: "right",
-      html: true
-    });
-
-    $('.btnMenu[data-id=' + element._id + ']').on('shown.bs.popover', function () {
-      $('.menuRename').attr('data-id', element._id);
-      $('.menuRename').attr('data-boardid', element.board_id);
-      $('.menuRename').attr('data-name', element.name);
-      $('.menuRename').attr('data-boardname', boardName);
-      $('.menuRename').attr('data-camelized', camelizedBoard);
-      $('.menuRename').attr('data-boardtype', element.boardType);
-
-      $('.menuDelete').attr('data-id', element._id);
-      $('.menuDelete').attr('data-name', element.name);
-      $('.menuDelete').attr('data-boardid', element.board_id);
-      $('.menuDelete').attr('data-boardname', boardName);
-      $('.menuDelete').attr('data-camelized', camelizedBoard);
-      $('.menuDelete').attr('data-boardtype', element.boardType);
-    })
+    
 
     $('.collapse[data-id="' + element._id + '"]').on('show.bs.collapse', async function () {
       let idBoard = $(this).data('id');
@@ -101,6 +79,45 @@ async function domBoardContent() {
   });
 
   feather.replace();
+}
+
+$(document).on('click','.btnMenu',function(){
+  
+  $('.placeBody').empty();
+
+  let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
+  $('.placeBody').append(renameText);
+
+  let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
+  $('.placeBody').append(menuTemplate);
+
+  $('.menuRename').attr('data-id', $(this).data('id'));
+  $('.menuRename').attr('data-boardid', $(this).data('boardid'));
+  $('.menuRename').attr('data-name', $(this).data('name'));
+  $('.menuRename').attr('data-boardname', $(this).data('boardname'));
+  $('.menuRename').attr('data-camelized', $(this).data('camelized'));
+  $('.menuRename').attr('data-boardtype', $(this).data('boardtype'));
+
+  $('.menuDelete').attr('data-id', $(this).data('id'));
+  $('.menuDelete').attr('data-name', $(this).data('name'));
+  $('.menuDelete').attr('data-boardid', $(this).data('boardid'));
+  $('.menuDelete').attr('data-boardname', $(this).data('boardname'));
+  $('.menuDelete').attr('data-camelized', $(this).data('camelized'));
+  $('.menuDelete').attr('data-boardtype', $(this).data('boardtype'));
+
+  activeModalGroupTask();
+
+})
+
+$('#modalOptions').on('hidden.bs.modal', function (e) {
+  $('#modalOptions').removeClass('d-flex')
+})
+
+function activeModalGroupTask() {
+  $('#modalOptions').modal({
+      show: true,
+  });
+  $('#modalOptions').addClass('d-flex')
 }
 
 async function domTaskTable(data, id, result, boardMember) {
@@ -281,8 +298,7 @@ async function domTaskTable(data, id, result, boardMember) {
     if(JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('.newTask[data-id='+result._id+']').remove();
     }
-
-    // feather.replace();
+     // feather.replace();
   } else {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
 

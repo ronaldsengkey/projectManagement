@@ -205,95 +205,41 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
 });
 
 
-$(document).on('click', '.menuRename', function () {
+$(document).on('click', '.menuRename', async function () {
   let renameId = $(this).data('id');
   let renameBoardId = $(this).data('boardid');
-  let oldName = $(this).data('name');
-  let boardName = $(this).data('boardname');
-  let camelized = $(this).data('camelized');
-  let boardType = $(this).data('boardtype');
   let newName;
-  Swal.fire({
-    title: 'Change Group Task Name to',
-    input: 'text',
-    inputValidator: (value) => {
-      if (!value) {
-        return 'You need to fill the input!'
-      } else {
-        newName = value;
-      }
-    },
-    inputPlaceholder: oldName,
-    showCancelButton: true,
-    confirmButtonText: 'Submit',
-    showLoaderOnConfirm: true,
-    preConfirm: async () => {
-      let bodyGroup = {
-        '_id': renameId,
-        'name': newName,
-        'board_id': renameBoardId
-      }
-      console.log('boaarr', bodyGroup);
-      return await editGroupTask(bodyGroup).then(async function (result) {
-        let param;
-        if (result.responseCode == '200') {
-          param = {
-            type: 'success',
-            text: result.responseMessage
-          };
-          callNotif(param);
-          $('a[data-id='+renameBoardId+']').click();
-          $('#chartSection').remove();
-          // $('.boardContent').empty();
-          // $('.boardHeader').empty();
-          // let gt = await getGroupTask(renameBoardId);
-          // if (gt.responseCode == '200') {
-          //   gt.data = await groupTaskChecking(gt.data,boardType);
-          //   console.log('board id', renameBoardId, gt.data);
-          //   window['groupTask' + renameBoardId + ''] = gt.data;
-          //   $.ajax({
-          //     url: 'projectBoard',
-          //     method: 'GET',
-          //     headers: {
-          //       "Content-Type": "application/json",
-          //       "Accept": "*/*",
-          //       "Cache-Control": "no-cache",
-          //     },
-          //     success: function (result) {
-          //       $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-          //       $('.boardContent').html(result);
-          //       let pass = {
-          //         boardName: boardName,
-          //         camelized: camelized,
-          //         name: oldName,
-          //         id: renameBoardId,
-          //         type: boardType,
-          //         member: JSON.stringify(window['dataBoardMember' + renameBoardId + ''])
-          //       };
-          //       domBoardTools(pass)
-          //     }
-          //   })
-          // } else {
-          //   let param = {
-          //     type: 'error',
-          //     text: groupTask.responseMessage
-          //   };
-          //   callNotif(param);
-          // }
-         } else if (result.responseCode == '401') {
-          logoutNotif();
-      } else {
-          param = {
-            type: 'error',
-            text: result.responseMessage
-          };
-          callNotif(param);
-          return false;
-        }
-      });
-    },
-    allowOutsideClick: () => !Swal.isLoading()
-  })
+  newName = $('.renameInput').val()
+  let bodyGroup = {
+    '_id': renameId,
+    'name': newName,
+    'board_id': renameBoardId
+  }
+  console.log('boaarr', bodyGroup);
+  loadingActivated();
+  return await editGroupTask(bodyGroup).then(async function (result) {
+    loadingDeactivated();
+    let param;
+    if (result.responseCode == '200') {
+      param = {
+        type: 'success',
+        text: result.responseMessage
+      };
+      callNotif(param);
+      $('#modalOptions').modal('toggle');
+      $('a[data-id='+renameBoardId+']').click();
+      $('#chartSection').remove();
+     } else if (result.responseCode == '401') {
+      logoutNotif();
+  } else {
+      param = {
+        type: 'error',
+        text: result.responseMessage
+      };
+      callNotif(param);
+      return false;
+    }
+  });
 })
 
 
@@ -323,43 +269,9 @@ $(document).on('click', '.menuDelete', function () {
             text: result.responseMessage
           };
           callNotif(param);
+          $('#modalOptions').modal('toggle');
           $('a[data-id='+deleteBoardId+']').click();
           $('#chartSection').remove();
-          // $('.boardContent').empty();
-          // $('.boardHeader').empty();
-          // let gt = await getGroupTask(deleteBoardId);
-          // if (gt.responseCode == '200') {
-          //   gt.data = await groupTaskChecking(gt.data,boardType);
-          //   window['groupTask' + deleteBoardId + ''] = gt.data;
-          //   $.ajax({
-          //     url: 'projectBoard',
-          //     method: 'GET',
-          //     headers: {
-          //       "Content-Type": "application/json",
-          //       "Accept": "*/*",
-          //       "Cache-Control": "no-cache",
-          //     },
-          //     success: function (result) {
-          //       $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-          //       $('.boardContent').html(result);
-          //       let pass = {
-          //         boardName: boardName,
-          //         camelized: camelized,
-          //         name: oldName,
-          //         id: deleteBoardId,
-          //         type: boardType,
-          //         member: JSON.stringify(window['dataBoardMember' + deleteBoardId + ''])
-          //       };
-          //       domBoardTools(pass)
-          //     }
-          //   })
-          // } else {
-          //   let param = {
-          //     type: 'error',
-          //     text: groupTask.responseMessage
-          //   };
-          //   callNotif(param);
-          // }
         } else if (result.responseCode == '401') {
           logoutNotif();
       } else {
@@ -582,69 +494,80 @@ $(document).on('click', '.commentTask', async function () {
 //   $('.commentInputArea').focus();
 // });
 
+async function triggerPopoverPIC(id,groupid,name){
+  if($('.pic[data-id=' + id + ']').data("bs.popover") == undefined){
+
+    let empHtml = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeePic" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploPic"></div></div>';
+    let joinHtml = empHtml;
+
+    $('.pic[data-id=' + id + ']').attr('tabindex', '0');
+    $('.pic[data-id=' + id + ']').attr('data-toggle', 'popover');
+
+    $('.pic[data-id=' + id + ']').popover({
+      content: joinHtml,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
+
+    $('.pic[data-id=' + id + ']').on('shown.bs.popover', async function () {
+      $('.emploPic[data-id=' + id + ']').empty();
+      let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
+      let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
+      switch (boardParentType) {
+        case 'Main':
+          let htmlEmptyMain = '<option selected>Choose PIC</option>';
+          $('.emploPic[data-id=' + id + ']').append(htmlEmptyMain);
+          loadingActivated()
+          let employee = await getEmployee();
+          loadingDeactivated()
+          if (employee != 500) {
+            employee = await boardEmployeeMainChecking(employee);
+            employee.forEach(element => {
+              let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.employee_id + '>' + element.employee_name + '</option>';
+              $('.emploPic[data-id=' + id + ']').append(html);
+            });
+          }
+          break;
+        case 'Private':
+          let groupWindow = window['dataBoardMember' + boardParent + ''];
+          let htmlEmpty = '<option selected>Choose PIC</option>';
+          $('.emploPic[data-id=' + id + ']').append(htmlEmpty);
+          groupWindow.forEach(element => {
+            let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.account_id + '>' + element.account_name + '</option>';
+            $('.emploPic[data-id=' + id + ']').append(html);
+          });
+          break;
+      }
+
+
+      if (window['picTask' + id + '']) {
+        let thisPic = window['picTask' + id + ''];
+        console.log('dataPic', thisPic)
+        $('.opsiPic').each(function (e) {
+          if ($(this).val() == JSON.parse(window['picTask' + id + ''])[0].account_id) {
+            $(this).remove();
+          }
+        })
+
+      }
+
+    })
+  }
+}
 
 $(document).on('mouseenter', '.pic', function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
 
-  $('[data-original-title]').popover('dispose');
-  let empHtml = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeePic" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploPic"></div></div>';
-  let joinHtml = empHtml;
+  if($('.popover').length > 0){
+    $(".popover").each(function () {
+        $(this).popover("dispose");
+    });
+  }
 
-  $('.pic[data-id=' + id + ']').attr('tabindex', '0');
-  $('.pic[data-id=' + id + ']').attr('data-toggle', 'popover');
-
-  $('.pic[data-id=' + id + ']').popover({
-    content: joinHtml,
-    placement: "right",
-    html: true,
-    sanitize: false
-  });
-
-  $('.pic[data-id=' + id + ']').on('shown.bs.popover', async function () {
-    $('.emploPic[data-id=' + id + ']').empty();
-    let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
-    let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
-    switch (boardParentType) {
-      case 'Main':
-        let htmlEmptyMain = '<option selected>Choose PIC</option>';
-        $('.emploPic[data-id=' + id + ']').append(htmlEmptyMain);
-        loadingActivated()
-        let employee = await getEmployee();
-        loadingDeactivated()
-        if (employee != 500) {
-          employee = await boardEmployeeMainChecking(employee);
-          employee.forEach(element => {
-            let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.employee_id + '>' + element.employee_name + '</option>';
-            $('.emploPic[data-id=' + id + ']').append(html);
-          });
-        }
-        break;
-      case 'Private':
-        let groupWindow = window['dataBoardMember' + boardParent + ''];
-        let htmlEmpty = '<option selected>Choose PIC</option>';
-        $('.emploPic[data-id=' + id + ']').append(htmlEmpty);
-        groupWindow.forEach(element => {
-          let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.account_id + '>' + element.account_name + '</option>';
-          $('.emploPic[data-id=' + id + ']').append(html);
-        });
-        break;
-    }
-
-
-    if (window['picTask' + id + '']) {
-      let thisPic = window['picTask' + id + ''];
-      console.log('dataPic', thisPic)
-      $('.opsiPic').each(function (e) {
-        if ($(this).val() == JSON.parse(window['picTask' + id + ''])[0].account_id) {
-          $(this).remove();
-        }
-      })
-
-    }
-
-  })
+  triggerPopoverPIC(id,groupid,name);
 })
 
 $(document).on('change', '.emploPic', function () {
@@ -688,6 +611,16 @@ $(document).on('mouseleave', '.pic', function () {
   }
 })
 
+/// for dismiss popover on click outside
+$('html').on('click', function(e) {
+  var l = $(e.target);
+  if (~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
+    return;
+  } else if (typeof $(e.target).data('original-title') == 'undefined') {
+    $('[data-original-title]').popover('hide');
+  }
+});
+
 
 $(document).on('mouseenter', '.team', function () {
   let id = $(this).data("id");
@@ -705,84 +638,88 @@ $(document).on('mouseenter', '.team', function () {
     }
   }
 
-  // let crew = $('.taskRow[data-id=' + id + ']').data('member');
-  $('[data-original-title]').popover('dispose');
+  triggerPopoverTeam(id,haveTeam,groupid,name);
 
+})
+
+async function triggerPopoverTeam(id,haveTeam,groupid,name){
   let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
   let removeAll = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
   let submitTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-success submitTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Done</button></div></div>';
   let joinHtmlTeam =  empHtmlTeam + removeAll + submitTeam;
 
-  $('.team[data-id=' + id + ']').attr('tabindex', '0');
-  $('.team[data-id=' + id + ']').attr('data-toggle', 'popover');
+  if($('.team[data-id=' + id + ']').data("bs.popover") == undefined){
+    $('.team[data-id=' + id + ']').attr('tabindex', '0');
+    $('.team[data-id=' + id + ']').attr('data-toggle', 'popover');
 
-  $('.team[data-id=' + id + ']').popover({
-    content: joinHtmlTeam,
-    placement: "right",
-    html: true,
-    sanitize: false
-  });
-
-  $('.team[data-id=' + id + ']').on('shown.bs.popover', async function () {
-    $('.emploTeam[data-id=' + id + ']').empty();
-    let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
-    let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
-    switch (boardParentType) {
-      case 'Main':
-        let htmlEmptyMain = '<option selected>Choose Team</option>';
-        $('.emploTeam[data-id=' + id + ']').append(htmlEmptyMain);
-        loadingActivated()
-        let employee = await getEmployee();
-        loadingDeactivated()
-        if (employee != 500) {
-          employee.forEach(element => {
-            let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.employee_name + '</option>';
-            $('.emploTeam[data-id=' + id + ']').append(html);
-          });
-        }
-        break;
-      case 'Private':
-        let groupWindow = window['dataBoardMember' + boardParent + ''];
-        let htmlEmpty = '<option selected>Choose Team</option>';
-        $('.emploTeam[data-id=' + id + ']').append(htmlEmpty);
-        groupWindow.forEach(element => {
-          let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
-          $('.emploTeam[data-id=' + id + ']').append(html);
-        });
-        break;
-    }
-
-    if (window['dataCurrentTeam' + id + ''].length != 0) {
-      let thisTeamMember = window['dataCurrentTeam' + id + ''];
-      try {
-        thisTeamMember.member.forEach(element => {
-          $('.opsi').each(function () {
-            if ($(this).val() == element.account_id) {
-              $(this).remove();
-            }
-          })
-        });
-      } catch (e) {
-        thisTeamMember = thisTeamMember[0];
-        thisTeamMember.member.forEach(element => {
-          $('.opsi').each(function () {
-            if ($(this).val() == element.account_id) {
-              $(this).remove();
-            }
-          })
-        });
-      }
-
-    }
-
-    $('#employeeTeam[data-id=' + id + ']').select2({
-        theme: "bootstrap",
-        width: '100%'
+    $('.team[data-id=' + id + ']').popover({
+      content: joinHtmlTeam,
+      placement: "right",
+      html: true,
+      sanitize: false
     });
 
-  })
-
-})
+    $('.team[data-id=' + id + ']').on('shown.bs.popover', async function () {
+      console.log('berapa kali');
+      $('.emploTeam[data-id=' + id + ']').empty();
+      let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
+      let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
+      switch (boardParentType) {
+        case 'Main':
+          let htmlEmptyMain = '<option selected>Choose Team</option>';
+          $('.emploTeam[data-id=' + id + ']').append(htmlEmptyMain);
+          loadingActivated()
+          let employee = await getEmployee();
+          loadingDeactivated()
+          if (employee != 500) {
+            employee.forEach(element => {
+              let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.employee_name + '</option>';
+              $('.emploTeam[data-id=' + id + ']').append(html);
+            });
+          }
+          break;
+        case 'Private':
+          let groupWindow = window['dataBoardMember' + boardParent + ''];
+          let htmlEmpty = '<option selected>Choose Team</option>';
+          $('.emploTeam[data-id=' + id + ']').append(htmlEmpty);
+          groupWindow.forEach(element => {
+            let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
+            $('.emploTeam[data-id=' + id + ']').append(html);
+          });
+          break;
+      }
+  
+      if (window['dataCurrentTeam' + id + ''].length != 0) {
+        let thisTeamMember = window['dataCurrentTeam' + id + ''];
+        try {
+          thisTeamMember.member.forEach(element => {
+            $('.opsi').each(function () {
+              if ($(this).val() == element.account_id) {
+                $(this).remove();
+              }
+            })
+          });
+        } catch (e) {
+          thisTeamMember = thisTeamMember[0];
+          thisTeamMember.member.forEach(element => {
+            $('.opsi').each(function () {
+              if ($(this).val() == element.account_id) {
+                $(this).remove();
+              }
+            })
+          });
+        }
+  
+      }
+  
+      $('#employeeTeam[data-id=' + id + ']').select2({
+          theme: "bootstrap",
+          width: '100%'
+      });
+  
+    })
+  }
+}
 
 $(document).on('click', '.removeAllTeam', function () {
   let id = $(this).data('id');
