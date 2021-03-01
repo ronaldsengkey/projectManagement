@@ -72,7 +72,8 @@ $(document).on('click', 'button', async function () {
             p = {
                 params: {
                     'email': $('#email').val(),
-                    'password': $('#password').val()
+                    'password': $('#password').val(),
+                    'continue': localUrl + ':' + projectManagementLocalPort
                 }
             };
             p = iterateObjectEncryptAESLogin(p);
