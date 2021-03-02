@@ -26,7 +26,7 @@ function loadingActivated() {
         '<div class="lds-ripple"><div></div><div></div></div>' +
         '</div>' +
         '</div>';
-    $(loading).insertBefore('section');
+    $(loading).insertBefore('head');
     $('#loadingWrap').fadeIn('slow');
 }
 
@@ -1259,6 +1259,10 @@ $(document).on('click', '#addGroupTask', function () {
                                 let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
                                 $('#picGroup').append(html);
                             });
+                            $('#picGroup').select2({
+                                theme: "bootstrap",
+                                width: '100%'
+                            });
                         }
                         Swal.hideLoading()
                     } catch (e) {
@@ -1270,6 +1274,10 @@ $(document).on('click', '#addGroupTask', function () {
                     boardMember.forEach(element => {
                         let htmlPrivate = '<option value=' + element.account_id + '>' + element.account_name + '</option>';
                         $('#picGroup').append(htmlPrivate);
+                    });
+                    $('#picGroup').select2({
+                        theme: "bootstrap",
+                        width: '100%'
                     });
                     Swal.hideLoading()
                     break;

@@ -28,65 +28,70 @@ $(document).on('change','.editReplyFile',function(){
 })
 
 $(document).on('keydown', '.commentInputArea', async function (ev) {
+  
   if (ev.key === 'Enter') {
     let id = $(this).data('id');
     let newCommentValue = $(this).val();
     let commentFile;
     let base64CommentFile;
-    commentFile = document.querySelector(`#commentFile`).files[0];
-    if(commentFile != undefined){
-        let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
-        base64CommentFile = await toBase64Comment(compressedFile);
-    } else {
-      base64CommentFile = '';
-    }
-
-    if (newCommentValue != '') {
-      let formUpdateComment = new FormData();
-    
-      formUpdateComment.append('task_id', id);
-      formUpdateComment.append('comment', newCommentValue);
-      formUpdateComment.append('comment_file', base64CommentFile);
-      formUpdateComment.append('user_create', ct.name);
-
-      $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
-      $(this).val('');
-      $(this).blur();
-      $(this).mouseleave();
-      let addComment = await globalAddComment(formUpdateComment);
-      console.log("addComment::", addComment);
-      $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
-      if (addComment != 500) {
-        let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
-          '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
-          '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
-          '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Edit Comment</a>' +
-          '<a class="dropdown-item deleteComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Delete Comment</a></div></div></div>' +
-          '<blockquote class="blockquote mb-0 card-body" style="border-left:none;">' +
-          '<div class="commentBody" data-id=' + addComment._id + '><p data-comment="' + addComment.comment + '">' + addComment.comment + '</p></div>' +
-          '<footer class="blockquote-footer">' +
-          '<small class="text-muted">' +
-          addComment.user_create + '</small>' +
-          '</footer>' +
-          '</blockquote>';
-
-        let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
-
-        cardCommentNew += '<hr/>';
-        cardCommentNew += emptyComment;
-
-        cardCommentNew += '</div>';
-
-        $('.commentContent[data-id=' + id + ']').prepend(cardCommentNew);
+    if(newCommentValue.trim() != ''){
+      commentFile = document.querySelector(`#commentFile`).files[0];
+      if(commentFile != undefined){
+          let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
+          base64CommentFile = await toBase64Comment(compressedFile);
+      } else {
+        base64CommentFile = '';
       }
-    }
-    setTimeout(() => {
-      $('.commentInputArea').blur();
-    }, 500);
 
-    setTimeout(() => {
-      $('.commentInputArea').mouseleave();
-    }, 1000);
+      if (newCommentValue != '') {
+        let formUpdateComment = new FormData();
+      
+        formUpdateComment.append('task_id', id);
+        formUpdateComment.append('comment', newCommentValue);
+        formUpdateComment.append('comment_file', base64CommentFile);
+        formUpdateComment.append('user_create', ct.name);
+
+        $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
+        $(this).val('');
+        $(this).blur();
+        $(this).mouseleave();
+        let addComment = await globalAddComment(formUpdateComment);
+        console.log("addComment::", addComment);
+        $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
+        if (addComment != 500) {
+          let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
+            '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
+            '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
+            '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Edit Comment</a>' +
+            '<a class="dropdown-item deleteComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Delete Comment</a></div></div></div>' +
+            '<blockquote class="blockquote mb-0 card-body" style="border-left:none;">' +
+            '<div class="commentBody" data-id=' + addComment._id + '><p data-comment="' + addComment.comment + '">' + addComment.comment + '</p></div>' +
+            '<footer class="blockquote-footer">' +
+            '<small class="text-muted">' +
+            addComment.user_create + '</small>' +
+            '</footer>' +
+            '</blockquote>';
+
+          let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
+
+          cardCommentNew += '<hr/>';
+          cardCommentNew += emptyComment;
+
+          cardCommentNew += '</div>';
+
+          $('.commentContent[data-id=' + id + ']').prepend(cardCommentNew);
+        }
+      }
+      setTimeout(() => {
+        $('.commentInputArea').blur();
+      }, 500);
+
+      setTimeout(() => {
+        $('.commentInputArea').mouseleave();
+      }, 1000);
+    } else {
+      toastrNotifFull('please fill comment','info');
+    }
   }
 });
 
@@ -116,8 +121,8 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
     let replyEditComment = $(this).val();
     let aidi = $(this).data('aidi');
     let replyId = $(this).data('replyid');
-    if (replyEditComment == '') {
-      toastrNotifFull('please fill comment reply','warning');
+    if (replyEditComment.trim() == '') {
+      toastrNotifFull('please fill comment reply','info');
     } else {
 
       let commentFile;
@@ -157,8 +162,8 @@ $(document).on('click','.filePrev',async function(){
 $(document).on('keydown', '.txtAreaReply', async function (ev) {
   if (ev.key === 'Enter') {
     let replyComment = $(this).val();
-    if (replyComment == '') {
-      toastrNotifFull('please fill comment reply','warning');
+    if (replyComment.trim() == '') {
+      toastrNotifFull('please fill comment reply','info');
     } else {
 
       let commentFile;
@@ -472,27 +477,6 @@ $(document).on('click', '.commentTask', async function () {
 
   $('.commentInputArea').attr('data-id', id);
 })
-
-
-
-// $(document).on('mouseenter', '.commentInputText', function () {
-//   $(this).addClass('d-none');
-//   $('.inputTextAttachment').addClass('d-none');
-//   $('.commentInputArea').removeClass('d-none');
-//   $('.inputCommentAreaAttachment').removeClass('d-none');
-// });
-
-// $(document).on('mouseleave', '.commentInputArea', function () {
-//   $(this).addClass('d-none');
-//   $('.commentInputText').removeClass('d-none');
-//   $('.inputTextAttachment').removeClass('d-none');
-// });
-
-// $(document).on('focus', '.commentInputText', function () {
-//   $(this).addClass('d-none');
-//   $('.commentInputArea').removeClass('d-none');
-//   $('.commentInputArea').focus();
-// });
 
 async function triggerPopoverPIC(id,groupid,name){
   if($('.pic[data-id=' + id + ']').data("bs.popover") == undefined){

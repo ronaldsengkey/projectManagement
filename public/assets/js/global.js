@@ -98,6 +98,7 @@ function logout() {
 function toastrNotifFull(title,type="success"){
     if(type == 'success') toastr.success(title);
     else if(type == 'warning') toastr.warning(title);
+    else if(type == 'info') toastr.info(title);
     else toastr.error(title);
 }
 

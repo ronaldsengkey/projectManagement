@@ -762,7 +762,7 @@ async function loadingActivated(element) {
     if (element != '' && element != undefined)
         $(loading).insertBefore(element);
     else
-        $(loading).insertBefore('header');
+        $(loading).insertBefore('head');
     $('#loadingWrap').fadeIn('slow');
 }
 
