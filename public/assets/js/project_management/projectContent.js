@@ -139,7 +139,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '<th>Action</th>' +
     '</tr>' +
     '</thead>' +
-    '<tbody class="dataTask text-center">' +
+    '<tbody class="dataTask text-center" data-id="'+id+'">' +
     '<tr>' +
     '<td class="newTask" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '" colspan="8">+ Add Task</td>' +
     '</tr>' +

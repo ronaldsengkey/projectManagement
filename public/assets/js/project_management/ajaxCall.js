@@ -237,7 +237,7 @@ async function addTask(value, groupId) {
                         '<td class="timeline" data-value="no timeline" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">no timeline</td>' +
                         '<td><i class="commentTask" data-available="false" data-toggle="modal" data-target="#commentModal" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-feather="message-circle" data-id=' + result.data._id + '></i><i class="delTask" data-groupid="' + result.data.group_id + '"  data-name="' + result.data.name + '" data-feather="trash-2" data-id=' + result.data._id + '></i></td>' +
                         '</tr>';
-                    $('.dataTask').prepend(htmlTaskTag);
+                    $('.dataTask[data-id='+result.data.group_id+']').prepend(htmlTaskTag);
                     feather.replace();
                     $('td.newTask[data-id=' + groupId + ']').css('opacity', '1');
                     $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
