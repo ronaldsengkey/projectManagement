@@ -622,6 +622,10 @@ $(document).on('mouseenter', '.team', function () {
     }
   }
 
+  if($('[data-original-title]').length > 0){
+    $('[data-original-title]').popover('hide')
+  }
+
   triggerPopoverTeam(id,haveTeam,groupid,name);
 
 })

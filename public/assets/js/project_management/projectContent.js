@@ -265,7 +265,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       //only if login user is part of member that is allowed to see his/her own task
-      if(haveTeam){
+      if(haveTeam && JSON.parse(result.pic)[0].account_name != ct.name){
         let member = element.member;
         member.forEach(element => {
           if(element.account_id == ct.id_employee){
@@ -648,7 +648,7 @@ function processReplyData(replyData, replyId, id) {
     dataReply = dataReply.reverse()
     dataReply.forEach(function (element, index) {
       let htmlReply;
-      let haveFile = element.file == 'null' ? false : element.file;
+      let haveFile = element.file == 'null' || element.file == 'undefined' ? false : element.file;
       if (element.user_create != ct.name) {
         let choose;
         if(window['colorName'+element.user_create] == undefined) choose = getRandomColor();
