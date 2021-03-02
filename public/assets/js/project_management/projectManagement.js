@@ -217,7 +217,7 @@ async function manageSummaryBoardData(data) {
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
         
         $('#'+names).empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(data.names)+'<p><img style="max-width: 500px;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(data.names)+'<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.png" width="300px" height="300px"></img></p></div>';
         $('#'+names).html(html);
     }
         
@@ -318,7 +318,7 @@ async function manageNullBoardData(data) {
     // let html = node.outerHTML;
 
     $('#'+divId).empty();
-    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id='+labelused+'>Chart '+splitCamel(chartName)+'<p><img style="max-width: 500px;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
+    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id='+labelused+'>Chart '+splitCamel(chartName)+'<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
     $('#'+divId).html(html);
 
     // if(data.category == 'boardType'){
@@ -686,7 +686,7 @@ $(document).on('click', '.boardList', async function () {
                     };
                     domBoardTools(pass)
 
-                    let appendEmptyImage = '<p><img style="max-width: 500px;" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png"></p></img>';
+                    let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png" style="opacity:0.7;"></p></img>';
                     $('.boardContentData').addClass('h-100');
                     $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
                     $('#boardAccordion').css({'height':'inherit','padding-bottom':'35vh','opacity':'0.4'});
