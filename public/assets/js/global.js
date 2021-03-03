@@ -112,6 +112,27 @@ function callNotif(param) {
     })
 }
 
+function containerOnLoad(idParam){
+    var loader = "<div class='d-flex justify-content-center loader"+idParam+"'>"+
+                "<div class='spinner-grow' role='status'>"+
+                "<span class='sr-only'>Loading...</span>"+
+                "</div>"+
+                "</div>";
+    $("#"+idParam).addClass("disableInput");
+    $('#'+idParam).append(loader);
+    $('.loader'+idParam).css({
+        'position': 'absolute',
+        'top': '50%',
+        'left': '50%',
+        'transform': 'translateX(-50%)',
+    });
+}
+
+function containerDone(idParam){
+    $(".loader"+idParam).remove();
+    $('#'+idParam).removeClass('disableInput');
+}
+
 async function logoutNotif(){
     Swal.fire({
         type: "error",

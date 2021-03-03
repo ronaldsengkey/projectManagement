@@ -6,17 +6,27 @@ $(async function () {
   await domBoardContent();
 })
 
+$(document).on('mousewheel','#legendOnly',scrollHorizontally)
+
+function scrollHorizontally(e) {
+  e = window.event || e;
+  var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+  document.getElementById('legendOnly').scrollLeft -= (delta*40); // Multiplied by 40
+}
+
 async function appendLegend(id){
-  let gridTag = '<div class="gridLayout3">';
+  let gridTag = '<div class="container-fluid"><div id="legendOnly" class="row flex-row flex-nowrap legendOnly legend'+id+'" style="overflow-x:auto;white-space:nowrap;">';
   window['dataBoardMember' + id + ''].forEach(function(e){
     let checkColor = lightOrDark(e.color);
     let colorFont;
     if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
     else colorFont = 'text-white';
-    gridTag += '<div class="text-center"><span class="picLogo '+colorFont+' mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+    // gridTag += '<div class="text-center"><span class="picLogo '+colorFont+' mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+    gridTag += '<div class="col-2"><div data-toggle="tooltip" data-placement="bottom" title="' + e.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+e.color+';">'+getInitials(e.account_name)+'</div></div>';
   })
-  gridTag += '</div>';
-  $(gridTag).insertBefore($('.accordionBoard'))
+  gridTag += '</div></div>';
+  // $(gridTag).insertBefore($('.accordionBoard'))
+  $(gridTag).appendTo($('.memberAvatar'+id));
 }
 
 async function domBoardContent() {
@@ -51,11 +61,11 @@ async function domBoardContent() {
     let joinBoardAndId = camelize(element.name) + element.board_id;
 
     let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
-    let htmlAccordion = '<div class="card mt-3 mb-3" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
+    let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
       '<div class="card-header" id="' + camelizeBoard + '">' +
       '<div class="row"><div class="col-lg-10">' +
       '<h2 class="mb-0">' +
-      '<button class="btn btn-link btn-block text-left toCollapse" type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
+      '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
       '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
@@ -802,9 +812,21 @@ async function notifDeleteTask(bodyDelete, name, bodyProgress) {
             text: result.responseMessage
           };
           callNotif(param);
-          $('.taskRow[data-id=' + bodyDelete._id + ']').remove();
-          await updateStatusProgressBar(bodyProgress, '', false, true);
-          await updatePriorityProgressBar(bodyProgress, '', false, true);
+          // $('.taskRow[data-id=' + bodyDelete._id + ']').remove();
+          // await updateStatusProgressBar(bodyProgress, '', false, true);
+          // await updatePriorityProgressBar(bodyProgress, '', false, true);
+          containerOnLoad('cardGT'+bodyProgress.group_id+'')
+          $('.headerGT[data-id='+bodyProgress.group_id+']').click()
+          setTimeout(() => {
+              $('.headerGT[data-id='+bodyProgress.group_id+']').click()
+              
+          }, 500);
+          let intervalData = setInterval(() => {
+              if($('#table'+bodyProgress.group_id).length > 0){
+                  clearInterval(intervalData)
+                  containerDone('cardGT'+bodyProgress.group_id+'')
+              }
+          }, 1000);
         } else if (result.responseCode == '401') {
           logoutNotif();
       } else {

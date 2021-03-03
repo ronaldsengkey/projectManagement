@@ -799,13 +799,19 @@ $(document).on('click', '.submitTeam', function () {
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
 
-  console.log('mw submit', window['dataCurrentTeam' + id + '']);
+  let memberData;
+  try {
+    memberData = JSON.stringify(window['dataCurrentTeam' + id + ''][0].member)
+  } catch (error) {
+    memberData = JSON.stringify(window['dataCurrentTeam' + id + ''].member)
+  }
   let updateTeam = {
     '_id': id,
     'group_id': groupid,
     'name': name,
     'user_update': ct.name,
-    'member': JSON.stringify(window['dataCurrentTeam' + id + ''][0].member)
+    'member': memberData,
+    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
 })

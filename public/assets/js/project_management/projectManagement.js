@@ -9,7 +9,7 @@ $(async function () {
     feather.replace();
     $('.beefup').beefup();
     $('#chartSection').prev().addClass('d-none');
-    await getBoard();
+    let boardDataStatus = await getBoard();
     await chartBoardChecking();
     // appendFilter();
     // appendFilter([filterTimeRanges]);
@@ -18,7 +18,56 @@ $(async function () {
 
     $('.filterChartName').html('Board Type');
     $('.filterTimeName').html('Last 7 Days');
+
+    //check for redirect email
+    checkGroupTaskRedirect(boardDataStatus);
 })
+
+function checkGroupTaskRedirect(boardDataStatus){
+    let getUrl = window.location.search;
+    let boardAidi = new URLSearchParams(getUrl).get('boardId');
+    let groupTaskAidi =  new URLSearchParams(getUrl).get('groupTaskId');
+    let taskId = new URLSearchParams(getUrl).get('taskId');
+    if(boardAidi != undefined && boardAidi != ''){
+        if(boardDataStatus == '200'){
+            $('.boardList[data-id='+boardAidi+']').click();
+            let intervCardBorder = setInterval(() => {
+                if($('.accordionBoard').length > 0){
+                    $('#cardGT'+groupTaskAidi).css('border','4px solid #ff8f00');
+                    $('.headerGT[data-id='+groupTaskAidi+']').click();
+                    $('#cardGT'+groupTaskAidi).hover(
+                        function () {
+                            $('#cardGT'+groupTaskAidi).css('border','none');
+                        },
+                        function () {
+                            
+                        }
+                      );
+                    clearInterval(intervCardBorder);
+
+                    
+                }
+            }, 1500);
+            
+            if(taskId != undefined && taskId != ''){
+                let intervTask = setInterval(() => {
+                    if($('.dataTask[data-id='+groupTaskAidi+']').length > 0){
+                        $('.taskRow[data-id='+taskId+']').addClass('amber lighten-2');
+                          $('#cardGT'+groupTaskAidi).hover(
+                            function () {
+                                $('.taskRow[data-id='+taskId+']').removeClass('amber lighten-2');
+                            },
+                            function () {
+                                
+                            }
+                          );
+                        clearInterval(intervTask);
+                    }
+                }, 1500);
+            }
+        }
+    }
+}
 
 function loadingActivated() {
     const loading = '<div id="loadingWrap">' +
@@ -52,40 +101,45 @@ $(document).on('click', '.removeSidebar', function () {
 })
 
 async function getBoard() {
-    $.ajax({
-        url: 'board',
-        method: 'GET',
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-            "param": JSON.stringify({
-                "_id": "",
-                "type": "",
-                "name": "",
-                "account_id": ""
-            }),
-            "secretKey": ct.secretKey,
-            "token": ct.token,
-            "signature": ct.signature
-        },
-        success: function (result) {
-            loadingDeactivated();
-            if (result.responseCode == '200') {
-                manageBoardData(result.data);
-            } else if (result.responseCode == '404') {
-                toastrNotifFull(result.responseMessage,'error');
-            } else if (result.responseCode == '401') {
-                logoutNotif();
-            } else {
-                let param = {
-                    type: 'error',
-                    text: result.responseMessage
-                };
-                callNotif(param);
+    return new Promise(async function(resolve,reject){
+        $.ajax({
+            url: 'board',
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "param": JSON.stringify({
+                    "_id": "",
+                    "type": "",
+                    "name": "",
+                    "account_id": ""
+                }),
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            },
+            success: function (result) {
+                loadingDeactivated();
+                
+                if (result.responseCode == '200') {
+                    manageBoardData(result.data);
+                } else if (result.responseCode == '404') {
+                    toastrNotifFull(result.responseMessage,'error');
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
+                } else {
+                    let param = {
+                        type: 'error',
+                        text: result.responseMessage
+                    };
+                    callNotif(param);
+                }
+                resolve(result.responseCode);
             }
-        }
+        })
     })
+    
 }
 
 async function getSummaryBoard(category,param='') {
@@ -706,8 +760,10 @@ $(document).on('click', '.boardList', async function () {
 })
 
 function domBoardTools(data) {
+    console.log('data board',data);
     let addTeam = false;
     let html = '';
+    let tools;
     if(data.groupTask != []){
         // check apa yang bikin board adalah yang login atau grade nya minimal supervisor ke atas
         if(data.created == ct.name || ct.grade < 5){
@@ -715,7 +771,33 @@ function domBoardTools(data) {
         }
     }
     if(addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-division='+data.division_id+' data-grade='+data.grade+' data-usercreate="'+data.user_create+'" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
-    let tools = '<div class="row p-3 ml-1 mr-1">' +
+    if(JSON.parse(data.member).length > 0){
+        if(!addTeam){
+            tools = '<div class="row p-3 ml-1 mr-1">' +
+            '<div class="col-lg-6" style="align-self: center;">' +
+            '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
+            '</div>' +
+            '<div class="col-lg-6" style="text-align: end;">' +
+            '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar'+data.id+'">' +
+            html +
+            '</div><div class="col-lg-6"><button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
+            '</div></div></div>' +
+            '</div>';
+        } else {
+            html = '<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addTeam" data-division='+data.division_id+' data-grade='+data.grade+' data-usercreate="'+data.user_create+'" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
+            tools = '<div class="row p-3 ml-1 mr-1">' +
+            '<div class="col-lg-5" style="align-self: center;">' +
+            '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
+            '</div>' +
+            '<div class="col-lg-7" style="text-align: end;">' +
+            '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar'+data.id+'">' +
+            '</div><div class="col-lg-6">'+html+'<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
+            '</div></div></div>' +
+            '</div>';
+        }
+        
+    } else {
+        tools = '<div class="row p-3 ml-1 mr-1">' +
         '<div class="col-lg-6" style="align-self: center;">' +
         '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
         '</div>' +
@@ -724,6 +806,8 @@ function domBoardTools(data) {
         '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
         '</div>' +
         '</div>';
+    }
+    
     $('.boardHeader').append(tools);
     if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
 }
@@ -1299,7 +1383,8 @@ $(document).on('click', '#addGroupTask', function () {
                 'pic': JSON.stringify(pic),
                 "division_id": ct.division_id,
                 "grade": ct.grade,
-                "user_create": ct.name
+                "user_create": ct.name,
+                'url': localUrl + ':' + projectManagementLocalPort + '/employee?boardId=' + thisId
             }
             return await postGroupTask(bodyGroup).then(async function (result) {
                 let param;
