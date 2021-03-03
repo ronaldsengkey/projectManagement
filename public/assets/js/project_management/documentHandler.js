@@ -664,6 +664,9 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
               let html = '<option class="opsi" data-id="' + id + '" value=' + element.employee_id + '>' + element.employee_name + '</option>';
               $('.emploTeam[data-id=' + id + ']').append(html);
             });
+
+            let htmlEmptyMain = '<optgroup label="----------"></optgroup><option value="addTeam">+ Add More</option>';
+            $('.emploTeam[data-id=' + id + ']').append(htmlEmptyMain);
           }
           break;
         case 'Private':
@@ -674,6 +677,8 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
             let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
             $('.emploTeam[data-id=' + id + ']').append(html);
           });
+          let htmlEmptyData = '<optgroup label="----------"></optgroup><option value="addTeam">+ Add More</option>';
+          $('.emploTeam[data-id=' + id + ']').append(htmlEmptyData);
           break;
       }
   
@@ -751,6 +756,11 @@ $(document).on('change', '.emploTeam', function () {
   let val = $('select#employeeTeam[data-id=' + id + ']').val();
   let valName = $('select#employeeTeam[data-id=' + id + '] :selected').text();
   let random = Math.floor(Math.random() * 4) + 1;
+
+  if(val == 'addTeam'){
+    $('#addTeam').click()
+    return;
+  }
 
   if(window['color'+val] == undefined){
     window['color'+val] = getRandomColor();

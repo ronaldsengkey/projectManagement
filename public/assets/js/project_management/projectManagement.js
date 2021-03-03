@@ -565,9 +565,14 @@ async function editBoard(bodyEdit) {
                         text: result.responseMessage
                     };
                     callNotif(param);
+                    boardTeamMember = [];
                     try {
                         loadingActivated();
-                        await getBoard();
+                        let boardList = await getBoard();
+                        if(boardList == '200'){
+                            console.log('ss',bodyEdit._id);
+                            $('.boardList[data-id='+bodyEdit._id+']').click();
+                        }
                     } catch (error) {
                         loadingDeactivated();
                     }
@@ -802,7 +807,7 @@ function domBoardTools(data) {
     let tools;
     if (data.groupTask != []) {
         // check apa yang bikin board adalah yang login atau grade nya minimal supervisor ke atas
-        if (data.created == ct.name || ct.grade < 5) {
+        if ((data.created == ct.name || ct.grade < 5) && data.type != 'Main') {
             addTeam = true;
         }
     }
@@ -854,7 +859,7 @@ $(document).on('click', '#addTeam', function () {
     let boardType = $(this).data('boardtype');
     Swal.fire({
         title: 'Please select member list',
-        html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input style="height:auto;""></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
+        html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input" style="height:auto;"></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
         onOpen: async () => {
             Swal.showLoading();
             let employee;
@@ -907,7 +912,14 @@ $(document).on('click', '#addTeam', function () {
             }
         },
         allowOutsideClick: () => !Swal.isLoading()
-    })
+    }).then(function(result){
+        if(result.value){
+            
+        }else if(result.dismiss == 'cancel'){
+            boardTeamMember = [];
+        }
+
+    });
 })
 
 let boardMemberJoin = [];
