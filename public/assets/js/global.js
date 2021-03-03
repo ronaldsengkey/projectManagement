@@ -133,7 +133,7 @@ function containerDone(idParam){
     $('#'+idParam).removeClass('disableInput');
 }
 
-async function logoutNotif(){
+async function logoutNotif(redirect){
     Swal.fire({
         type: "error",
         title: 'Expired session',
@@ -146,7 +146,11 @@ async function logoutNotif(){
         allowOutsideClick: false,
         allowEscapeKey  : false
     }).then(() => {
-        logout();
+        if (redirect != '' && redirect != undefined) {
+            redirect();
+        } else {
+            logout();
+        }
     })
 }
 

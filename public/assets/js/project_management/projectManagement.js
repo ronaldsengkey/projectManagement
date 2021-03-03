@@ -9,63 +9,100 @@ $(async function () {
     feather.replace();
     $('.beefup').beefup();
     $('#chartSection').prev().addClass('d-none');
-    let boardDataStatus = await getBoard();
-    await chartBoardChecking();
-    // appendFilter();
-    // appendFilter([filterTimeRanges]);
-    if(ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges,filterChart]);
-    else appendFilter([filterTimeRanges,filterChartUp]);
-
-    $('.filterChartName').html('Board Type');
-    $('.filterTimeName').html('Last 7 Days');
-
-    //check for redirect email
-    checkGroupTaskRedirect(boardDataStatus);
-})
-
-function checkGroupTaskRedirect(boardDataStatus){
     let getUrl = window.location.search;
     let boardAidi = new URLSearchParams(getUrl).get('boardId');
-    let groupTaskAidi =  new URLSearchParams(getUrl).get('groupTaskId');
+    if (boardAidi != undefined && boardAidi != '') {
+        if (localStorage.getItem('accountProfile') != undefined) {
+            let boardDataStatus = await getBoard();
+            if(boardDataStatus == '401'){
+                logoutNotif(function(){
+                    window.location.href = '/login' + window.location.search
+                })
+                
+            } else {
+                await chartBoardChecking();
+                // appendFilter();
+                // appendFilter([filterTimeRanges]);
+                if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterChart]);
+                else appendFilter([filterTimeRanges, filterChartUp]);
+
+                $('.filterChartName').html('Board Type');
+                $('.filterTimeName').html('Last 7 Days');
+
+                //check for redirect email
+                checkGroupTaskRedirect(boardDataStatus);
+
+                if (performance.navigation.type == performance.navigation.TYPE_RELOAD) {
+                    console.info( "This page is reloaded" );
+                    history.pushState({}, null, 'employee');
+                }
+            }
+
+        } else
+            window.location.href = '/login' + window.location.search
+    } else {
+        let boardDataStatus = await getBoard();
+        if(boardDataStatus == '401'){
+            logoutNotif()
+        } else {
+            await chartBoardChecking();
+            // appendFilter();
+            // appendFilter([filterTimeRanges]);
+            if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterChart]);
+            else appendFilter([filterTimeRanges, filterChartUp]);
+
+            $('.filterChartName').html('Board Type');
+            $('.filterTimeName').html('Last 7 Days');
+        }
+        
+    }
+
+})
+
+function checkGroupTaskRedirect(boardDataStatus) {
+    let getUrl = window.location.search;
+    let boardAidi = new URLSearchParams(getUrl).get('boardId');
+    let groupTaskAidi = new URLSearchParams(getUrl).get('groupTaskId');
     let taskId = new URLSearchParams(getUrl).get('taskId');
-    if(boardAidi != undefined && boardAidi != ''){
-        if(boardDataStatus == '200'){
-            $('.boardList[data-id='+boardAidi+']').click();
+    if (boardAidi != undefined && boardAidi != '') {
+        if (boardDataStatus == '200') {
+            $('.boardList[data-id=' + boardAidi + ']').click();
             let intervCardBorder = setInterval(() => {
-                if($('.accordionBoard').length > 0){
-                    $('#cardGT'+groupTaskAidi).css('border','4px solid #ff8f00');
-                    $('.headerGT[data-id='+groupTaskAidi+']').click();
-                    $('#cardGT'+groupTaskAidi).hover(
+                if ($('.accordionBoard').length > 0) {
+                    $('#cardGT' + groupTaskAidi).css('border', '4px solid #ff8f00');
+                    $('.headerGT[data-id=' + groupTaskAidi + ']').click();
+                    $('#cardGT' + groupTaskAidi).hover(
                         function () {
-                            $('#cardGT'+groupTaskAidi).css('border','none');
+                            $('#cardGT' + groupTaskAidi).css('border', 'none');
                         },
                         function () {
-                            
+
                         }
-                      );
+                    );
                     clearInterval(intervCardBorder);
 
-                    
+
                 }
             }, 1500);
-            
-            if(taskId != undefined && taskId != ''){
+
+            if (taskId != undefined && taskId != '') {
                 let intervTask = setInterval(() => {
-                    if($('.dataTask[data-id='+groupTaskAidi+']').length > 0){
-                        $('.taskRow[data-id='+taskId+']').addClass('amber lighten-2');
-                          $('#cardGT'+groupTaskAidi).hover(
+                    if ($('.dataTask[data-id=' + groupTaskAidi + ']').length > 0) {
+                        $('.taskRow[data-id=' + taskId + ']').addClass('amber lighten-2');
+                        $('#cardGT' + groupTaskAidi).hover(
                             function () {
-                                $('.taskRow[data-id='+taskId+']').removeClass('amber lighten-2');
+                                $('.taskRow[data-id=' + taskId + ']').removeClass('amber lighten-2');
                             },
                             function () {
-                                
+
                             }
-                          );
+                        );
                         clearInterval(intervTask);
                     }
                 }, 1500);
             }
         }
+
     }
 }
 
@@ -101,7 +138,7 @@ $(document).on('click', '.removeSidebar', function () {
 })
 
 async function getBoard() {
-    return new Promise(async function(resolve,reject){
+    return new Promise(async function (resolve, reject) {
         $.ajax({
             url: 'board',
             method: 'GET',
@@ -121,14 +158,11 @@ async function getBoard() {
             },
             success: function (result) {
                 loadingDeactivated();
-                
                 if (result.responseCode == '200') {
                     manageBoardData(result.data);
                 } else if (result.responseCode == '404') {
-                    toastrNotifFull(result.responseMessage,'error');
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
+                    toastrNotifFull(result.responseMessage, 'error');
+                } else if (result.responseCode != '401') {
                     let param = {
                         type: 'error',
                         text: result.responseMessage
@@ -139,13 +173,13 @@ async function getBoard() {
             }
         })
     })
-    
+
 }
 
-async function getSummaryBoard(category,param='') {
+async function getSummaryBoard(category, param = '') {
     var userData = JSON.parse(localStorage.getItem('accountProfile'));
     var account_id = userData.id_employee;
-    var dParam={
+    var dParam = {
         "account_id": account_id
     }
     var rParam = extend({}, dParam, param);
@@ -171,10 +205,10 @@ async function getSummaryBoard(category,param='') {
         },
         success: function (result) {
             loadingDeactivated();
-            console.log('category =>',category, ' =>', result);
+            console.log('category =>', category, ' =>', result);
             // if(category == 'taskForMeByStatus'){
             // }
-            if(ct.grade == '4' || ct.grade == '5'){
+            if (ct.grade == '4' || ct.grade == '5') {
                 result.category = 'boardTypeForMe';
                 result.names = category;
             } else {
@@ -182,7 +216,7 @@ async function getSummaryBoard(category,param='') {
                 result.names = category;
             }
             // result.category = category;
-            if (result.responseCode == '200' || result.responseCode == '404') {                
+            if (result.responseCode == '200' || result.responseCode == '404') {
                 manageSummaryBoardData(result);
             }
         }
@@ -191,7 +225,7 @@ async function getSummaryBoard(category,param='') {
 
 async function manageBoardData(data) {
     let boardMain = data.filter(function (e) {
-        return e.type.toUpperCase() == 'MAIN' 
+        return e.type.toUpperCase() == 'MAIN'
     });
     let boardPrivate = data.filter(function (e) {
         return e.type.toUpperCase() == 'PRIVATE'
@@ -208,10 +242,10 @@ async function manageBoardData(data) {
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
         if (element.user_create == ct.name) {
-            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlaceMain').append(htmlMain);
         } else {
-            let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+            let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
             $('.boardListPlaceMain').append(htmlMain);
         }
 
@@ -221,14 +255,14 @@ async function manageBoardData(data) {
         if (element.user_create == ct.name) {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
-            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
         } else {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
             element.member.forEach(elementMember => {
                 if (elementMember.account_id == ct.id_employee) {
-                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-create="'+element.user_create+'" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
                     $('.boardListPlacePrivate').append(htmlPrivate);
                 }
             });
@@ -239,42 +273,42 @@ async function manageBoardData(data) {
 }
 
 async function manageSummaryBoardData(data) {
-    
-    if(data.data != undefined || data.data != null) {
+
+    if (data.data != undefined || data.data != null) {
         var result = JSON.stringify(data.data);
         var divId = data.category;
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
-        var chartId = 'chart'+chartName;
-        console.log('data summary',data);
-    
-        if(data.names == 'taskByDivisionAndStatus'){
-            $('#'+divId).empty();
-            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">'+splitCamel(data.names)+'</div>';
-            html += '<canvas id="'+chartId+'" class="p-2"></canvas>';
-            $('#'+divId).html(html);
-            await getDoubleBarChart(data.names,result);                
-        }else{
-            $('#'+divId).empty();
-            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">'+splitCamel(data.names)+'</div>';
-            html += '<canvas id="'+chartId+'" class="p-2"></canvas>';
-            $('#'+divId).html(html);
-            await getBarChart(data.names,result);
+        var chartId = 'chart' + chartName;
+        console.log('data summary', data);
+
+        if (data.names == 'taskByDivisionAndStatus') {
+            $('#' + divId).empty();
+            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">' + splitCamel(data.names) + '</div>';
+            html += '<canvas id="' + chartId + '" class="p-2"></canvas>';
+            $('#' + divId).html(html);
+            await getDoubleBarChart(data.names, result);
+        } else {
+            $('#' + divId).empty();
+            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">' + splitCamel(data.names) + '</div>';
+            html += '<canvas id="' + chartId + '" class="p-2"></canvas>';
+            $('#' + divId).html(html);
+            await getBarChart(data.names, result);
         }
     } else {
         let names;
-        if(ct.grade == '4' || ct.grade == '5'){
+        if (ct.grade == '4' || ct.grade == '5') {
             names = 'boardTypeForMe';
         } else {
             names = 'boardType';
         }
         var divId = data.category;
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
-        
-        $('#'+names).empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl'+chartName+'">Chart '+splitCamel(data.names)+'<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.png" width="300px" height="300px"></img></p></div>';
-        $('#'+names).html(html);
+
+        $('#' + names).empty();
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">Chart ' + splitCamel(data.names) + '<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.png" width="300px" height="300px"></img></p></div>';
+        $('#' + names).html(html);
     }
-        
+
     // if(data.category == 'type'){
     //     $('#boardChartType').empty();
     //     let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Board Chart By Type</div>';
@@ -342,7 +376,7 @@ async function manageSummaryBoardData(data) {
     //     html += '<canvas id="chartTaskByDeadLine" class="p-2"></canvas>';
     //     $('#taskByDeadLine').html(html);
     //     await getBarChart('taskByDeadLine',result);
-        
+
     // }else if(data.category == 'taskByDivisionAndStatus'){
     //     $('#taskByDivisionAndStatus').empty();
     //     let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;">Task By Division And Status</div>';
@@ -351,7 +385,7 @@ async function manageSummaryBoardData(data) {
     //     // await getBarChart('taskByDivisionAndStatus',result);
     //     await getDoubleBarChart('taskByDivisionAndStatus',result);
 
-                
+
     // }else{
 
     // }
@@ -366,14 +400,14 @@ function splitCamel(word) {
 async function manageNullBoardData(data) {
     var divId = data.category;
     var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
-    var chartId = 'chart'+chartName;
-    console.log('chartname',chartName);
+    var chartId = 'chart' + chartName;
+    console.log('chartname', chartName);
     // var node = document.getElementById('lbl'+chartName);
     // let html = node.outerHTML;
 
-    $('#'+divId).empty();
-    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id='+labelused+'>Chart '+splitCamel(chartName)+'<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
-    $('#'+divId).html(html);
+    $('#' + divId).empty();
+    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
+    $('#' + divId).html(html);
 
     // if(data.category == 'boardType'){
     //     $('#boardType').empty();
@@ -446,7 +480,7 @@ $(document).on('click', '.delBoard', async function () {
         '_id': boardId
     };
     Swal.fire({
-        title: 'Are you sure to delete\n'+boardName+'\nboard?',
+        title: 'Are you sure to delete\n' + boardName + '\nboard?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, Delete it!',
@@ -541,7 +575,7 @@ async function editBoard(bodyEdit) {
                     } catch (error) {
                         loadingDeactivated();
                     }
-                    
+
                 } else if (result.responseCode == '401') {
                     logoutNotif();
                 } else {
@@ -643,26 +677,28 @@ function getRandomColor() {
     var letters = '0123456789ABCDEF';
     var color = '#';
     for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
+        color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
 
 function hasDuplicates(values) {
-    var valueArr = values.map(function(item){ return item.color });
-    var isDuplicate = valueArr.some(function(item, idx){ 
-        return valueArr.indexOf(item) != idx 
+    var valueArr = values.map(function (item) {
+        return item.color
+    });
+    var isDuplicate = valueArr.some(function (item, idx) {
+        return valueArr.indexOf(item) != idx
     });
     return isDuplicate;
 }
 
-async function distributeColor(id){
+async function distributeColor(id) {
     window['dataBoardMember' + id + ''].forEach(element => {
         element['color'] = getRandomColor()
     });
     // check duplicates
     let checkDupe = hasDuplicates(window['dataBoardMember' + id + ''])
-    if(checkDupe) distributeColor(id);
+    if (checkDupe) distributeColor(id);
 }
 
 $(document).on('click', '.boardList', async function () {
@@ -687,9 +723,9 @@ $(document).on('click', '.boardList', async function () {
         loadingDeactivated();
         $('#page-content-wrapper').addClass('warp-boundary');
         if (groupTask.responseCode == '200') {
-            if(type == 'Private') distributeColor(id)
+            if (type == 'Private') distributeColor(id)
             // ANCHOR jgn lupa uncomment
-            groupTask.data = await groupTaskChecking(groupTask.data,type);
+            groupTask.data = await groupTaskChecking(groupTask.data, type);
             window['groupTask' + id + ''] = groupTask.data;
             $.ajax({
                 url: 'projectBoard',
@@ -710,7 +746,7 @@ $(document).on('click', '.boardList', async function () {
                         id: id,
                         member: JSON.stringify(window['dataBoardMember' + id + '']),
                         created: boardCreated,
-                        groupTask: window['groupTask'+id]
+                        groupTask: window['groupTask' + id]
                     };
                     domBoardTools(pass)
                 }
@@ -743,7 +779,11 @@ $(document).on('click', '.boardList', async function () {
                     let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png" style="opacity:0.7;"></p></img>';
                     $('.boardContentData').addClass('h-100');
                     $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
-                    $('#boardAccordion').css({'height':'inherit','padding-bottom':'35vh','opacity':'0.4'});
+                    $('#boardAccordion').css({
+                        'height': 'inherit',
+                        'padding-bottom': '35vh',
+                        'opacity': '0.4'
+                    });
                     $('#boardAccordion').append(appendEmptyImage);
                 }
             })
@@ -754,65 +794,65 @@ $(document).on('click', '.boardList', async function () {
             };
             callNotif(param);
         }
-    }catch(e){
+    } catch (e) {
         loadingDeactivated();
     }
 })
 
 function domBoardTools(data) {
-    console.log('data board',data);
+    console.log('data board', data);
     let addTeam = false;
     let html = '';
     let tools;
-    if(data.groupTask != []){
+    if (data.groupTask != []) {
         // check apa yang bikin board adalah yang login atau grade nya minimal supervisor ke atas
-        if(data.created == ct.name || ct.grade < 5){
+        if (data.created == ct.name || ct.grade < 5) {
             addTeam = true;
         }
     }
-    if(addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-division='+data.division_id+' data-grade='+data.grade+' data-usercreate="'+data.user_create+'" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
-    if(JSON.parse(data.member).length > 0){
-        if(!addTeam){
+    if (addTeam) html = '<button class="text-white rounded-pill btn amber lighten-1" id="addTeam" data-division=' + data.division_id + ' data-grade=' + data.grade + ' data-usercreate="' + data.user_create + '" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
+    if (JSON.parse(data.member).length > 0) {
+        if (!addTeam) {
             tools = '<div class="row p-3 ml-1 mr-1">' +
+                '<div class="col-lg-6" style="align-self: center;">' +
+                '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
+                '</div>' +
+                '<div class="col-lg-6" style="text-align: end;">' +
+                '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar' + data.id + '">' +
+                html +
+                '</div><div class="col-lg-6"><button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created=' + data.created + ' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
+                '</div></div></div>' +
+                '</div>';
+        } else {
+            html = '<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addTeam" data-division=' + data.division_id + ' data-grade=' + data.grade + ' data-usercreate="' + data.user_create + '" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
+            tools = '<div class="row p-3 ml-1 mr-1">' +
+                '<div class="col-lg-5" style="align-self: center;">' +
+                '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
+                '</div>' +
+                '<div class="col-lg-7" style="text-align: end;">' +
+                '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar' + data.id + '">' +
+                '</div><div class="col-lg-6">' + html + '<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addGroupTask" data-created=' + data.created + ' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
+                '</div></div></div>' +
+                '</div>';
+        }
+
+    } else {
+        tools = '<div class="row p-3 ml-1 mr-1">' +
             '<div class="col-lg-6" style="align-self: center;">' +
             '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
             '</div>' +
             '<div class="col-lg-6" style="text-align: end;">' +
-            '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar'+data.id+'">' +
             html +
-            '</div><div class="col-lg-6"><button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
-            '</div></div></div>' +
-            '</div>';
-        } else {
-            html = '<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addTeam" data-division='+data.division_id+' data-grade='+data.grade+' data-usercreate="'+data.user_create+'" data-boardtype=' + data.type + ' data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Team</button>';
-            tools = '<div class="row p-3 ml-1 mr-1">' +
-            '<div class="col-lg-5" style="align-self: center;">' +
-            '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
+            '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created=' + data.created + ' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
             '</div>' +
-            '<div class="col-lg-7" style="text-align: end;">' +
-            '<div class="row boardMemberTools"><div class="col-lg-6 align-self-center memberAvatar'+data.id+'">' +
-            '</div><div class="col-lg-6">'+html+'<button class="text-white btn-md rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
-            '</div></div></div>' +
             '</div>';
-        }
-        
-    } else {
-        tools = '<div class="row p-3 ml-1 mr-1">' +
-        '<div class="col-lg-6" style="align-self: center;">' +
-        '<h2 class="boardPlaceHeader"><span class="name">' + data.boardName + '</span> Board</h2>' +
-        '</div>' +
-        '<div class="col-lg-6" style="text-align: end;">' +
-        html +
-        '<button class="text-white rounded-pill btn amber lighten-1" id="addGroupTask" data-created='+data.created+' data-boardtype=' + data.type + ' data-member="' + data.member + '" data-boardname="' + data.boardName + '" data-id="' + data.id + '" data-concern="' + data.camelized + '" type="button">Add Group of Task</button>' +
-        '</div>' +
-        '</div>';
     }
-    
+
     $('.boardHeader').append(tools);
     if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
 }
 
-$(document).on('click','#addTeam',function(){
+$(document).on('click', '#addTeam', function () {
     let boardId = $(this).data('id');
     let boardName = $(this).data('boardname');
     let boardType = $(this).data('boardtype');
@@ -830,19 +870,19 @@ $(document).on('click','#addTeam',function(){
                     $('#memberGroup').empty()
                     empDone = !empDone;
                     employee.forEach(element => {
-                        if(parseInt(element.division_id) == ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
-                        $('#memberGroup').append('<option value='+element.employee_id+'>'+element.employee_name+'</option>')
+                        if (parseInt(element.division_id) == ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
+                            $('#memberGroup').append('<option value=' + element.employee_id + '>' + element.employee_name + '</option>')
                     });
                     window['dataBoardMember' + boardId + ''].forEach(element => {
-                        $('option[value='+element.account_id+']').remove();
+                        $('option[value=' + element.account_id + ']').remove();
                     });
                 }
-                if(empDone){
+                if (empDone) {
                     $('#employeeId').prop('disabled', false);
                 }
                 Swal.hideLoading()
             } catch (error) {
-                toastrNotifFull('failed to get data','error');
+                toastrNotifFull('failed to get data', 'error');
                 Swal.hideLoading();
             }
         },
@@ -850,11 +890,11 @@ $(document).on('click','#addTeam',function(){
         confirmButtonText: 'Submit',
         showLoaderOnConfirm: true,
         preConfirm: async () => {
-            if(boardTeamMember.length == 0){
-                toastrNotifFull('please add team member','error');
+            if (boardTeamMember.length == 0) {
+                toastrNotifFull('please add team member', 'error');
                 return false;
             } else {
-                let oldMember= window['dataBoardMember' + boardId + ''];
+                let oldMember = window['dataBoardMember' + boardId + ''];
                 oldMember.forEach(element => {
                     delete element.departmen_id;
                     delete element.departmen_name;
@@ -946,7 +986,7 @@ let boardTeamMember = [];
 $(document).on('click', '.addTeamMember', function () {
     let boardMemberId = $('#memberGroup option:selected').toArray().map(item => item.value);
     let boardMemberName = $('#memberGroup option:selected').toArray().map(item => item.text);
-    
+
     boardMemberId.forEach(function (e, index) {
         boardTeamMember.push({
             'account_id': e,
@@ -957,17 +997,17 @@ $(document).on('click', '.addTeamMember', function () {
     addTemAccordion(boardTeamMember);
 })
 
-function addTemAccordion(boardTeamMember){
+function addTemAccordion(boardTeamMember) {
     $('.accordionPlace').empty();
     boardTeamMember.forEach(element => {
         let splitCamelAccName = camelize(element.account_name);
-        if ($('.beefup__head').length == 0){
+        if ($('.beefup__head').length == 0) {
             let htmlAccordion = '<article class="beefup">' +
-            '<h2 class="beefup__head" data-toggle="collapse" data-target="#' + splitCamelAccName + '" aria-expanded="true" aria-controls="' + splitCamelAccName + '" id=' + element.account_id + '>Member List</h2>' +
-            '<div id="' + splitCamelAccName + '" class="collapse beefup__body">' +
-            '<div id="forMemberList"><div class="row rowData" data-name="' + element.account_name + '"><div class="col-lg-9">' + element.account_name + '</div><div class="col-lg-3"><i class="fa fa-times text-danger close removeDataTeam" data-for="' + splitCamelAccName + '" data-id=' + element.account_id + ' data-name="' + element.account_name + '" style="float:none; cursor:pointer;"></i></div></div></div>' +
-            '</div></article>';
-        $('.accordionPlace').append(htmlAccordion);
+                '<h2 class="beefup__head" data-toggle="collapse" data-target="#' + splitCamelAccName + '" aria-expanded="true" aria-controls="' + splitCamelAccName + '" id=' + element.account_id + '>Member List</h2>' +
+                '<div id="' + splitCamelAccName + '" class="collapse beefup__body">' +
+                '<div id="forMemberList"><div class="row rowData" data-name="' + element.account_name + '"><div class="col-lg-9">' + element.account_name + '</div><div class="col-lg-3"><i class="fa fa-times text-danger close removeDataTeam" data-for="' + splitCamelAccName + '" data-id=' + element.account_id + ' data-name="' + element.account_name + '" style="float:none; cursor:pointer;"></i></div></div></div>' +
+                '</div></article>';
+            $('.accordionPlace').append(htmlAccordion);
         } else {
             $('#forMemberList').append('<div class="row rowData" data-name="' + element.account_name + '" ><div class="col-lg-9">' + element.account_name + '</div><div class="col-lg-3"><i class="fa fa-times text-danger close removeDataTeam" data-for="' + splitCamelAccName + '" data-id=' + element.account_id + ' data-name="' + element.account_name + '" style="float:none; cursor:pointer;"></i></div></div></div>');
         }
@@ -1118,44 +1158,44 @@ $(document).on('click change', 'input[name="swal2-radio"]', async function () {
                         $('#divisionId').append(html);
                     });
                 }
-                
+
                 if (employee != 500) {
                     $('#emptyMember').remove();
                     $('#employeeId').empty()
                     empDone = !empDone;
                     $('#employeeId').attr('data-concern', 'Finance');
                 }
-                if(divisiDone && empDone){
+                if (divisiDone && empDone) {
                     $('#divisionId').prop('disabled', false);
                     $('#employeeId').prop('disabled', false);
                 }
                 Swal.hideLoading()
             } catch (error) {
-                toastrNotifFull('failed to get data','error');
+                toastrNotifFull('failed to get data', 'error');
                 Swal.hideLoading();
             }
-            
+
         }
     }
 })
 
 $(document).on('change', '#divisionId', async function () {
     let currentVal = $(this).val();
-    if(currentVal == ''){
+    if (currentVal == '') {
         $('#employeeId').empty();
     } else {
         $('#employeeId').empty();
         let currentDivision = $('select#divisionId option:selected').text()
         $('#employeeId').attr('data-concern', currentDivision);
         let employeeDivision = await boardEmployeeChecking(window['employeeData']);
-        
-        if(ct.division_id == currentVal){
+
+        if (ct.division_id == currentVal) {
             employeeDivision.forEach(element => {
                 let html = '<option value=' + element.employee_id + '>' + element.employee_name + '</option>';
                 $('#employeeId').append(html);
             });
         }
-    
+
         let dataBoard = boardMemberJoin.filter(function (e) {
             return e.departmen_id == currentVal;
         })
@@ -1222,11 +1262,11 @@ $(document).on('click', '.addBoard', async function () {
 $(document).on('click', '.goTrello', async function () {
     loadingActivated();
     let authRes = await goAuth();
-    if(authRes.responseCode == '200'){
-        sessionStorage.setItem('meId',JSON.parse(authRes.data).id);
+    if (authRes.responseCode == '200') {
+        sessionStorage.setItem('meId', JSON.parse(authRes.data).id);
         // $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloCall.js", function (data, textStatus, jqxhr) {})
         $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
-    } else if(authRes.responseCode == '476') {
+    } else if (authRes.responseCode == '476') {
         activeModalConfirmToken()
         window.open(authRes.data, "_blank", "width=750,height=750,top=400,left=900");
     } else {
@@ -1238,10 +1278,10 @@ $(document).on('click', '.goTrello', async function () {
     }
 })
 
-$(document).on('click','.btnConfirm',async function(){
+$(document).on('click', '.btnConfirm', async function () {
     let tokenData = $('.tokenPlace').val();
     let confirmRes = await confirmAuthToken(tokenData);
-    if(confirmRes.responseCode == '200'){
+    if (confirmRes.responseCode == '200') {
         let param = {
             type: 'success',
             text: confirmRes.responseMessage
@@ -1260,7 +1300,7 @@ $(document).on('click','.btnConfirm',async function(){
 function activeModalConfirmToken() {
     $('#modalConfirmToken').modal({
         show: true,
-        backdrop: 'static', 
+        backdrop: 'static',
         keyboard: false
     });
 }
@@ -1300,7 +1340,9 @@ async function confirmAuthToken(tokenAuth) {
                 "token": ct.token,
                 "signature": ct.signature
             },
-            data: JSON.stringify({'token':tokenAuth}),
+            data: JSON.stringify({
+                'token': tokenAuth
+            }),
             success: async function (result) {
                 loadingDeactivated()
                 resolve(result);
@@ -1399,7 +1441,7 @@ $(document).on('click', '#addGroupTask', function () {
                     $('.boardHeader').empty();
                     let gt = await getGroupTask(thisId);
                     if (gt.responseCode == '200') {
-                        gt.data = await groupTaskChecking(gt.data,boardType);
+                        gt.data = await groupTaskChecking(gt.data, boardType);
                         window['groupTask' + thisId + ''] = gt.data;
                         $.ajax({
                             url: 'projectBoard',
@@ -1419,8 +1461,8 @@ $(document).on('click', '#addGroupTask', function () {
                                     id: thisId,
                                     type: boardType,
                                     member: boardMember,
-                                    created:boardCreated,
-                                    groupTask: window['groupTask'+thisId]
+                                    created: boardCreated,
+                                    groupTask: window['groupTask' + thisId]
                                 };
                                 console.log('the pass', pass);
                                 domBoardTools(pass)
@@ -1492,11 +1534,11 @@ async function getDoubleBarChart(chartName, data) {
         stuckArray[index] = item.stuck;
         workingOnItArray[index] = item.working_on_it;
         doneArray[index] = item.done;
-        waitingForReviewArray[index] = item.waiting_for_review;        
+        waitingForReviewArray[index] = item.waiting_for_review;
     });
 
     let chartUsed;
-    if(ct.grade == '4' || ct.grade == '5'){
+    if (ct.grade == '4' || ct.grade == '5') {
         chartUsed = 'chartBoardTypeForMe';
     } else {
         chartUsed = 'chartBoardType';
@@ -1558,9 +1600,9 @@ async function getBarChart(chartName, data) {
     var labelArray = new Array();
     var barId, labelName;
     var barName = chartName.charAt(0).toUpperCase() + chartName.slice(1);
-    var barId = 'chart'+barName
-    console.log('barId =>',barId)
-    
+    var barId = 'chart' + barName
+    console.log('barId =>', barId)
+
     // $('#'+divId).empty();
     var chartType = 'pie';
     if (chartName.toUpperCase() === 'BOARDMEMBER' || chartName.toUpperCase() === 'BOARDTASK') {
@@ -1605,7 +1647,7 @@ async function getBarChart(chartName, data) {
     // }
     let labelused;
     let chartUsed;
-    if(ct.grade == '4' || ct.grade == '5'){
+    if (ct.grade == '4' || ct.grade == '5') {
         labelused = 'lblBoardTypeForMe';
         chartUsed = 'chartBoardTypeForMe';
     } else {
@@ -1614,43 +1656,43 @@ async function getBarChart(chartName, data) {
     }
 
     if (chartName.toUpperCase() === 'BOARDTYPE') {
-        $('#'+labelused).html('Board Chart By Type');
+        $('#' + labelused).html('Board Chart By Type');
     } else if (chartName.toUpperCase() === 'BOARDTYPEFORME') {
-        $('#'+labelused).html('Board Chart For Me By Type');
+        $('#' + labelused).html('Board Chart For Me By Type');
     } else if (chartName.toUpperCase() === 'BOARDDIVISION') {
-        $('#'+labelused).html('Board Chart By Division');
+        $('#' + labelused).html('Board Chart By Division');
     } else if (chartName.toUpperCase() === 'BOAARDBYMEMBER') {
-        $('#'+labelused).html('Board Chart By Member');
+        $('#' + labelused).html('Board Chart By Member');
     } else if (chartName.toUpperCase() === 'BOARDTASK') {
-        $('#'+labelused).html('Board Chart By Task');
+        $('#' + labelused).html('Board Chart By Task');
     } else if (chartName.toUpperCase() === 'TASKFORME') {
         // barId = 'chartTaskForMe';
         // labelName = 'Chart Task For Me';
-        $('#'+labelused).html('Chart Task For Me');
+        $('#' + labelused).html('Chart Task For Me');
     } else if (chartName.toUpperCase() === 'TASKFORMEBYSTATUS') {
         // barId = 'chartTaskForMeByStatus';
         // labelName = 'Chart Task For Me By Status';
-        $('#'+labelused).html('Chart Task For Me By Status');
+        $('#' + labelused).html('Chart Task For Me By Status');
     } else if (chartName.toUpperCase() === 'TASKBYDIVISION') {
         // barId = 'chartTaskByDivision';
         // labelName = 'Chart Task By Division';
-        $('#'+labelused).html('Chart Task By Division');
+        $('#' + labelused).html('Chart Task By Division');
     } else if (chartName.toUpperCase() === 'TASKBYSTATUS') {
         // barId = 'chartTaskByStatus';
         // labelName = 'Chart Task By Status';
-        $('#'+labelused).html('Chart Task By Status');
+        $('#' + labelused).html('Chart Task By Status');
     } else if (chartName.toUpperCase() === 'TASKBYPRIORITY') {
         // barId = 'chartTaskByPriority';
         // labelName = 'Chart Task By Priority';
-        $('#'+labelused).html('Chart Task By Priority');
+        $('#' + labelused).html('Chart Task By Priority');
 
     } else if (chartName.toUpperCase() === 'TASKBYDEADLINE') {
         // barId = 'chartTaskByDeadLine';
         // labelName = 'Chart Task By Deadline';
-        $('#'+labelused).html('Chart Task By Deadline');
+        $('#' + labelused).html('Chart Task By Deadline');
     }
 
-    if(data !== undefined) {
+    if (data !== undefined) {
         var tmp = JSON.parse(data);
         if (tmp) {
             var i = 0;
@@ -1664,33 +1706,38 @@ async function getBarChart(chartName, data) {
             });
         }
 
-        var ctxB = document.getElementById(chartUsed).getContext('2d');
-        var myBarChart = new Chart(ctxB, {
-            type: chartType,
-            data: {
-                labels: nameArray,
-                datasets: [{
-                    label: labelName,
-                    data: totalArray,
-                    backgroundColor: backgroundArray,
-                    borderColor: borderArray,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
+        try {
+            var ctxB = document.getElementById(chartUsed).getContext('2d');
+            var myBarChart = new Chart(ctxB, {
+                type: chartType,
+                data: {
+                    labels: nameArray,
+                    datasets: [{
+                        label: labelName,
+                        data: totalArray,
+                        backgroundColor: backgroundArray,
+                        borderColor: borderArray,
+                        borderWidth: 1
                     }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
 
-    }else{
+        }
 
-    }    
+
+    } else {
+
+    }
 
     // var ctx = document.getElementById('chartType').getContext('2d');
     // var myChart = new Chart(ctx, {
@@ -1730,12 +1777,13 @@ async function getBarChart(chartName, data) {
     //     }
     // });
 }
+
 function extend(target) {
     var sources = [].slice.call(arguments, 1);
     sources.forEach(function (source) {
-      for (var prop in source) {
-        target[prop] = source[prop];
-      }
+        for (var prop in source) {
+            target[prop] = source[prop];
+        }
     });
     return target;
 }
