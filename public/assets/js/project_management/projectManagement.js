@@ -31,11 +31,6 @@ $(async function () {
 
                 //check for redirect email
                 checkGroupTaskRedirect(boardDataStatus);
-
-                if (performance.navigation.type == performance.navigation.TYPE_RELOAD) {
-                    console.info( "This page is reloaded" );
-                    history.pushState({}, null, 'employee');
-                }
             }
 
         } else
@@ -74,6 +69,7 @@ function checkGroupTaskRedirect(boardDataStatus) {
                     $('#cardGT' + groupTaskAidi).hover(
                         function () {
                             $('#cardGT' + groupTaskAidi).css('border', 'none');
+                            history.pushState({}, null, 'employee');
                         },
                         function () {
 
