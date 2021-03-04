@@ -69,7 +69,7 @@ async function domBoardContent() {
       '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
-      '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
+      '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
       
       '<div id="' + joinBoardAndId + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -92,30 +92,32 @@ async function domBoardContent() {
 }
 
 $(document).on('click','.btnMenu',function(){
-  
-  $('.placeBody').empty();
+  let owner = $(this).data('owner');
+  let pic = $(this).data('pic');
+  if(ct.name == owner || ct.id_employee == pic){
+    $('.placeBody').empty();
+    let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
+    $('.placeBody').append(renameText);
+    let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
+    $('.placeBody').append(menuTemplate);
+    $('.menuRename').attr('data-id', $(this).data('id'));
+    $('.menuRename').attr('data-boardid', $(this).data('boardid'));
+    $('.menuRename').attr('data-name', $(this).data('name'));
+    $('.menuRename').attr('data-boardname', $(this).data('boardname'));
+    $('.menuRename').attr('data-camelized', $(this).data('camelized'));
+    $('.menuRename').attr('data-boardtype', $(this).data('boardtype'));
 
-  let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
-  $('.placeBody').append(renameText);
+    $('.menuDelete').attr('data-id', $(this).data('id'));
+    $('.menuDelete').attr('data-name', $(this).data('name'));
+    $('.menuDelete').attr('data-boardid', $(this).data('boardid'));
+    $('.menuDelete').attr('data-boardname', $(this).data('boardname'));
+    $('.menuDelete').attr('data-camelized', $(this).data('camelized'));
+    $('.menuDelete').attr('data-boardtype', $(this).data('boardtype'));
 
-  let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
-  $('.placeBody').append(menuTemplate);
-
-  $('.menuRename').attr('data-id', $(this).data('id'));
-  $('.menuRename').attr('data-boardid', $(this).data('boardid'));
-  $('.menuRename').attr('data-name', $(this).data('name'));
-  $('.menuRename').attr('data-boardname', $(this).data('boardname'));
-  $('.menuRename').attr('data-camelized', $(this).data('camelized'));
-  $('.menuRename').attr('data-boardtype', $(this).data('boardtype'));
-
-  $('.menuDelete').attr('data-id', $(this).data('id'));
-  $('.menuDelete').attr('data-name', $(this).data('name'));
-  $('.menuDelete').attr('data-boardid', $(this).data('boardid'));
-  $('.menuDelete').attr('data-boardname', $(this).data('boardname'));
-  $('.menuDelete').attr('data-camelized', $(this).data('camelized'));
-  $('.menuDelete').attr('data-boardtype', $(this).data('boardtype'));
-
-  activeModalGroupTask();
+    activeModalGroupTask();
+  } else {
+    toastrNotifFull('You do not have access','error')
+  }
 
 })
 
@@ -253,7 +255,7 @@ async function domTaskTable(data, id, result, boardMember) {
         // window['dataComment' + element._id + ''] = element.comment;
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><i class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><img class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" src="../public/assets/img/commentAvailable.svg" data-id=' + element._id + '><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
@@ -633,7 +635,7 @@ async function processProgressBarPrio(data, idGroup) {
   return htmlProgress;
 }
 
-function notifDeleteComment(bodyDelete) {
+function notifDeleteComment(bodyDelete,groupId) {
   Swal.fire({
     title: 'Are you sure to delete this comment?',
     icon: 'warning',
@@ -648,6 +650,21 @@ function notifDeleteComment(bodyDelete) {
         return e._id != bodyDelete._id;
       })
       window['dataComment' + bodyDelete.task_id + ''] = JSON.stringify(window['dataComment' + bodyDelete.task_id + '']);
+      if($('.commentContent[data-id='+bodyDelete._id+']').children().length == 0){
+        
+        containerOnLoad('cardGT'+groupId+'')
+          $('.headerGT[data-id='+groupId+']').click()
+          setTimeout(() => {
+              $('.headerGT[data-id='+groupId+']').click()
+              
+          }, 500);
+          let intervalData = setInterval(() => {
+              if($('#table'+groupId).length > 0){
+                  clearInterval(intervalData)
+                  containerDone('cardGT'+groupId+'')
+              }
+          }, 1000);
+      }
     }
   })
 }
@@ -728,10 +745,11 @@ async function domComment(commentData, id) {
     let haveFile = element.file == 'null' ? false : element.file;
 
     if (element.user_create == ct.name) {
+      let groupIdData = $('.commentTask[data-id='+id+']').data('groupid');
       cardComment += '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + element._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
         '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + element._id + '">' +
         '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Edit Comment</a>' +
-        '<a class="dropdown-item deleteComment" data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Delete Comment</a></div></div></div>';
+        '<a class="dropdown-item deleteComment" data-groupid='+groupIdData+' data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Delete Comment</a></div></div></div>';
     }
 
     if(haveFile) {

@@ -59,11 +59,13 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         console.log("addComment::", addComment);
         $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
         if (addComment != 500) {
+          let groupIdData = $('.commentTask[data-id='+id+']').data('groupid');
+
           let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
             '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
             '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
             '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Edit Comment</a>' +
-            '<a class="dropdown-item deleteComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Delete Comment</a></div></div></div>' +
+            '<a class="dropdown-item deleteComment" data-groupid='+groupIdData+' data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Delete Comment</a></div></div></div>' +
             '<blockquote class="blockquote mb-0 card-body" style="border-left:none;">' +
             '<div class="commentBody" data-id=' + addComment._id + '><p data-comment="' + addComment.comment + '">' + addComment.comment + '</p></div>' +
             '<footer class="blockquote-footer">' +
@@ -80,6 +82,21 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
           cardCommentNew += '</div>';
 
           $('.commentContent[data-id=' + id + ']').prepend(cardCommentNew);
+
+          if($('.commentTask[data-id='+id+']').data('available') == 'false' || $('.commentTask[data-id='+id+']').data('available') == false){
+            containerOnLoad('cardGT'+groupIdData+'')
+            $('.headerGT[data-id='+groupIdData+']').click()
+            setTimeout(() => {
+                $('.headerGT[data-id='+groupIdData+']').click()
+                
+            }, 500);
+            let intervalData = setInterval(() => {
+                if($('#table'+groupIdData).length > 0){
+                    clearInterval(intervalData)
+                    containerDone('cardGT'+groupIdData+'')
+                }
+            }, 1000);
+          }
         }
       }
       setTimeout(() => {
@@ -352,6 +369,7 @@ $(document).on('click', '.deleteComment', function () {
   let id = $(this).data('id');
   let commentNow = $(this).data('comment');
   let taskid = $(this).data('taskid');
+  let groupId = $(this).data('groupid');
 
   let deletedComment = {
     '_id': id,
@@ -359,7 +377,7 @@ $(document).on('click', '.deleteComment', function () {
     'comment': commentNow,
     'user_create': ct.name
   }
-  notifDeleteComment(deletedComment);
+  notifDeleteComment(deletedComment,groupId);
 })
 
 $(document).on('click', '.deleteReply', function () {
@@ -399,12 +417,12 @@ $(document).on('click', '.commentTask', async function () {
   let taskName = $(this).data('name');
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
-  let available = $('.commentTask[data-id=' + id + ']').data('available');
+  let available = $('.commentTask[data-id='+id+']').data('available');
   $('.commentContent').attr('data-id', id);
   $('.commentInputArea').attr('data-id',id);
   $('.commentTaskMember').empty();
-  $('.commentContent[data-id=' + id + ']').empty();
-  $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
+  $(".commentContent[data-id="+id+"]").empty();
+  $(".commentContent[data-id="+id+"]").append('Getting comment data...');
 
   if (available == true || available == 'true') {
     let commentData = await getComment(id);
@@ -434,15 +452,15 @@ $(document).on('click', '.commentTask', async function () {
   }
 
   let intervalComment = setInterval(async () => {
-    $('.commentContent[data-id=' + id + ']').empty();
-    $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
+    $('.commentContent[data-id='+id+']').empty();
+    $('.commentContent[data-id='+id+']').append('Getting comment data...');
     let commentData = await getComment(id);
     if (commentData != 500) {
       if (commentData.length > 0) {
-        $('.commentContent[data-id=' + id + ']').empty('');
+        $('.commentContent[data-id='+id+']').empty('');
         await domComment(commentData, id);
       } else {
-        $('.commentContent[data-id=' + id + ']').empty();
+        $('.commentContent[data-id='+id+']').empty();
       }
     }
   }, 20000);
@@ -569,7 +587,8 @@ $(document).on('change', '.emploPic', function () {
     'pic': JSON.stringify([{
       'account_id': val,
       'account_name': valName
-    }])
+    }]),
+    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
   $('.pic[data-id=' + id + ']').html('<div class="memberLogo' + rand + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
@@ -598,7 +617,7 @@ $(document).on('mouseleave', '.pic', function () {
 /// for dismiss popover on click outside
 $('html').on('click', function(e) {
   var l = $(e.target);
-  if (~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
+  if (~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
     return;
   } else if (typeof $(e.target).data('original-title') == 'undefined') {
     $('[data-original-title]').popover('hide');
@@ -631,9 +650,9 @@ $(document).on('mouseenter', '.team', function () {
 })
 
 async function triggerPopoverTeam(id,haveTeam,groupid,name){
-  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
-  let removeAll = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
-  let submitTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><button type="button" class="btn btn-success submitTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Done</button></div></div>';
+  let empHtmlTeam = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
+  let removeAll = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
+  let submitTeam = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><button type="button" class="btn btn-success submitTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Done</button></div></div>';
   let joinHtmlTeam =  empHtmlTeam + removeAll + submitTeam;
 
   if($('.team[data-id=' + id + ']').data("bs.popover") == undefined){
@@ -719,6 +738,19 @@ $(document).on('click', '.removeAllTeam', function () {
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
 
+  let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
+  let groupWindow = window['dataBoardMember' + boardParent + ''];
+  let htmlEmptyMain = '<option selected>Choose Team</option>';
+  $('.emploTeam[data-id=' + id + ']').empty();
+  $('.emploTeam[data-id=' + id + ']').append(htmlEmptyMain);
+  groupWindow.forEach(element => {
+    let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
+    $('.emploTeam[data-id=' + id + ']').append(html);
+  });
+  let htmlEmptyAdditional = '<optgroup label="----------"></optgroup><option value="addTeam">+ Add More</option>';
+  $('.emploTeam[data-id=' + id + ']').append(htmlEmptyAdditional);
+  
+  $('.emploTeam[data-groupid=' + groupid + ']').data('team',false)
   window['dataTeam' + id + ''] = [];
   window['dataCurrentTeam'+id] = [];
   let updateTeam = {
@@ -770,7 +802,7 @@ $(document).on('change', '.emploTeam', function () {
     $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
   } else {
     $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
-    $(this).data('team', 'true');
+    $(this).data('team', true);
     $('.colTeam[data-id=' + id + ']').css('display', 'flex');
     $('.colTeam[data-id=' + id + ']').addClass('justify-content-center');
   }
@@ -785,8 +817,6 @@ $(document).on('change', '.emploTeam', function () {
     'account_id': val,
     'account_name': valName
   })
-
-  console.log('aaa', window['dataCurrentTeam' + id + '']);
 
   try {
     window['dataCurrentTeam' + id + ''].push({
