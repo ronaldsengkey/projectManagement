@@ -29,6 +29,24 @@ async function appendLegend(id){
   $(gridTag).appendTo($('.memberAvatar'+id));
 }
 
+function createdByIcon(user,id){
+  if(user == ct.name){
+    let html;
+    window['dataBoardMember' + id + ''].forEach(element => {
+      if(element.account_name == ct.name){
+        let checkColor = lightOrDark(element.color);
+        let colorFont;
+        if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+        else colorFont = 'text-white';
+        html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
+      }
+    });
+    return html;
+  } else {
+    return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+  }
+}
+
 async function domBoardContent() {
   let id = $('#addGroupTask').data('id');
   let boardName = $('#addGroupTask').data('boardname');
@@ -63,13 +81,15 @@ async function domBoardContent() {
     let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
     let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
       '<div class="card-header" id="' + camelizeBoard + '">' +
-      '<div class="row"><div class="col-lg-10">' +
+      '<div class="row"><div class="col-lg-8">' +
       '<h2 class="mb-0">' +
       '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
       '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
-      '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
+      '</div>'+
+      '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id)+'</div>'+
+      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
       
       '<div id="' + joinBoardAndId + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -279,10 +299,17 @@ async function domTaskTable(data, id, result, boardMember) {
       //only if login user is part of member that is allowed to see his/her own task
       if(haveTeam && JSON.parse(result.pic)[0].account_name != ct.name){
         let member = element.member;
-        member.forEach(element => {
-          if(element.account_id == ct.id_employee){
+        member.forEach(elements => {
+          if(elements.account_id == ct.id_employee){
             result.condition = true;
             $('#table' + id + ' > .dataTask').prepend(htmlTask);
+            $('.priority[data-id='+element._id+']').addClass('disableInput')
+            $('.delTask[data-id='+element._id+']').addClass('disableInput');
+            $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
+              if($(element).attr('class') != 'status mediumPrio text-white'){
+                $('td.'+$(element).attr('class')).addClass('disableInput')
+              }
+            })
           }
         });
       }

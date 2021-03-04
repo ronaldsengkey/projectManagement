@@ -1056,7 +1056,19 @@ $(document).on('click', '.rowStat', async function () {
     'user_update': ct.name
   }
   globalUpdateTask('status', dataStat);
-  await updateStatusProgressBar(dataStat, currentStat);
+  // await updateStatusProgressBar(dataStat, currentStat);
+  containerOnLoad('cardGT'+groupid+'')
+  $('.headerGT[data-id='+groupid+']').click()
+  setTimeout(() => {
+      $('.headerGT[data-id='+groupid+']').click()
+      
+  }, 500);
+  let intervalData = setInterval(() => {
+      if($('#table'+groupid).length > 0){
+          clearInterval(intervalData)
+          containerDone('cardGT'+groupid+'')
+      }
+  }, 1000);
 })
 
 $(document).on('click', '.priority', function () {
@@ -1132,7 +1144,19 @@ $(document).on('click', '.rowPrio', async function () {
     'user_update': ct.name
   }
   globalUpdateTask('priority', dataPrio);
-  await updatePriorityProgressBar(dataPrio, currentPrio);
+  // await updatePriorityProgressBar(dataPrio, currentPrio);
+  containerOnLoad('cardGT'+groupid+'')
+      $('.headerGT[data-id='+groupid+']').click()
+  setTimeout(() => {
+      $('.headerGT[data-id='+groupid+']').click()
+      
+  }, 500);
+  let intervalData = setInterval(() => {
+      if($('#table'+groupid).length > 0){
+          clearInterval(intervalData)
+          containerDone('cardGT'+groupid+'')
+      }
+  }, 1000);
 })
 
 $(document).on('click', '.delTask', async function () {
@@ -1156,24 +1180,26 @@ $(document).on('click', '.delTask', async function () {
 $(document).on('click', '.newTask', function () {
   let groupId = $(this).data('id');
   let groupName = $(this).data('name');
-  let boardId = $(this).data('boardid');
-  let inputHtml = '<input type="text" class="form-control taskTitle' + groupId + '" data-name="' + groupName + '" placeholder="+ Add Task">';
-  $(this).html(inputHtml);
-  $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').focus();
-  $(document).on('focusout', '.taskTitle' + groupId + '[data-name="' + groupName + '"]', async function () {
-    $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
-  })
+  if($('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == undefined || $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == ''){
+    let inputHtml = '<input type="text" class="form-control taskTitle' + groupId + '" data-name="' + groupName + '" placeholder="+ Add Task">';
+    $(this).html(inputHtml);
+    $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').focus();
 
-  $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').keypress(async function (e) {
-    var key = e.which;
-    if (key == 13) // the enter key code
-    {
-      if ($(this).val() == '') {
-        $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
-      } else {
-        $('td.newTask[data-id=' + groupId + ']').css('opacity', '0.6');
-        await addTask($(this).val(), groupId);
+    $(document).on('focusout', '.taskTitle' + groupId + '[data-name="' + groupName + '"]', async function () {
+      $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
+    })
+  
+    $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').keypress(async function (e) {
+      var key = e.which;
+      if (key == 13) // the enter key code
+      {
+        if ($(this).val() == '') {
+          $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
+        } else {
+          $('td.newTask[data-id=' + groupId + ']').css('opacity', '0.6');
+          await addTask($(this).val(), groupId);
+        }
       }
-    }
-  });
+    });
+  }
 })
