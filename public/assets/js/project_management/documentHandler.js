@@ -535,6 +535,7 @@ async function triggerPopoverPIC(id,groupid,name){
           let groupWindow = window['dataBoardMember' + boardParent + ''];
           let htmlEmpty = '<option selected>Choose PIC</option>';
           $('.emploPic[data-id=' + id + ']').append(htmlEmpty);
+          groupWindow = await groupTaskGradeCheck(groupWindow)
           groupWindow.forEach(element => {
             let html = '<option class="opsiPic" data-id=' + id + ' value=' + element.account_id + '>' + element.account_name + '</option>';
             $('.emploPic[data-id=' + id + ']').append(html);
@@ -692,6 +693,7 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
           let groupWindow = window['dataBoardMember' + boardParent + ''];
           let htmlEmpty = '<option selected>Choose Team</option>';
           $('.emploTeam[data-id=' + id + ']').append(htmlEmpty);
+          groupWindow = await groupTaskGradeCheck(groupWindow);
           groupWindow.forEach(element => {
             let html = '<option class="opsi" data-id="' + id + '" value=' + element.account_id + '>' + element.account_name + '</option>';
             $('.emploTeam[data-id=' + id + ']').append(html);
@@ -790,7 +792,10 @@ $(document).on('change', '.emploTeam', function () {
   let random = Math.floor(Math.random() * 4) + 1;
 
   if(val == 'addTeam'){
+    if($('#addTeam').length > 0)
     $('#addTeam').click()
+    else 
+    contactMore()
     return;
   }
 

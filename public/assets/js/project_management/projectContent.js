@@ -41,7 +41,9 @@ function createdByIcon(user,id){
         html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
       }
     });
+    if(html != undefined)
     return html;
+    else return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
   } else {
     return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
   }
@@ -287,7 +289,7 @@ async function domTaskTable(data, id, result, boardMember) {
       if($('#table'+id).attr('data-type') == 'Main' && JSON.parse(result.pic)[0].account_name != ct.name){
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       }
-
+      
       //if pic of group task is login user then he / she is allowed to edit tasks
       if(JSON.parse(result.pic)[0].account_name == ct.name){
         result.condition = true;
@@ -297,22 +299,24 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       //only if login user is part of member that is allowed to see his/her own task
-      if(haveTeam && JSON.parse(result.pic)[0].account_name != ct.name){
+      if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee){
         let member = element.member;
         member.forEach(elements => {
           if(elements.account_id == ct.id_employee){
             result.condition = true;
             $('#table' + id + ' > .dataTask').prepend(htmlTask);
-            $('.priority[data-id='+element._id+']').addClass('disableInput')
-            $('.delTask[data-id='+element._id+']').addClass('disableInput');
+            $('.priority[data-id='+element._id+']').addClass('disableInputInside')
+            $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
             $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
               if($(element).attr('class') != 'status mediumPrio text-white'){
-                $('td.'+$(element).attr('class')).addClass('disableInput')
+                $('td.'+$(element).attr('class')).addClass('disableInputInside')
               }
             })
           }
         });
       }
+
+      
 
       feather.replace();
       
@@ -328,8 +332,13 @@ async function domTaskTable(data, id, result, boardMember) {
     if($('#table'+id).attr('data-type') == 'Main' && JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('table[id=table'+id+']').addClass('disableTable');
     }
-    
-    if(result.state  == 'readonly' && !result.condition){
+
+    if(result.state  == 'readonly' && result.condition != undefined){
+      $('table[id=table'+id+']').addClass('disableTable');
+    }
+
+    //if maker of group task is user logged in then he can only see its task
+    if(result.user_create == ct.name && JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('table[id=table'+id+']').addClass('disableTable');
     }
 

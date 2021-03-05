@@ -251,6 +251,43 @@ async function globalGradeChecking(concern,data,type = ''){
                 return processedData;
             }
             break;
+        case 'groupTaskGrade':
+            // Super Admin Ultipay, CEO, CTO
+            if(ct.grade == '0' || ct.grade == '1' || ct.grade == '2'){
+                processedData = data.filter(function(e){
+                    return (parseInt(e.account_grade) == (parseInt(ct.grade)+1)) || e.account_id == ct.id_employee
+                })
+                return processedData;
+            } 
+            // Manager
+            else if(ct.grade == '3') {
+                processedData = data.filter(function(e){
+                    return (parseInt(e.account_grade) == (parseInt(ct.grade)+1)) || e.account_id == ct.id_employee
+                })
+                return processedData;
+            }
+            // Supervisor
+            else if(ct.grade == '4') {
+                processedData = data.filter(function(e){
+                    return (parseInt(e.account_grade) > (parseInt(ct.grade))) || e.account_id == ct.id_employee
+                })
+                return processedData;
+            }
+            // Staff
+            else if(ct.grade == '5') {
+                processedData = data.filter(function(e){
+                    return (parseInt(e.account_grade) == (parseInt(ct.grade)+1)) || e.account_id == ct.id_employee
+                })
+                return processedData;
+            }
+            // Part Timer
+            else if(ct.grade == '6') {
+                processedData = data.filter(function(e){
+                    return ((e.account_grade) == ct.grade) || e.account_id == ct.id_employee
+                })
+                return processedData;
+            }
+            break;
     }
     
 }
@@ -278,4 +315,9 @@ async function chartBoardChecking(data=''){
 async function boardEmployeeMainChecking(data=''){
     // get chart board checking
     return await globalGradeChecking('employeeMain',data)
+}
+
+async function groupTaskGradeCheck(data = ''){
+    // group task grade checking
+    return await globalGradeChecking('groupTaskGrade',data)
 }

@@ -154,6 +154,21 @@ async function logoutNotif(redirect){
     })
 }
 
+async function contactMore(){
+    Swal.fire({
+        type: "error",
+        title: 'Restricted Access',
+        text: "Please contact employee with higher grade to add more member",
+        icon: 'warning',
+        showCancelButton: false,
+        confirmButtonColor: '#d33',
+        timer: 10000,
+        confirmButtonText: 'OK',
+        allowOutsideClick: false,
+        allowEscapeKey  : false
+    })
+}
+
 async function checkIfServiceIsOpen(port,token){
     return new Promise(async function (resolve, reject) {
         try {
