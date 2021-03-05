@@ -892,6 +892,7 @@ function processTeamData(data) {
 
     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
   return html;
+  })
 }
 
 async function notifDeleteTask(bodyDelete, name, bodyProgress) {
