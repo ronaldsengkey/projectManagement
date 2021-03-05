@@ -952,7 +952,14 @@ function callNotifBoard(title) {
         showLoaderOnConfirm: true,
         preConfirm: async () => {
             boardName = document.getElementById('swal-input1').value;
-
+            if(boardName == ''){
+                toastrNotifFull('please fill board name','error');
+                return false;
+            }
+            if(boardType == 'private' && boardMemberJoin.length == 0){
+                toastrNotifFull('please add your team','error');
+                return false;
+            }
             let bodyBoard = {
                 'name': boardName,
                 'type': capitalize(boardType),

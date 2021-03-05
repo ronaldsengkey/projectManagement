@@ -179,7 +179,6 @@ async function domTaskTable(data, id, result, boardMember) {
     '</tr>' +
     '</tbody>' +
     '</table>';
-  console.log('res',result,data);
   $('.card-body[data-id="' + id + '"]').empty();
   if (data.length > 0) {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
@@ -227,7 +226,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
-        let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id + '']);
+        let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id]);
         htmlTask += '<td class="team" data-team="true" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="row"><div class="col-lg-12 colTeam justify-content-center" data-id=' + element._id + ' style="display:flex;"><i data-feather="plus" data-id=' + element._id + ' class="addTeamIcon d-none"></i>' + htmlTeamDom + '</div></div></td>';
       } else {
         window['dataCurrentTeam' + element._id + ''] = [];
@@ -836,62 +835,73 @@ async function domComment(commentData, id) {
   feather.replace();
 }
 
+function objDiff(array1, array2) {
+  var resultArray = []
+
+  array2.forEach(function (destObj) {
+      var check = array1.some(function (origObj) {
+          if (origObj.account_id == destObj.account_id) return true
+      })
+      if (!check) {
+          resultArray.push(destObj)
+      }
+  })
+
+  array1.forEach(function (origObj) {
+      var check = array2.some(function (destObj) {
+          if (origObj.account_id == destObj.account_id) return true
+      })
+      if (!check) {
+          resultArray.push(origObj)
+      }
+  })
+
+  return resultArray
+}
+
 function processTeamData(data) {
   let html = '';
   data.member = JSON.parse(data.member);
-  // if(data.member.length > 3){
-  //   let splicedData = data.member.splice(0,3);
-  //   window['dataSpliceLeft'+data._id] = data.member;
-  //   splicedData.forEach(element => {
-  //     let choose;
-  //     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
-  //     else choose = window['color'+element.account_id];
+  let dataMemberAwal = data.member;
+  if(dataMemberAwal.length > 3){
+    let splicedData = dataMemberAwal.slice(0,3);
+    var newArr = objDiff(splicedData,dataMemberAwal);
+    window['dataSpliceLeft'+data._id] = newArr;
+    splicedData.forEach(element => {
+      let choose;
+      if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+      else choose = window['color'+element.account_id];
   
-  //     try {
-  //       let colorCheck = lightOrDark(window['color'+element.account_id]);
-  //       if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
-  //       else window['colorClass'+element.account_id] = 'text-white';
-  //     } catch (error) {
-  //       window['colorClass'+element.account_id] = 'text-white';
-  //     }
+      try {
+        let colorCheck = lightOrDark(window['color'+element.account_id]);
+        if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+        else window['colorClass'+element.account_id] = 'text-white';
+      } catch (error) {
+        window['colorClass'+element.account_id] = 'text-white';
+      }
   
-  //     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
-  //   });
-  //   /// triple dots
-  //   html += '<div class="memberLogo" style="background:grey;"><span><i class="fas fa-ellipsis-h"></i></span></div>';
-  //   console.log('a',window['dataSpliceLeft'+data._id]);
-  // } else {
-  //   data.member.forEach(element => {
-  //     let choose;
-  //     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
-  //     else choose = window['color'+element.account_id];
+      html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
+    });
+    /// triple dots
+    html += '<div class="memberLogo moreMember" data-id='+data._id+' style="background:lightgrey;"><span><i class="fas fa-ellipsis-h"></i></span></div>';
+  } else {
+    dataMemberAwal.forEach(element => {
+      let choose;
+      if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+      else choose = window['color'+element.account_id];
   
-  //     try {
-  //       let colorCheck = lightOrDark(window['color'+element.account_id]);
-  //       if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
-  //       else window['colorClass'+element.account_id] = 'text-white';
-  //     } catch (error) {
-  //       window['colorClass'+element.account_id] = 'text-white';
-  //     }
+      try {
+        let colorCheck = lightOrDark(window['color'+element.account_id]);
+        if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+        else window['colorClass'+element.account_id] = 'text-white';
+      } catch (error) {
+        window['colorClass'+element.account_id] = 'text-white';
+      }
   
-  //     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
-  //   });
-  // }
-  data.member.forEach(element => {
-    let choose;
-    if(window['color'+element.account_id] == undefined) choose = getRandomColor();
-    else choose = window['color'+element.account_id];
-
-    try {
-      let colorCheck = lightOrDark(window['color'+element.account_id]);
-      if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
-      else window['colorClass'+element.account_id] = 'text-white';
-    } catch (error) {
-      window['colorClass'+element.account_id] = 'text-white';
-    }
-
-    html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
-  });
+      html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
+    });
+  }
+  data.member = dataMemberAwal;
   return html;
 }
 

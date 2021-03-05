@@ -618,13 +618,39 @@ $(document).on('mouseleave', '.pic', function () {
 /// for dismiss popover on click outside
 $('html').on('click', function(e) {
   var l = $(e.target);
-  if (~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
+  if (~l[0].className.indexOf("fa-ellipsis-h") || ~l[0].className.indexOf("moreMember") || ~l[0].className.indexOf("list-group-item") || ~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
     return;
   } else if (typeof $(e.target).data('original-title') == 'undefined') {
     $('[data-original-title]').popover('hide');
   }
 });
 
+$(document).on('mouseenter', '.moreMember', function () {
+  let id = $(this).data("id");
+  if(!popoverTeam)
+  triggerPopoverMemberList(id);
+})
+
+async function triggerPopoverMemberList(id){
+  let htmlMember = '';
+  window['dataSpliceLeft'+id].forEach(element => {
+    htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+window['color'+element.account_id]+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
+  });
+  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
+  let joinHtmlTeam =  empHtmlTeam;
+  $('.team[data-id=' + id + ']').popover('dispose');
+  if($('.moreMember[data-id=' + id + ']').data("bs.popover") == undefined){
+    $('.moreMember[data-id=' + id + ']').attr('tabindex', '0');
+    $('.moreMember[data-id=' + id + ']').attr('data-toggle', 'popover');
+
+    $('.moreMember[data-id=' + id + ']').popover({
+      content: joinHtmlTeam,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
+  }
+}
 
 $(document).on('mouseenter', '.team', function () {
   let id = $(this).data("id");
@@ -649,7 +675,7 @@ $(document).on('mouseenter', '.team', function () {
   triggerPopoverTeam(id,haveTeam,groupid,name);
 
 })
-
+let popoverTeam = false;
 async function triggerPopoverTeam(id,haveTeam,groupid,name){
   let empHtmlTeam = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
   let removeAll = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
@@ -669,6 +695,7 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
 
     $('.team[data-id=' + id + ']').on('shown.bs.popover', async function () {
       console.log('berapa kali');
+      popoverTeam = true;
       $('.emploTeam[data-id=' + id + ']').empty();
       let boardParent = $('.card[data-parent="parent' + groupid + '"]').data('boardaidi');
       let boardParentType = $('.card[data-parent="parent' + groupid + '"]').data('boardtype');
@@ -702,9 +729,10 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
           $('.emploTeam[data-id=' + id + ']').append(htmlEmptyData);
           break;
       }
-  
+      console.log('current',window['dataCurrentTeam' + id + ''])
       if (window['dataCurrentTeam' + id + ''].length != 0) {
         let thisTeamMember = window['dataCurrentTeam' + id + ''];
+        console.log('dalam',thisTeamMember);
         try {
           thisTeamMember.member.forEach(element => {
             $('.opsi').each(function () {
@@ -731,6 +759,10 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
           width: '100%'
       });
   
+    })
+
+    $('.team[data-id=' + id + ']').on('hidden.bs.popover', async function () {
+      popoverTeam = false;
     })
   }
 }
@@ -859,6 +891,17 @@ $(document).on('click', '.submitTeam', function () {
     'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
+  containerOnLoad('cardGT'+groupid+'')
+  $('.headerGT[data-id='+groupid+']').click()
+  setTimeout(() => {
+      $('.headerGT[data-id='+groupid+']').click()
+  }, 500);
+  let intervalData = setInterval(() => {
+      if($('#table'+groupid).length > 0){
+          clearInterval(intervalData)
+          containerDone('cardGT'+groupid+'')
+      }
+  }, 1000);
 })
 
 $(document).on('click', '.duedate', function () {
