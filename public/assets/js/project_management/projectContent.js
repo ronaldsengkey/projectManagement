@@ -78,14 +78,14 @@ async function domBoardContent() {
       console.log('catch color define');
     }
     let camelizeBoard = camelize(element.name);
-    let joinBoardAndId = camelize(element.name) + element.board_id;
+    // let joinBoardAndId = camelize(element.name) + element.board_id;
 
     let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
     let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
       '<div class="card-header" id="' + camelizeBoard + '">' +
       '<div class="row"><div class="col-lg-8">' +
       '<h2 class="mb-0">' +
-      '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#' + joinBoardAndId + '" aria-expanded="true" aria-controls="' + joinBoardAndId + '">' +
+      '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#kolap' + element._id + '" aria-expanded="true" aria-controls="kolap' + element._id + '">' +
       '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
       '</button>' +
       '</h2>' +
@@ -93,7 +93,7 @@ async function domBoardContent() {
       '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id)+'</div>'+
       '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
       
-      '<div id="' + joinBoardAndId + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
+      '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
       'Loading...' +
       '</div>'
@@ -277,11 +277,13 @@ async function domTaskTable(data, id, result, boardMember) {
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
         htmlTask += '<td><img class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" src="../public/assets/img/commentAvailable.svg" data-id=' + element._id + '><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
+        // htmlTask += '<td><label for="fileAttachment" id="commentFileLabel"><i data-feather="paperclip"></i></label><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid=' + element.group_id + ' data-name="' + element.name + '" id="fileAttachment" class="d-none" multiple type="file" /><img class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" src="../public/assets/img/commentAvailable.svg" data-id=' + element._id + '><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
         htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
+        // htmlTask += '<td><label for="fileAttachment" id="commentFileLabel"><i data-feather="paperclip"></i></label><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid=' + element.group_id + ' data-name="' + element.name + '" id="fileAttachment" class="d-none" multiple type="file" /><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
