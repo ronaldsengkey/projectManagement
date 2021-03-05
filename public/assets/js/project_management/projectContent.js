@@ -298,6 +298,12 @@ async function domTaskTable(data, id, result, boardMember) {
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       }
 
+      //if pic of task is login user then he / she is allowed to edit tasks
+      if(JSON.parse(element.pic)[0].account_name == ct.name){
+        result.condition = true;
+        $('#table' + id + ' > .dataTask').prepend(htmlTask);
+      } 
+
       //only if login user is part of member that is allowed to see his/her own task
       if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee){
         let member = element.member;
@@ -833,6 +839,44 @@ async function domComment(commentData, id) {
 function processTeamData(data) {
   let html = '';
   data.member = JSON.parse(data.member);
+  // if(data.member.length > 3){
+  //   let splicedData = data.member.splice(0,3);
+  //   window['dataSpliceLeft'+data._id] = data.member;
+  //   splicedData.forEach(element => {
+  //     let choose;
+  //     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+  //     else choose = window['color'+element.account_id];
+  
+  //     try {
+  //       let colorCheck = lightOrDark(window['color'+element.account_id]);
+  //       if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+  //       else window['colorClass'+element.account_id] = 'text-white';
+  //     } catch (error) {
+  //       window['colorClass'+element.account_id] = 'text-white';
+  //     }
+  
+  //     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
+  //   });
+  //   /// triple dots
+  //   html += '<div style="background:grey;"><span class="initialPic"><i class="fas fa-ellipsis-h"></i></span></div>';
+  //   console.log('a',window['dataSpliceLeft'+data._id]);
+  // } else {
+  //   data.member.forEach(element => {
+  //     let choose;
+  //     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
+  //     else choose = window['color'+element.account_id];
+  
+  //     try {
+  //       let colorCheck = lightOrDark(window['color'+element.account_id]);
+  //       if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
+  //       else window['colorClass'+element.account_id] = 'text-white';
+  //     } catch (error) {
+  //       window['colorClass'+element.account_id] = 'text-white';
+  //     }
+  
+  //     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
+  //   });
+  // }
   data.member.forEach(element => {
     let choose;
     if(window['color'+element.account_id] == undefined) choose = getRandomColor();
@@ -847,7 +891,6 @@ function processTeamData(data) {
     }
 
     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
-  });
   return html;
 }
 
