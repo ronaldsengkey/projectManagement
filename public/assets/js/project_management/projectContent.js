@@ -299,7 +299,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       //if pic of task is login user then he / she is allowed to edit tasks
-      if(JSON.parse(element.pic)[0].account_name == ct.name){
+      if(havePic && JSON.parse(element.pic)[0].account_name == ct.name){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       } 
@@ -858,7 +858,7 @@ function processTeamData(data) {
   //     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
   //   });
   //   /// triple dots
-  //   html += '<div style="background:grey;"><span class="initialPic"><i class="fas fa-ellipsis-h"></i></span></div>';
+  //   html += '<div class="memberLogo" style="background:grey;"><span><i class="fas fa-ellipsis-h"></i></span></div>';
   //   console.log('a',window['dataSpliceLeft'+data._id]);
   // } else {
   //   data.member.forEach(element => {
@@ -891,8 +891,8 @@ function processTeamData(data) {
     }
 
     html += '<div class="memberLogo" style="background:'+choose+'"  data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(element.account_name) + '</span></div>';
+  });
   return html;
-  })
 }
 
 async function notifDeleteTask(bodyDelete, name, bodyProgress) {
