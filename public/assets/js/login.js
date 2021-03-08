@@ -33,7 +33,7 @@ loadingDeactivated();
 $(async function () {
     disableDevTools();
     await getEnvData();
-    $.getScript(location.protocol + '//' + location.hostname + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
+    $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname
@@ -217,6 +217,11 @@ function postData(data) {
                                     // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
                                     let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
                                     localStorage.setItem("loginTime", time);
+                                    let getUrl = window.location.search;
+                                    let boardAidi = new URLSearchParams(getUrl).get('boardId');
+                                    if (boardAidi != undefined && boardAidi != '') {
+                                        window.location = 'employee' + window.location.search
+                                    } else 
                                     window.location = "employee";
                                     break;
                             }

@@ -51,7 +51,8 @@ let projectManagementLocalPort;
 let backendPortService;
 let transactionPortService;
 let authPortService;
-
+let domainPlaceUS;
+let domainPlaceSG;
 
 $(async function(){
     // get config from env
@@ -89,6 +90,8 @@ async function getEnvData(){
                 backendPortService = callbackData.BACKEND_PORT_SERVICE;
                 transactionPortService = callbackData.TRANSACTION_PORT_SERVICE;
                 authPortService = callbackData.AUTHENTICATION_PORT_SERVICE;
+                domainPlaceSG = callbackData.SERVER_SG_DOMAIN;
+                domainPlaceUS = callbackData.SERVER_US_DOMAIN;
                 resolve(callbackData);
             }
         })
