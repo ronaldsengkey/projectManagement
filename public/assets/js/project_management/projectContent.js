@@ -170,6 +170,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '<th>Priority</th>' +
     '<th>Due Date</th>' +
     '<th>Timeline</th>' +
+    // '<th>Attachment</th>' +
     '<th>Action</th>' +
     '</tr>' +
     '</thead>' +
@@ -194,6 +195,8 @@ async function domTaskTable(data, id, result, boardMember) {
       let statusClass;
 
       let haveTimeline = element.timeline == undefined || element.timeline == '[]' || element.timeline.toString() == 'null'? false : element.timeline;
+
+      // let haveFile = element.file == undefined || element.file == '[]' || element.file.toString() == 'null'? false : element.file;
 
       let haveDuedate = element.due_date == undefined || element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
 
@@ -271,19 +274,24 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td class="timeline" data-value="no timeline" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">no timeline</td>';
       }
 
+      // if(haveFile){
+      //   let fileCount = JSON.parse(element.file).length
+      //   window['fileAttachment'+element._id] = JSON.parse(element.file);
+      //   htmlTask += '<td class="fileAttach" data-id=' + element._id + '><div class="position-relative"><i data-feather="file-text"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+      // } else {
+      //   htmlTask += '<td>-</td>';
+      // }
+
       if (haveComment) {
         window['dataComment' + element._id + ''] = "[]";
-        // window['dataComment' + element._id + ''] = element.comment;
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><img class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" src="../public/assets/img/commentAvailable.svg" data-id=' + element._id + '><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
-        // htmlTask += '<td><label for="fileAttachment" id="commentFileLabel"><i data-feather="paperclip"></i></label><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid=' + element.group_id + ' data-name="' + element.name + '" id="fileAttachment" class="d-none" multiple type="file" /><img class="commentTask" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" src="../public/assets/img/commentAvailable.svg" data-id=' + element._id + '><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><i class="commentTask far fa-lg fa-comment mr-1" style="color:orange;" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '><i class="delTask fas fa-trash ml-1" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
-        // htmlTask += '<td><label for="fileAttachment" id="commentFileLabel"><i data-feather="paperclip"></i></label><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid=' + element.group_id + ' data-name="' + element.name + '" id="fileAttachment" class="d-none" multiple type="file" /><i class="commentTask" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-feather="message-circle" data-id=' + element._id + '></i><i class="delTask" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><i class="commentTask far fa-lg fa-comment mr-1" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
@@ -323,13 +331,7 @@ async function domTaskTable(data, id, result, boardMember) {
         });
       }
 
-      
-
       feather.replace();
-      
-      if (haveComment) {
-        $('.commentTask[data-id='+element._id+']:first-child').css('color', 'blue');
-      }
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
@@ -385,7 +387,12 @@ async function domTaskTable(data, id, result, boardMember) {
     }, {
       field: 'timeline',
       title: 'Timeline'
-    }, {
+    }, 
+    // {
+    //   field: 'attachment',
+    //   title: 'Attachment'
+    // }, 
+    {
       field: 'action',
       title: 'Action'
     }],
