@@ -170,7 +170,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '<th>Priority</th>' +
     '<th>Due Date</th>' +
     '<th>Timeline</th>' +
-    // '<th>Attachment</th>' +
+    '<th>Attachment</th>' +
     '<th>Action</th>' +
     '</tr>' +
     '</thead>' +
@@ -196,7 +196,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
       let haveTimeline = element.timeline == undefined || element.timeline == '[]' || element.timeline.toString() == 'null'? false : element.timeline;
 
-      // let haveFile = element.file == undefined || element.file == '[]' || element.file.toString() == 'null'? false : element.file;
+      let haveFile = element.file == undefined || element.file == '[]' || element.file.toString() == 'null'? false : element.file;
 
       let haveDuedate = element.due_date == undefined || element.due_date == '[]' || element.due_date.toString() == 'null' ? false : element.due_date;
 
@@ -240,12 +240,12 @@ async function domTaskTable(data, id, result, boardMember) {
         if (haveStatus == 'Working on it') statusClass = 'mediumPrio'
         else if (haveStatus == 'Stuck') statusClass = 'highPrio'
         else if (haveStatus == 'Waiting for review') statusClass = 'reviewStat'
+        else if (haveStatus == 'Pending') statusClass = 'pendingPrio'
         else statusClass = 'lowPrio';
         htmlTask += '<td class="status ' + statusClass + ' text-white" data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + haveStatus + '</td>';
       } else {
         htmlTask += '<td class="status" data-name="' + element.name + '" data-identity="stat' + element._id + '" data-status="No Status" data-groupid="' + element.group_id + '" data-id="' + element._id + '">No Status Yet</td>';
       }
-
 
       if (havePriority) {
         if (havePriority == 'Urgent') priorityClass = 'urgentPrio'
@@ -274,24 +274,24 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td class="timeline" data-value="no timeline" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">no timeline</td>';
       }
 
-      // if(haveFile){
-      //   let fileCount = JSON.parse(element.file).length
-      //   window['fileAttachment'+element._id] = JSON.parse(element.file);
-      //   htmlTask += '<td class="fileAttach" data-id=' + element._id + '><div class="position-relative"><i data-feather="file-text"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
-      // } else {
-      //   htmlTask += '<td>-</td>';
-      // }
+      if(haveFile){
+        let fileCount = JSON.parse(element.file).length
+        window['fileAttachment'+element._id] = JSON.parse(element.file);
+        htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i data-feather="file-text"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+      } else {
+        htmlTask += '<td>-</td>';
+      }
 
       if (haveComment) {
         window['dataComment' + element._id + ''] = "[]";
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><i class="commentTask far fa-lg fa-comment mr-1" style="color:orange;" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '><i class="delTask fas fa-trash ml-1" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><label style="pointer-events: none" class="lblAttach" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip mr-1" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i class="commentTask far fa-lg fa-comment mr-1" style="color:orange;" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '><i class="delTask fas fa-trash ml-1" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><i class="commentTask far fa-lg fa-comment mr-1" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><label style="pointer-events: none" class="lblAttach" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip mr-1" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i class="commentTask far fa-lg fa-comment mr-1" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
@@ -311,6 +311,15 @@ async function domTaskTable(data, id, result, boardMember) {
       if(havePic && JSON.parse(element.pic)[0].account_name == ct.name){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
+        // pic only allowed to edit status and priority
+        $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
+        $('.commentTask[data-id='+element._id+']').addClass('disableInputInside');
+        // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
+        $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
+          if($(element).attr('class') != 'status mediumPrio text-white'){
+            $('td.'+$(element).attr('class')).addClass('disableInputInside')
+          }
+        })
       } 
 
       //only if login user is part of member that is allowed to see his/her own task
@@ -322,10 +331,9 @@ async function domTaskTable(data, id, result, boardMember) {
             $('#table' + id + ' > .dataTask').prepend(htmlTask);
             $('.priority[data-id='+element._id+']').addClass('disableInputInside')
             $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
+            // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
             $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-              if($(element).attr('class') != 'status mediumPrio text-white'){
-                $('td.'+$(element).attr('class')).addClass('disableInputInside')
-              }
+              $('td.'+$(element).attr('class')).addClass('disableInputInside')
             })
           }
         });
@@ -342,7 +350,7 @@ async function domTaskTable(data, id, result, boardMember) {
       $('table[id=table'+id+']').addClass('disableTable');
     }
 
-    if(result.state  == 'readonly' && result.condition != undefined){
+    if(result.state  == 'readonly' && (result.condition != undefined && !result.condition)){
       $('table[id=table'+id+']').addClass('disableTable');
     }
 
@@ -388,10 +396,10 @@ async function domTaskTable(data, id, result, boardMember) {
       field: 'timeline',
       title: 'Timeline'
     }, 
-    // {
-    //   field: 'attachment',
-    //   title: 'Attachment'
-    // }, 
+    {
+      field: 'attachment',
+      title: 'Attachment'
+    }, 
     {
       field: 'action',
       title: 'Action'

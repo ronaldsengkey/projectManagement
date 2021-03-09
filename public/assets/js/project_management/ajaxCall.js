@@ -190,7 +190,7 @@ async function addTask(value, groupId) {
             'group_id': groupId,
             'name': value,
             'user_create': ct.name,
-            'status': "Working on it",
+            'status': "Pending",
             'priority': "High",
             'due_date': moment().format("YYYY/MM/DD"),
             'timeline': JSON.stringify([moment().format("YYYY/MM/DD"), moment(moment(), 'YYYY/MM/DD').add('days', '7').format('YYYY/MM/DD')])
@@ -309,6 +309,61 @@ function globalUpdateTask(concern, data) {
             }
         }
     })
+}
+
+async function globalAttachFile(data,method = 'POST') {
+    return new Promise(async function (resolve, reject) {
+        $.ajax({
+            url: 'attachFile',
+            method: method,
+            headers: {
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            },
+            processData: false,
+            contentType: false,
+            data: data,
+            success: async function (result) {
+                if (result.responseCode == '200') {
+                    toastrNotifFull('file(s) has been updated');
+                    resolve(result.responseCode);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
+                } else {
+                    resolve(toastrNotifFull(result.responseMessage,'error'));
+                }
+            }
+        })
+    });
+}
+
+async function showAttachmentDetails(id) {
+    return new Promise(async function (resolve, reject) {
+        $.ajax({
+            url: 'showAttachmentDetails',
+            method: 'GET',
+            headers: {
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature,
+                'id': id
+            },
+            success: async function (result) {;
+                if (result.responseCode == '200') {
+                    resolve(result);
+                } else if (result.responseCode == '401') {
+                    logoutNotif();
+                } else {
+                    resolve(toastrNotifFull(result.responseMessage,'error'));
+                }
+            }
+        })
+    });
 }
 
 async function globalAddComment(data) {

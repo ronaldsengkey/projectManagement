@@ -1429,6 +1429,139 @@ fastify.put("/putTask", async function (req, reply) {
   }
 });
 
+fastify.put("/attachFile", async function (request, reply) {
+  try {
+    if (!request.isMultipart()) {
+      reply.code(400).send(new Error('Request is not multipart'))
+      return
+    }
+    let data = [];
+    const mp = request.multipart(handler, onEnd)
+  
+    mp.on('field', function (key, value) {
+      data[key] = value;
+    })
+  
+    async function onEnd(err) {
+      let token = extToken ? extToken : request.headers.token;
+      data = Object.assign({}, data);
+      var dataSend = {
+          settings: {
+              "async": true,
+              "crossDomain": true,
+              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/file',
+              method: "PUT",
+              headers: {
+                Accept: "*/*",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                signature:cryptography.aesEncrypt(request.headers.signature),
+                secretkey:cryptography.aesEncrypt(
+                  request.headers.secretkey
+                ),
+                token: cryptography.aesEncrypt(
+                  token
+                ),
+              },
+          }
+      };
+      data.id = cryptography.encryptMessage(data.id);
+      data.file = data.file;
+      dataSend.settings.formData = data;
+      let a = await actionPut(dataSend);
+      console.log('a attachment update',a);
+      reply.send(a);
+    }
+    function handler (field, file, filename, encoding, mimetype) {
+      
+    }
+  } catch (error) {
+    console.log("eroor: ", error);
+    reply.send(error);
+  }
+});
+
+fastify.post("/attachFile", async function (request, reply) {
+  try {
+    if (!request.isMultipart()) {
+      reply.code(400).send(new Error('Request is not multipart'))
+      return
+    }
+    let data = [];
+    const mp = request.multipart(handler, onEnd)
+  
+    mp.on('field', function (key, value) {
+      data[key] = value;
+    })
+  
+    async function onEnd(err) {
+      let token = extToken ? extToken : request.headers.token;
+      data = Object.assign({}, data);
+      var dataSend = {
+          settings: {
+              "async": true,
+              "crossDomain": true,
+              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/file',
+              method: "POST",
+              headers: {
+                Accept: "*/*",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                signature:cryptography.aesEncrypt(request.headers.signature),
+                secretkey:cryptography.aesEncrypt(
+                  request.headers.secretkey
+                ),
+                token: cryptography.aesEncrypt(
+                  token
+                ),
+              },
+          }
+      };
+      data.id = cryptography.encryptMessage(data.id);
+      data.file = data.file;
+      dataSend.settings.formData = data;
+      let a = await actionPost(dataSend);
+      reply.send(a);
+    }
+    function handler (field, file, filename, encoding, mimetype) {
+      
+    }
+  } catch (error) {
+    console.log("eroor: ", error);
+    reply.send(error);
+  }
+});
+
+fastify.get("/showAttachmentDetails", async function (req, reply) {
+  try {
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let param = req.headers.param;
+    let hostNameData = await getRedisData(hostNameServer);
+    let backendPortData = await getRedisData(backendPort);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostNameData + ":" + backendPortData + "/getFile/"+req.headers.id,
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          token: cryptography.aesEncrypt(token),
+          signature: cryptography.aesEncrypt(signature),
+          secretKey: cryptography.aesEncrypt(secretKey),
+        },
+      },
+    };
+    let a = await actionGet(data);
+    reply.send(a);
+  } catch (err) {
+    reply.send(500);
+  }
+});
+
 fastify.post("/commentUpdate", async function (request, reply) {
   try {
     if (!request.isMultipart()) {

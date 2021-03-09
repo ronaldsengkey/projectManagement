@@ -6,6 +6,55 @@ function lightOrDark(color) {
   else return 'dark;'
 }
 
+$(document).on('change','.fileAttachData',async function(){
+  let valid = true;
+  let aidi = $(this).data('id');
+  let attachmentFile = document.querySelector(`#fileAttachData`+aidi).files;
+  let arrFile = [];
+  let groupId = $(this).data('groupid');
+  const forLoopFile = async _ => {
+    for(var i=0;i<attachmentFile.length;i++){
+      arrFile.push({file:await toBase64Comment(attachmentFile[i]),name:attachmentFile[i].name,type:attachmentFile[i].type})
+    }
+  }
+
+  await forLoopFile()
+  
+  arrFile.forEach(element => {
+      if(!element.type.includes('msword') && !element.type.includes('png') && !element.type.includes('sheet') && !element.type.includes('jpeg') && !element.type.includes('jpg') && !element.type.includes('pdf')){
+        valid = false;
+        return callNotif({type:'error',text: element.type + ' file is not supported'})
+      }
+  });
+ 
+  if(valid){
+    arrFile.forEach(element => {
+      delete element.type;
+    });
+    let formAttachmentFile = new FormData();
+    formAttachmentFile.append('file', JSON.stringify(arrFile));
+    formAttachmentFile.append('id',aidi);
+    loadingActivated();
+    let attachFile =  await globalAttachFile(formAttachmentFile);
+    document.getElementById('fileAttachData'+aidi).value= null;
+    loadingDeactivated();
+    if(attachFile == '200'){
+      containerOnLoad('cardGT'+groupId+'')
+          $('.headerGT[data-id='+groupId+']').click()
+          setTimeout(() => {
+              $('.headerGT[data-id='+groupId+']').click()
+              
+          }, 500);
+          let intervalData = setInterval(() => {
+              if($('#table'+groupId).length > 0){
+                  clearInterval(intervalData)
+                  containerDone('cardGT'+groupId+'')
+              }
+      }, 1000);
+    }
+  }
+})
+
 $(document).on('change','#commentFile',function(e){
     // let filename = e.target.files[0].name;
     // $('.commentFileName').html(filename);
@@ -559,6 +608,179 @@ async function triggerPopoverPIC(id,groupid,name){
   }
 }
 
+async function activateCanvas(url){
+  var canvas = document.querySelector("#canvasPlace");
+  var signaturePad = new SignaturePad(canvas);
+
+  $('#backupCanvas').attr('src',url);
+  // Returns signature image as data URL (see https://mdn.io/todataurl for the list of possible parameters)
+  // signaturePad.toDataURL(); // save image as PNG
+  // signaturePad.toDataURL("image/jpeg"); // save image as JPEG
+  // signaturePad.toDataURL("image/svg+xml"); // save image as SVG
+
+  // Draws signature image from data URL.
+  // NOTE: This method does not populate internal data structure that represents drawn signature. Thus, after using #fromDataURL, #toData won't work properly.
+  signaturePad.fromDataURL(url);
+  // Returns signature image as an array of point groups
+  const data = signaturePad.toData();
+
+  // Draws signature image from an array of point groups
+  signaturePad.fromData(data);
+
+  // Returns true if canvas is empty, otherwise returns false
+  signaturePad.isEmpty();
+
+  signaturePad.off();
+
+  window['signaturePad']=signaturePad;
+}
+
+function enableCanvas(){
+  window['signaturePad'].on();
+}
+
+function disableCanvas(){
+  window['signaturePad'].off();
+  clearCanvas()
+}
+
+function clearCanvas(){
+  let backUpCanvas = $('#backupCanvas').attr('src');
+  window['signaturePad'].clear();
+  window['signaturePad'].fromDataURL(backUpCanvas);
+}
+
+$(document).on('click','.savingCanvas',async function(){
+  let idFile = $(this).data("id");
+  let idTask = $(this).data("idTask");
+  let groupId = $(this).data('groupid');
+  await exportCanvas(idFile,idTask,groupId);
+})
+
+$(document).on('click','.enablingCanvas',function(){
+  enableCanvas()
+  $('.clearingCanvas').removeClass('d-none');
+  $('.savingCanvas').removeClass('d-none');
+  $('.disableSignature').removeClass('d-none');
+  $('.enablingCanvas').addClass('d-none');
+})
+
+$(document).on('click','.disableSignature',function(){
+  disableCanvas();
+  $('.clearingCanvas').addClass('d-none');
+  $('.savingCanvas').addClass('d-none');
+  $('.disableSignature').addClass('d-none');
+  $('.enablingCanvas').removeClass('d-none');
+})
+
+$(document).on('click','.clearingCanvas',function(){
+  clearCanvas()
+})
+
+async function exportCanvas(fileId,idTask,groupId) {
+  let formAttachmentFile = new FormData();
+  let dataFile = JSON.stringify({
+      "fileId": fileId,
+      "file": window['signaturePad'].toDataURL('image/png')
+  })
+  formAttachmentFile.append('file', dataFile);
+  formAttachmentFile.append('id',idTask);
+  loadingActivated();
+  let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+  loadingDeactivated();
+  if(attachFile == '200'){
+    disableCanvas();
+    containerOnLoad('cardGT'+groupId+'')
+    $('.headerGT[data-id='+groupId+']').click()
+    setTimeout(() => {
+        $('.headerGT[data-id='+groupId+']').click()
+    }, 500);
+    let intervalData = setInterval(() => {
+        if($('#table'+groupId).length > 0){
+            clearInterval(intervalData)
+            containerDone('cardGT'+groupId+'')
+        }
+    }, 1000);
+    $('#modalAttachmentFile').modal('toggle')
+  }
+}
+
+$(document).on('click','.showAttachment',async function(){
+  let fileId = $(this).data('id');
+  let idTask = $(this).data('idtask');
+  let groupId = $(this).data('groupid');
+  loadingActivated();
+  let attachShow = await showAttachmentDetails(fileId);
+  loadingDeactivated();
+  if(attachShow.responseCode == '200'){
+    $('[data-original-title]').popover('hide');
+    activeModalAttachmentFile();
+    $('.clearingCanvas').addClass('d-none');
+    $('.savingCanvas').addClass('d-none');
+    $('.disableSignature').addClass('d-none');
+    $('.enablingCanvas').removeClass('d-none');
+
+    $('.savingCanvas').data('id',fileId);
+    $('.savingCanvas').data('idTask',idTask);
+    $('.savingCanvas').data('groupid',groupId);
+    $('#backupCanvas').attr("src",'');
+    
+    if(attachShow.data.path.includes('pdf')){
+
+      return;
+    }
+    await activateCanvas(attachShow.data.source);
+  }
+})
+
+$(document).on('mouseenter', '.fileAttach', function () {
+  let id = $(this).data('id');
+  let groupid = $(this).data('groupid');
+  let name = $(this).data('name');
+
+  if($('.popover').length > 0){
+    $(".popover").each(function () {
+        $(this).popover("dispose");
+    });
+  }
+  triggerPopoverFileAttachment(id,groupid,name);
+})
+
+function activeModalAttachmentFile() {
+  $('#modalAttachmentFile').modal({
+      show: true,
+  });
+  $('#modalAttachmentFile').on('hidden.bs.modal', function () {
+    window['signaturePad'].off()
+  });
+}
+
+async function triggerPopoverFileAttachment(id,groupid,name){
+  if($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined){
+    let htmlMember = '';
+    window['fileAttachment'+id].forEach(element => {
+      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i data-feather="eye" class="showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
+    });
+    let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
+
+    $('.fileAttach[data-id=' + id + ']').attr('tabindex', '0');
+    $('.fileAttach[data-id=' + id + ']').attr('data-toggle', 'popover');
+
+    $('.fileAttach[data-id=' + id + ']').popover({
+      content: empHtmlTeam,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
+
+    
+
+    $('.fileAttach[data-id=' + id + ']').on('shown.bs.popover', async function () {
+      feather.replace();
+    })
+  }
+}
+
 $(document).on('mouseenter', '.pic', function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
@@ -1035,7 +1257,7 @@ $(document).on('click', '.status', function () {
   $(this).attr('tabindex', '0');
   $(this).attr('data-toggle', 'popover');
   $(this).attr('data-trigger', 'focus');
-  let menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+  let menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
   $(this).popover({
     trigger: 'focus',
     content: menuTemplate,
@@ -1046,6 +1268,7 @@ $(document).on('click', '.status', function () {
   $(this).on('shown.bs.popover', function () {
     $('.rowStat').attr('data-id', id);
     $('.rowStat').attr('data-current', currentStatus);
+    $('.pendingPrio').attr('data-status', 'Pending');
     $('.mediumPrio').attr('data-status', 'Working on it');
     $('.highPrio').attr('data-status', 'Stuck');
     $('.lowPrio').attr('data-status', 'Done');
@@ -1063,6 +1286,7 @@ $(document).on('click', '.rowStat', async function () {
   $('[data-original-title]').popover('dispose');
 
   $('.status[data-id=' + id + ']').html(stat);
+  
   if ($('.status[data-id=' + id + ']').hasClass('reviewStat')) {
     $('.status[data-id=' + id + ']').removeClass('reviewStat');
   }
@@ -1079,6 +1303,10 @@ $(document).on('click', '.rowStat', async function () {
     $('.status[data-id=' + id + ']').removeClass('lowPrio');
   }
 
+  if ($('.status[data-id=' + id + ']').hasClass('pendingPrio')) {
+    $('.status[data-id=' + id + ']').removeClass('pendingPrio');
+  }
+
   switch (stat) {
     case 'Waiting for review':
       $('.status[data-id=' + id + ']').addClass('reviewStat text-white');
@@ -1091,6 +1319,9 @@ $(document).on('click', '.rowStat', async function () {
       break;
     case 'Done':
       $('.status[data-id=' + id + ']').addClass('lowPrio text-white');
+      break;
+    case 'Pending':
+      $('.status[data-id=' + id + ']').addClass('pendingPrio text-white');
       break;
   }
 

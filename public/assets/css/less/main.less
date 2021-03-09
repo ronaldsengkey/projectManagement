@@ -56,6 +56,12 @@ body,
   pointer-events: none;
 }
 
+.badgeAttachment {
+  position: absolute;
+  left: 4em;
+  top: -0.75em;
+}
+
 #sortable { list-style-type: none; margin: 0; padding: 0;}
 
 #sortable li {
@@ -187,4 +193,8 @@ body,
 .breadcrumb-item+.breadcrumb-item::before {
   content: '';
   padding-right: 0;
+}
+
+#canvasPlace:active{
+  cursor: pointer;
 }
