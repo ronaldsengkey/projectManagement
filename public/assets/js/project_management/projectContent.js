@@ -331,6 +331,7 @@ async function domTaskTable(data, id, result, boardMember) {
             $('#table' + id + ' > .dataTask').prepend(htmlTask);
             $('.priority[data-id='+element._id+']').addClass('disableInputInside')
             $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
+            $('.status[data-id='+element._id+']').addClass('disableInputInside');
             // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
             $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
               $('td.'+$(element).attr('class')).addClass('disableInputInside')
