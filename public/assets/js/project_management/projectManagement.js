@@ -238,7 +238,7 @@ async function manageBoardData(data) {
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
         if (element.user_create == ct.name) {
-            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
             $('.boardListPlaceMain').append(htmlMain);
         } else {
             let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
@@ -251,7 +251,7 @@ async function manageBoardData(data) {
         if (element.user_create == ct.name) {
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
-            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + ' data-feather="edit"></i><i class="delBoard" data-name="' + element.name + '" data-id=' + element._id + ' data-feather="trash-2"></i></div></div>';
+            let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
         } else {
             element.member = JSON.parse(element.member);
@@ -264,8 +264,6 @@ async function manageBoardData(data) {
             });
         }
     })
-
-    feather.replace();
 }
 
 async function manageSummaryBoardData(data) {
