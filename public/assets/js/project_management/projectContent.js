@@ -313,7 +313,6 @@ async function domTaskTable(data, id, result, boardMember) {
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
         // pic only allowed to edit status and priority
         $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
-        $('.commentTask[data-id='+element._id+']').addClass('disableInputInside');
         // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
         $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
           if($(element).attr('class') != 'status mediumPrio text-white'){
@@ -417,6 +416,7 @@ async function processProgressBar(data, idGroup) {
   let totalDone = 0;
   let totalWaiting = 0;
   let totalNoStatus = 0;
+  let totalPending = 0;
   data.forEach(element => {
     if (!element.status) {
       totalNoStatus += 1;
@@ -429,14 +429,17 @@ async function processProgressBar(data, idGroup) {
         totalDone += 1;
       } else if (element.status == 'Waiting for review') {
         totalWaiting += 1;
-      }
-    }
+      } else if (element.status == 'Pending') {
+        totalPending += 1;
+      } 
+    } 
   });
 
   let doneWidth = (totalDone / countTotal) * 100;
   let workingWidth = (totalWorking / countTotal) * 100;
   let stuckWidth = (totalStuck / countTotal) * 100;
   let waitingWidth = (totalWaiting / countTotal) * 100;
+  let pendingWidth = (totalPending / countTotal) * 100;
   let noStatusWidth = (totalNoStatus / countTotal) * 100;
 
   let htmlProgress = '<div class="row"><div class="col-md-2 col-lg-1" style="align-self:center;">Status </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height: 15px;">' +
@@ -444,6 +447,7 @@ async function processProgressBar(data, idGroup) {
     '<div data-identity="Working on it" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Working on it ' + totalWorking + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated mediumLabel" role="progressbar" style="width: ' + workingWidth + '%" aria-valuenow=' + totalWorking + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + workingWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Stuck" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Stuck ' + totalStuck + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated highLabel" role="progressbar" style="width: ' + stuckWidth + '%" aria-valuenow=' + totalStuck + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + stuckWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Waiting for review" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Waiting for review ' + totalWaiting + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated reviewLabel" role="progressbar" style="width: ' + waitingWidth + '%" aria-valuenow=' + totalWaiting + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + waitingWidth.toFixed(1) + '%</div>' +
+    '<div data-identity="Pending" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Pending ' + totalPending + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated pendingLabel" role="progressbar" style="width: ' + pendingWidth + '%" aria-valuenow=' + totalPending + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + pendingWidth.toFixed(1) + '%</div>' +
     '<div data-identity="No Status" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="No Status ' + totalNoStatus + '/' + countTotal + '" class="progress-bar progressStatus bg-light" role="progressbar" style="width: ' + noStatusWidth + '%" aria-valuenow=' + totalNoStatus + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + noStatusWidth.toFixed(1) + '%</div>' +
     '</div></div></div>';
   return htmlProgress;
