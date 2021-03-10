@@ -608,7 +608,7 @@ async function triggerPopoverPIC(id,groupid,name){
   }
 }
 
-async function activateCanvas(url){
+async function activateCanvas(url,pdf = false){
   var canvas = document.querySelector("#canvasPlace");
   var signaturePad = new SignaturePad(canvas);
 
@@ -620,6 +620,7 @@ async function activateCanvas(url){
 
   // Draws signature image from data URL.
   // NOTE: This method does not populate internal data structure that represents drawn signature. Thus, after using #fromDataURL, #toData won't work properly.
+  if(!pdf)
   signaturePad.fromDataURL(url);
   // Returns signature image as an array of point groups
   const data = signaturePad.toData();
@@ -677,11 +678,11 @@ $(document).on('click','.clearingCanvas',function(){
   clearCanvas()
 })
 
-async function exportCanvas(fileId,idTask,groupId) {
+async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].toDataURL('image/jpeg')) {
   let formAttachmentFile = new FormData();
   let dataFile = JSON.stringify({
       "fileId": fileId,
-      "file": window['signaturePad'].toDataURL('image/png')
+      "file": file
   })
   formAttachmentFile.append('file', dataFile);
   formAttachmentFile.append('id',idTask);
@@ -726,8 +727,44 @@ $(document).on('click','.showAttachment',async function(){
     $('#backupCanvas').attr("src",'');
     
     if(attachShow.data.path.includes('pdf')){
+      // $('#pdfViewer').removeClass('d-none');
+      // $('#pdfViewer').attr('src',attachShow.data.source);
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+      let url = attachShow.data.source;
+      var pdfData = atob(url.split('data:application/pdf;base64,')[1]);
+      var loadingTask = pdfjsLib.getDocument({data: pdfData});
+      loadingTask.promise.then(function(pdf) {
+        // Fetch the first page
+        var pageNumber = 1;
+        pdf.getPage(pageNumber).then(function(page) {
+          var scale = 1.5;
+          var viewport = page.getViewport({scale: scale});
 
-      return;
+          // Prepare canvas using PDF page dimensions
+          var canvas = document.getElementById('canvasPlace');
+          var context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          canvas.toBlob(function(blob) {
+            console.log('blobed',blob);
+          },'image/jpeg');
+
+          // Render PDF page into canvas context
+          var renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          };
+          var renderTask = page.render(renderContext);
+          renderTask.promise.then(function () {
+            console.log('Page rendered');
+          });
+        });
+      }, function (reason) {
+        // PDF loading error
+        console.error(reason);
+      });
+      $('#canvasPlace').css('max-width','735px');
     }
     await activateCanvas(attachShow.data.source);
   }
@@ -772,8 +809,6 @@ async function triggerPopoverFileAttachment(id,groupid,name){
       html: true,
       sanitize: false
     });
-
-    
 
     $('.fileAttach[data-id=' + id + ']').on('shown.bs.popover', async function () {
       feather.replace();
@@ -1253,11 +1288,22 @@ $(document).on('mouseleave', '.name', function () {
 $(document).on('click', '.status', function () {
   let id = $(this).data('id');
   let currentStatus = $(this).data('status');
-  console.log('cs', id, currentStatus);
+  let pic = $(this).data('pic')
   $(this).attr('tabindex', '0');
   $(this).attr('data-toggle', 'popover');
   $(this).attr('data-trigger', 'focus');
-  let menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+  let menuTemplate;
+  if(window['dataCurrentTeam' + id+ '']){
+    let member = window['dataCurrentTeam' + id+ ''].member;
+    member.forEach(elements => {
+      if(elements.account_id == ct.id_employee){
+        menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div><div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+      }
+    });
+  }
+  if(pic == ct.id_employee){
+    menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+  }
   $(this).popover({
     trigger: 'focus',
     content: menuTemplate,

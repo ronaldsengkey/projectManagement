@@ -162,8 +162,8 @@ $(async function () {
 
 async function openProfile(){
     if($('.toProfile').length > 0){
-        $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/profile.js", function (data, textStatus, jqxhr) {})
-        $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/updateScope.js", function (data, textStatus, jqxhr) {})
+        $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/profile.js", function (data, textStatus, jqxhr) {})
+        $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/updateScope.js", function (data, textStatus, jqxhr) {})
     }
 }
 

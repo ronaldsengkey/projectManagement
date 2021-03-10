@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <title>Ultimate Proman</title>
+  <link rel="icon" type="image/x-icon" href="/public/assets/img/fav.ico"/>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.9/css/mdb.min.css" rel="stylesheet">
@@ -103,9 +104,10 @@
         <div class="modal-body">
           <div class="row">
             <div class="col-lg-12 align-self-center bodyContent">
-
-              <canvas width="735" height="500" id="canvasPlace"></canvas>
+              <!-- height="700" -->
+              <canvas   id="canvasPlace"></canvas>
               <img id="backupCanvas" class="d-none">
+              <iframe id="pdfViewer" width="735" height="600" class="d-none"></iframe>
               <!-- <main id="main" role="main" tabindex="0"><div id="sketch"><canvas id="paint"  width="735" height="500"></canvas></div><button type="button" id="clear">Clear Signature</button></main><div class=mouse id=feather></div> -->
 
             </div>
@@ -199,6 +201,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.2/tinycolor.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+  <script defer src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
   <script defer src="public/assets/js/config.js"></script>
   <script defer src="public/assets/js/global.js"></script>
   <script defer src="public/assets/js/dashboard.js"></script>
