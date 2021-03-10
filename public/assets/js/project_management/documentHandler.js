@@ -706,6 +706,10 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
   }
 }
 
+var currPage = 1; //Pages are 1-based not 0-based
+var numPages = 0;
+var thePDF = null;
+
 $(document).on('click','.showAttachment',async function(){
   let fileId = $(this).data('id');
   let idTask = $(this).data('idtask');
@@ -736,30 +740,39 @@ $(document).on('click','.showAttachment',async function(){
       loadingTask.promise.then(function(pdf) {
         // Fetch the first page
         var pageNumber = 1;
-        pdf.getPage(pageNumber).then(function(page) {
-          var scale = 1.5;
-          var viewport = page.getViewport({scale: scale});
-
-          // Prepare canvas using PDF page dimensions
-          var canvas = document.getElementById('canvasPlace');
-          var context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          canvas.toBlob(function(blob) {
-            console.log('blobed',blob);
-          },'image/jpeg');
-
-          // Render PDF page into canvas context
-          var renderContext = {
-            canvasContext: context,
-            viewport: viewport
-          };
-          var renderTask = page.render(renderContext);
-          renderTask.promise.then(function () {
-            console.log('Page rendered');
+        //How many pages it has
+        numPages = pdf.numPages;
+        thePDF = pdf;
+        
+        if(numPages > 1){
+          pdf.getPage(pageNumber).then(handlePages)
+          $('#canvasPlace').addClass('d-none');
+        } else {
+          pdf.getPage(pageNumber).then(function(page) {
+            var scale = 1.2;
+            var viewport = page.getViewport({scale: scale});
+  
+            // Prepare canvas using PDF page dimensions
+            var canvas = document.getElementById('canvasPlace');
+            var context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+  
+            canvas.toBlob(function(blob) {
+              console.log('blobed',blob);
+            },'image/jpeg');
+  
+            // Render PDF page into canvas context
+            var renderContext = {
+              canvasContext: context,
+              viewport: viewport
+            };
+            var renderTask = page.render(renderContext);
+            renderTask.promise.then(function () {
+              console.log('Page rendered');
+            });
           });
-        });
+        }
       }, function (reason) {
         // PDF loading error
         console.error(reason);
@@ -769,6 +782,38 @@ $(document).on('click','.showAttachment',async function(){
     await activateCanvas(attachShow.data.source);
   }
 })
+
+function handlePages(page)
+{
+    //This gives us the page's dimensions at full scale
+    var scale = 1.2;
+    var viewport = page.getViewport({scale: scale});
+
+    //We'll create a canvas for each page to draw it on
+    var canvas = document.createElement( "canvas" );
+    canvas.style.display = "block";
+    canvas.className = 'canvas'+currPage
+    canvas.style.border = "2px solid black";
+    var context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    //Draw it on the canvas
+    page.render({canvasContext: context, viewport: viewport});
+
+    //Add it to the web page
+    // document.body.appendChild( canvas );
+    document.getElementById('newPlaces').appendChild( canvas );
+    $('<div style="float:right;margin-bottom:1.5em;">'+currPage+' / '+numPages+'</div>').insertAfter($(canvas));
+    // $(canvas).appendTo($('#newPlaces'))
+
+    //Move to next page
+    currPage++;
+    if ( thePDF !== null && currPage <= numPages )
+    {
+        thePDF.getPage( currPage ).then( handlePages );
+    }
+}
 
 $(document).on('mouseenter', '.fileAttach', function () {
   let id = $(this).data('id');
@@ -1293,13 +1338,17 @@ $(document).on('click', '.status', function () {
   $(this).attr('data-toggle', 'popover');
   $(this).attr('data-trigger', 'focus');
   let menuTemplate;
-  if(window['dataCurrentTeam' + id+ '']){
-    let member = window['dataCurrentTeam' + id+ ''].member;
-    member.forEach(elements => {
-      if(elements.account_id == ct.id_employee){
-        menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div><div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
-      }
-    });
+  try {
+    if(typeof window['dataCurrentTeam' + id+ ''] == Object && window['dataCurrentTeam' + id+ ''].length != 0){
+      let member = window['dataCurrentTeam' + id+ ''].member;
+      member.forEach(elements => {
+        if(elements.account_id == ct.id_employee){
+          menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div><div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+        }
+      });
+    }
+  } catch (error) {
+    console.log('err',error); 
   }
   if(pic == ct.id_employee){
     menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
