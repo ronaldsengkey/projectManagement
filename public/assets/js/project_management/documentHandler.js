@@ -469,6 +469,7 @@ $(document).on('click', '.commentTask', async function () {
   let available = $('.commentTask[data-id='+id+']').data('available');
   $('.commentContent').attr('data-id', id);
   $('.commentInputArea').attr('data-id',id);
+  $('.commentTaskName').html(taskName);
   $('.commentTaskMember').empty();
   $(".commentContent[data-id="+id+"]").empty();
   $(".commentContent[data-id="+id+"]").append('Getting comment data...');
@@ -518,8 +519,7 @@ $(document).on('click', '.commentTask', async function () {
     clearInterval(intervalComment);
   })
 
-  // write task name and member 
-  $('.commentTaskName').html(taskName);
+  
   try {
     window['dataCommentTeam' + groupid + ''].forEach(element => {
       let choose;
@@ -706,9 +706,72 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
   }
 }
 
-var currPage = 1; //Pages are 1-based not 0-based
 var numPages = 0;
-var thePDF = null;
+
+var pdfDoc = null,
+    pageNum = 1,
+    pageRendering = false,
+    pageNumPending = null,
+    scale = 1.2,
+    canvas = document.getElementById('canvasPlace'),
+    ctx = canvas.getContext('2d');
+
+function renderPage(num) {
+  pageRendering = true;
+  // Using promise to fetch the page
+  pdfDoc.getPage(num).then(function(page) {
+    var viewport = page.getViewport({scale: scale});
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    // Render PDF page into canvas context
+    var renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    var renderTask = page.render(renderContext);
+
+    // Wait for rendering to finish
+    renderTask.promise.then(function() {
+      pageRendering = false;
+      if (pageNumPending !== null) {
+        // New page rendering is pending
+        renderPage(pageNumPending);
+        pageNumPending = null;
+      }
+    });
+  });
+
+  // Update page counters
+  $('.currPage').html(num);
+}
+
+function queueRenderPage(num) {
+  if (pageRendering) {
+    pageNumPending = num;
+  } else {
+    renderPage(num);
+  }
+}
+
+/**
+ * Displays previous page.
+ */
+function onPrevPage() {
+  if (pageNum <= 1) {
+    return;
+  }
+  pageNum--;
+  queueRenderPage(pageNum);
+}
+
+function onNextPage() {
+  if (pageNum >= pdfDoc.numPages) {
+    return;
+  }
+  pageNum++;
+  queueRenderPage(pageNum);
+}
 
 $(document).on('click','.showAttachment',async function(){
   let fileId = $(this).data('id');
@@ -742,12 +805,31 @@ $(document).on('click','.showAttachment',async function(){
         var pageNumber = 1;
         //How many pages it has
         numPages = pdf.numPages;
-        thePDF = pdf;
+        pdfDoc = pdf;
         
         if(numPages > 1){
-          pdf.getPage(pageNumber).then(handlePages)
-          $('#canvasPlace').addClass('d-none');
+          // pdf.getPage(pageNumber).then(handlePages)
+          // $('#canvasPlace').addClass('d-none');
+          if($('.legendData').length == 0){
+            let legend = '<div class="legendData"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
+            $(legend).insertAfter($('#canvasPlace'));
+            document.getElementById('prev').addEventListener('click', onPrevPage);
+            document.getElementById('next').addEventListener('click', onNextPage);
+            $('<span style="float:right;">Page : <span class="currPage"></span> / '+numPages+'</span>').appendTo($('.legendData'));
+          }
+          pageNum = 1;
+          renderPage(pageNum);
+
+          // var docDefinition = {
+          //   content: [
+          //     {
+          //       image:'https://d24xkw9p26rh4b.cloudfront.net/cHJvbWFuOnRhc2s6dW5kZWZpbmVkOjE2MTUxOTcwNzIxMzY%3D.PNG'
+          //     }
+          //   ]
+          // };
+          // pdfMake.createPdf(docDefinition).download();
         } else {
+          $('.legendData').remove();
           pdf.getPage(pageNumber).then(function(page) {
             var scale = 1.2;
             var viewport = page.getViewport({scale: scale});
@@ -772,8 +854,6 @@ $(document).on('click','.showAttachment',async function(){
               console.log('Page rendered');
             });
           });
-
-          // $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/signature.js", function (data, textStatus, jqxhr) {})
         }
       }, function (reason) {
         // PDF loading error
@@ -794,7 +874,7 @@ function handlePages(page)
     //We'll create a canvas for each page to draw it on
     var canvas = document.createElement( "canvas" );
     canvas.style.display = "block";
-    canvas.className = 'canvas'+currPage
+    canvas.className = 'canvas'+pageNum
     canvas.style.border = "2px solid black";
     var context = canvas.getContext('2d');
     canvas.height = viewport.height;
@@ -806,14 +886,14 @@ function handlePages(page)
     //Add it to the web page
     // document.body.appendChild( canvas );
     document.getElementById('newPlaces').appendChild( canvas );
-    $('<div style="float:right;margin-bottom:1.5em;">'+currPage+' / '+numPages+'</div>').insertAfter($(canvas));
+    $('<div style="float:right;margin-bottom:1.5em;">'+pageNum+' / '+numPages+'</div>').insertAfter($(canvas));
     // $(canvas).appendTo($('#newPlaces'))
 
     //Move to next page
-    currPage++;
-    if ( thePDF !== null && currPage <= numPages )
+    pageNum++;
+    if ( pdfDoc !== null && pageNum <= numPages )
     {
-        thePDF.getPage( currPage ).then( handlePages );
+        pdfDoc.getPage( pageNum ).then( handlePages );
     }
 }
 
@@ -1336,12 +1416,13 @@ $(document).on('click', '.status', function () {
   let id = $(this).data('id');
   let currentStatus = $(this).data('status');
   let pic = $(this).data('pic')
+  let gtPic = $(this).data('gtpic')
   $(this).attr('tabindex', '0');
   $(this).attr('data-toggle', 'popover');
   $(this).attr('data-trigger', 'focus');
   let menuTemplate;
   try {
-    if(typeof window['dataCurrentTeam' + id+ ''] == "object" && window['dataCurrentTeam' + id+ '']._id){
+    if(typeof window['dataCurrentTeam' + id+ ''] == "object" && window['dataCurrentTeam' + id+ '']._id && gtPic != ct.id_employee){
       let member = window['dataCurrentTeam' + id+ ''].member;
       member.forEach(elements => {
         if(elements.account_id == ct.id_employee){
@@ -1352,7 +1433,7 @@ $(document).on('click', '.status', function () {
   } catch (error) {
     console.log('err',error); 
   }
-  if(pic == ct.id_employee){
+  if(pic == ct.id_employee || gtPic == ct.id_employee){
     menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
   }
   $(this).popover({

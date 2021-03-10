@@ -245,7 +245,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
         let dataPic = 0;
         if(havePic) dataPic = JSON.parse(element.pic)[0].account_id
-        htmlTask += '<td class="status ' + statusClass + ' text-white" data-pic='+dataPic+' data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + haveStatus + '</td>';
+        htmlTask += '<td class="status ' + statusClass + ' text-white" data-gtpic='+JSON.parse(result.pic)[0].account_id+' data-pic='+dataPic+' data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + haveStatus + '</td>';
       } else {
         htmlTask += '<td class="status" data-name="' + element.name + '" data-identity="stat' + element._id + '" data-status="No Status" data-groupid="' + element.group_id + '" data-id="' + element._id + '">No Status Yet</td>';
       }
@@ -289,7 +289,7 @@ async function domTaskTable(data, id, result, boardMember) {
         window['dataComment' + element._id + ''] = "[]";
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><label style="pointer-events: none" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;" class="commentTask far fa-lg fa-comment mr-2" style="color:orange;" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><label style="pointer-events: none" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;color:orange;" class="commentTask far fa-lg fa-comment mr-2" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
@@ -303,7 +303,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
       
       //if pic of group task is login user then he / she is allowed to edit tasks
-      if(JSON.parse(result.pic)[0].account_name == ct.name){
+      if(JSON.parse(result.pic)[0].account_id == ct.id_employee){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       } else if(result.user_create == ct.name && $('#table'+id).attr('data-type') != 'Main'){
