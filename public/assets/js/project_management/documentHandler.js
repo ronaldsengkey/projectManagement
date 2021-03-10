@@ -772,6 +772,8 @@ $(document).on('click','.showAttachment',async function(){
               console.log('Page rendered');
             });
           });
+
+          // $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/signature.js", function (data, textStatus, jqxhr) {})
         }
       }, function (reason) {
         // PDF loading error
@@ -1339,7 +1341,7 @@ $(document).on('click', '.status', function () {
   $(this).attr('data-trigger', 'focus');
   let menuTemplate;
   try {
-    if(typeof window['dataCurrentTeam' + id+ ''] == Object && window['dataCurrentTeam' + id+ ''].length != 0){
+    if(typeof window['dataCurrentTeam' + id+ ''] == "object" && window['dataCurrentTeam' + id+ '']._id){
       let member = window['dataCurrentTeam' + id+ ''].member;
       member.forEach(elements => {
         if(elements.account_id == ct.id_employee){
