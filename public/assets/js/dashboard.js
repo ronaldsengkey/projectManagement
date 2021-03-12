@@ -57,6 +57,7 @@ $(async function () {
     loadingActivated();
     disableDevTools();
     await getEnvData();
+    getChatContainer();
     try {
         let getUrl = window.location.search;
         let getUserFrom = new URLSearchParams(getUrl).get('from');
@@ -671,6 +672,7 @@ function getProjectManagement(){
 }
 
 function callNotif(param) {
+    console.log("callNotif::", param);
     Swal.fire({
         position: 'center',
         type: param.type,
@@ -887,4 +889,14 @@ function checkIfNull(text, changeTo = '') {
     } else {
         return text
     }
+}
+
+function getChatContainer(){
+    const chatJsUrl = domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/chat.js";
+    console.log("getChatContainer::", chatJsUrl);
+    $.getScript(chatJsUrl, function (data, textStatus, jqxhr) {
+        // console.log("Data::", data);
+        // console.log("textStatus::", textStatus);
+        // console.log("jqxhr::", jqxhr);
+    })
 }

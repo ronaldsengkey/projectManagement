@@ -2535,6 +2535,57 @@ fastify.get('/envConfig', function (req, reply) {
   });
 });
 
+fastify.get('/chat', async function (request, reply) {
+  r.get({
+    "async": true,
+    "crossDomain": true,
+    "headers": {
+      "Cache-Control": "no-cache",
+    },
+      "url": "http://" + localUrl + ':8100/chat'
+    }, function (err, response, body) {
+      reply.send(body);
+  });
+});
+
+fastify.get('/getChatPage', async function (req, reply) {
+  console.log('getchat ...');
+  // console.log(req.headers);
+  try {  
+    let server = req.headers.server;
+    let port = req.headers.port;
+    let receiver = req.headers.receiver;
+    let last = req.headers.last;
+    let limit = req.headers.limit;
+    let token = req.headers.token;
+    let signature = req.headers.signature;
+    let secretKey = req.headers.secretkey;
+    let b = {
+      "settings": {
+        "async": true,
+        "crossDomain": true,
+        "url": server + ":" + port + "/message/get/page",
+        "method": "GET",
+        "headers": {
+          "Accept": "*/*",
+          "Cache-Control": "no-cache",
+          "signature": signature,
+          "token": token,
+          "receiver": receiver,
+          "last": last,
+          "limit": limit,
+          "secretKey": secretKey
+        }
+      }
+    }
+    let c = await actionGet(b);
+    reply.send(c);
+  } catch (error) {
+    console.log("error bro: ", error);
+    reply.send(500)
+  }
+});
+
 async function restartEnv(){
   return new Promise(async function(resolve,reject){
     r.get({
