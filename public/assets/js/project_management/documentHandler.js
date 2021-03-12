@@ -674,7 +674,6 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
   let contentData;
   if(pdf){
     if(!multiple){
-      
       contentData = [
         {
           // in browser is supported loading images via url from reference by name in images
@@ -695,40 +694,37 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
       content: contentData
     };
     console.log('conte',docDefinition);
-    pdfMake.createPdf(docDefinition).download();
-    // const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-    // let fileDataPdf;
-    // pdfDocGenerator.getDataUrl(async (dataUrl) => {
-    //   console.log('data urlll',dataUrl);
-    //   fileDataPdf = dataUrl;
-
-    //   console.log('file ',fileDataPdf);
-    //   let formAttachmentFile = new FormData();
-    //   let dataFile = JSON.stringify({
-    //       "fileId": fileId,
-    //       "file": fileDataPdf
-    //   })
-    //   formAttachmentFile.append('file', dataFile);
-    //   formAttachmentFile.append('id',idTask);
-    //   loadingActivated();
-    //   let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
-    //   loadingDeactivated();
-    //   if(attachFile == '200'){
-    //     disableCanvas();
-    //     containerOnLoad('cardGT'+groupId+'')
-    //     $('.headerGT[data-id='+groupId+']').click()
-    //     setTimeout(() => {
-    //         $('.headerGT[data-id='+groupId+']').click()
-    //     }, 500);
-    //     let intervalData = setInterval(() => {
-    //         if($('#table'+groupId).length > 0){
-    //             clearInterval(intervalData)
-    //             containerDone('cardGT'+groupId+'')
-    //         }
-    //     }, 1000);
-    //     $('#modalAttachmentFile').modal('toggle')
-    //   }
-    // });
+    // pdfMake.createPdf(docDefinition).download();
+    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    let fileDataPdf;
+    pdfDocGenerator.getDataUrl(async (dataUrl) => {
+      fileDataPdf = dataUrl;
+      let formAttachmentFile = new FormData();
+      let dataFile = JSON.stringify({
+          "fileId": fileId,
+          "file": fileDataPdf
+      })
+      formAttachmentFile.append('file', dataFile);
+      formAttachmentFile.append('id',idTask);
+      loadingActivated();
+      let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+      loadingDeactivated();
+      if(attachFile == '200'){
+        disableCanvas();
+        containerOnLoad('cardGT'+groupId+'')
+        $('.headerGT[data-id='+groupId+']').click()
+        setTimeout(() => {
+            $('.headerGT[data-id='+groupId+']').click()
+        }, 500);
+        let intervalData = setInterval(() => {
+            if($('#table'+groupId).length > 0){
+                clearInterval(intervalData)
+                containerDone('cardGT'+groupId+'')
+            }
+        }, 1000);
+        $('#modalAttachmentFile').modal('toggle')
+      }
+    });
   } else {
     let formAttachmentFile = new FormData();
     let dataFile = JSON.stringify({
