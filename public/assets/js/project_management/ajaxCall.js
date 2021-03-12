@@ -193,7 +193,7 @@ async function addTask(value, groupId) {
             'status': "Pending",
             'priority': "High",
             'due_date': moment().format("YYYY/MM/DD"),
-            'timeline': JSON.stringify([moment().format("YYYY/MM/DD"), moment(moment(), 'YYYY/MM/DD').add('days', '7').format('YYYY/MM/DD')])
+            'timeline': JSON.stringify([moment().format("YYYY/MM/DD"), moment(moment(), 'YYYY/MM/DD').add(7, 'days').format('YYYY/MM/DD')])
         }
         let settingsTask = {
             settings: {
@@ -238,24 +238,6 @@ async function addTask(value, groupId) {
                             containerDone('cardGT'+groupId+'')
                         }
                     }, 1000);
-                    
-                    // result.data = result.data[0];
-                    // let htmlTaskTag =
-                    //     '<tr><td class="name" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">' + value + '</td>' +
-                    //     '<td class="pic" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '"><i class="icon_user" data-id="' + result.data._id + '" data-feather="user"></i></td>' +
-                    //     '<td class="team" data-team="false" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '"><i class="icon_team" data-id="' + result.data._id + '" data-feather="user"></i></td>' +
-                    //     '<td class="status mediumPrio text-white" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">Working on it</td>' +
-                    //     '<td class="priority highPrio text-white" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">High</td>' +
-                    //     '<td class="duedate" data-value="no due date" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">no due date</td>' +
-                    //     '<td class="timeline" data-value="no timeline" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-id="' + result.data._id + '">no timeline</td>' +
-                    //     '<td><i class="commentTask" data-available="false" data-toggle="modal" data-target="#commentModal" data-name="' + result.data.name + '" data-groupid="' + result.data.group_id + '" data-feather="message-circle" data-id=' + result.data._id + '></i><i class="delTask" data-groupid="' + result.data.group_id + '"  data-name="' + result.data.name + '" data-feather="trash-2" data-id=' + result.data._id + '></i></td>' +
-                    //     '</tr>';
-                    // $('.dataTask[data-id='+result.data.group_id+']').prepend(htmlTaskTag);
-                    // feather.replace();
-                    // $('td.newTask[data-id=' + groupId + ']').css('opacity', '1');
-                    // $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
-                    // await updateStatusProgressBar(result.data, 'No Status', true);
-                    // await updatePriorityProgressBar(result.data, 'High', true)
 
                 } else if (result.responseCode == '401') {
                     logoutNotif();

@@ -123,14 +123,13 @@ $(document).on('click', '.removeSidebar', function () {
         $('#sidebar-wrapper').removeClass('w767');
         $('#sidebar-wrapper').addClass('w768');
         $('.removeSidebar').remove();
-        $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
+        $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i class="fas fa-arrow-left"></i></span>');
     } else if ($('#sidebar-wrapper').hasClass('w768')) {
         $('#sidebar-wrapper').removeClass('w768');
         $('#sidebar-wrapper').addClass('w767');
         $('.removeSidebar').remove();
-        $('.boardPlaceHeader').prepend('<span class="removeSidebar"><i data-feather="arrow-right"></i>&nbsp;</span>');
+        $('.boardPlaceHeader').prepend('<span class="removeSidebar"><i class="fas fa-arrow-right"></i>&nbsp;</span>');
     }
-    feather.replace();
 })
 
 async function getBoard() {
@@ -844,7 +843,7 @@ function domBoardTools(data) {
     }
 
     $('.boardHeader').append(tools);
-    if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i data-feather="arrow-left"></i></span>');
+    if ($('.removeSidebar').length == 0) $('.boardPlaceHeader').prepend('<span class="removeSidebar mr-2"><i class="fas fa-arrow-left"></i></span>');
 }
 
 $(document).on('click', '#addTeam', function () {

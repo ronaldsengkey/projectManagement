@@ -20,7 +20,7 @@ async function domTrelloList() {
             '<button class="btn btn-link btn-block text-left toCollapse" type="button" data-toggle="collapse" data-target="#' + joinBoardAndId.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '" aria-expanded="true" aria-controls="' + joinBoardAndId.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '">' +
             element.name + '</button>' +
             '</h2>' +
-            '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element.id + ' data-trigger="focus" data-toggle="popover"><i class="menu" data-board="' + element.idBoard + '" data-feather="menu"></i></a></div></div>' +
+            '</div><div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-id=' + element.id + ' data-trigger="focus" data-toggle="popover"><i class="fas fa-bars fa-lg menu" data-board="' + element.idBoard + '"></i></a></div></div>' +
 
             '<div id="' + joinBoardAndId.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '" class="collapse" data-id="' + element.id + '" aria-labelledby="' + camelizeBoard + '">' +
             '<div class="card-body p-4" data-id="' + element.id + '">' +
@@ -58,8 +58,6 @@ async function domTrelloList() {
             await getCardData(idBoard, element, '');
         });
     });
-
-    feather.replace();
 }
 
 async function domCardData(data, id, result) {
@@ -115,14 +113,11 @@ async function domCardData(data, id, result) {
                 htmlTask += '<td class="statusTrello ' + statusClass + ' text-white" data-ori="'+element.name+'" data-groupid="' + element.idList + '" data-identity="stat' + element.id + '" data-status="' + textStatus + '" data-name="' + element.name.replace(/[_\W]+/g, "-").replace(/\s/g, '') + '" data-id="' + element.id + '">' + textStatus + '</td>';
             }
 
-            htmlTask += '<td><i class="delTaskTrello" data-status="' + textStatus + '" data-listid="' + element.idList + '" data-name="' + element.name + '" data-feather="trash-2" data-id=' + element.id + '></i></td></tr>';
+            htmlTask += '<td><i class="delTaskTrello far fa-trash-alt fa-lg" data-status="' + textStatus + '" data-listid="' + element.idList + '" data-name="' + element.name + '" data-id=' + element.id + '></i></td></tr>';
 
             $('#table' + id + ' > .dataCardTask').prepend(htmlTask);
-
-            feather.replace();
         });
         $('.progressBar[data-id=' + id + ']').append(progBar);
-        feather.replace();
     } else {
         $('.card-body[data-id="' + id + '"]').append(emptyTable);
     }

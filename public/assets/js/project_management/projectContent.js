@@ -90,7 +90,7 @@ async function domBoardContent() {
       '</h2>' +
       '</div>'+
       '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id)+'</div>'+
-      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="menu" data-board="' + element.board_id + '" data-feather="menu"></i></a></div></div>'+
+      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a></div></div>'+
       
       '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -108,8 +108,6 @@ async function domBoardContent() {
       await getTaskData(idBoard, element, boardMember);
     });
   });
-
-  feather.replace();
 }
 
 $(document).on('click','.btnMenu',function(){
@@ -224,15 +222,15 @@ async function domTaskTable(data, id, result, boardMember) {
         }
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
       } else {
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
+        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user far fa-user fa-lg" data-id="' + element._id + '"></i></td>';
       }
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id]);
-        htmlTask += '<td class="team" data-team="true" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="row"><div class="col-lg-12 colTeam justify-content-center" data-id=' + element._id + ' style="display:flex;"><i data-feather="plus" data-id=' + element._id + ' class="addTeamIcon d-none"></i>' + htmlTeamDom + '</div></div></td>';
+        htmlTask += '<td class="team" data-team="true" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="row"><div class="col-lg-12 colTeam justify-content-center" data-id=' + element._id + ' style="display:flex;"><i data-id=' + element._id + ' class="addTeamIcon fas fa-plus fa-lg d-none"></i>' + htmlTeamDom + '</div></div></td>';
       } else {
         window['dataCurrentTeam' + element._id + ''] = [];
-        htmlTask += '<td class="team" data-team="false" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="colTeam" data-id=' + element._id + '><i class="icon_team" data-id="' + element._id + '" data-feather="user"></i></div></td>';
+        htmlTask += '<td class="team" data-team="false" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="colTeam" data-id=' + element._id + '><i class="icon_team far fa-user fa-lg" data-id="' + element._id + '"></i></div></td>';
       }
 
       if (haveStatus) {
@@ -279,7 +277,7 @@ async function domTaskTable(data, id, result, boardMember) {
       if(haveFile){
         let fileCount = JSON.parse(element.file).length
         window['fileAttachment'+element._id] = JSON.parse(element.file);
-        htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i data-feather="file-text"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+        htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i class="far fa-file-alt fa-lg"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
       } else {
         htmlTask += '<td>-</td>';
       }
@@ -339,8 +337,7 @@ async function domTaskTable(data, id, result, boardMember) {
           }
         });
       }
-
-      feather.replace();
+      
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
@@ -364,7 +361,7 @@ async function domTaskTable(data, id, result, boardMember) {
     if(JSON.parse(result.pic)[0].account_id != ct.id_employee){
       $('.newTask[data-id='+result._id+']').remove();
     }
-     // feather.replace();
+
   } else {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
 
@@ -773,28 +770,18 @@ function processReplyData(replyData, replyId, id) {
         }
 
         if(haveFile){
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage far fa-image fa-lg mr-2" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply far fa-trash-alt fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
         } else {
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="image"></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + ' data-feather="trash-2"></i></div></div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage far fa-image fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply far fa-trash-alt fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div></div></div></div>';
         }
 
         
 
       }
 
-      // $('.editReplyFile[data-id='+element._id+']').click(function(){
-      //   console.log('has');
-      // })
-      // $('.editReplyFile[data-id='+element._id+']').change(function(){
-      //   alert('lalass');
-      //   let checkTag = '<i class="fa fa-check position-absolute" style="color:green; top:95px; left:20px;"></i>';
-      //   $('.placeReply[data-id='+element._id+']').append(checkTag);
-      // })
-
       $('.replyComment[data-id=' + replyId + ']').append(htmlReply);
 
     });
-    feather.replace();
   }
 }
 
@@ -810,7 +797,7 @@ async function domComment(commentData, id) {
 
     if (element.user_create == ct.name) {
       let groupIdData = $('.commentTask[data-id='+id+']').data('groupid');
-      cardComment += '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + element._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
+      cardComment += '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + element._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>' +
         '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + element._id + '">' +
         '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Edit Comment</a>' +
         '<a class="dropdown-item deleteComment" data-groupid='+groupIdData+' data-taskid=' + id + ' data-id=' + element._id + ' data-comment="' + element.comment + '">Delete Comment</a></div></div></div>';
@@ -841,7 +828,7 @@ async function domComment(commentData, id) {
         window['colorClass'+element.user_create] = 'text-white';
       }
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' data-commentid='+id+' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 
@@ -855,7 +842,6 @@ async function domComment(commentData, id) {
     }
 
   });
-  feather.replace();
 }
 
 function objDiff(array1, array2) {

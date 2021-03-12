@@ -108,44 +108,9 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         console.log("addComment::", addComment);
         $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
         if (addComment != 500) {
-          let groupIdData = $('.commentTask[data-id='+id+']').data('groupid');
-
-          let cardCommentNew = '<div class="card p-3 mb-3 cardForComment" data-id=' + addComment._id + '>' +
-            '<div class="dropdown"><div style="text-align:end;"><i class="dropdown-toggle" data-offset="10,20" id="dropdownMenuComment' + addComment._id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-feather="chevron-down"></i>' +
-            '<div class="dropdown-menu" aria-labelledby="dropdownMenuComment' + addComment._id + '">' +
-            '<a class="dropdown-item editComment" data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Edit Comment</a>' +
-            '<a class="dropdown-item deleteComment" data-groupid='+groupIdData+' data-taskid=' + id + ' data-id=' + addComment._id + ' data-comment="' + addComment.comment + '">Delete Comment</a></div></div></div>' +
-            '<blockquote class="blockquote mb-0 card-body" style="border-left:none;">' +
-            '<div class="commentBody" data-id=' + addComment._id + '><p data-comment="' + addComment.comment + '">' + addComment.comment + '</p></div>' +
-            '<footer class="blockquote-footer">' +
-            '<small class="text-muted">' +
-            addComment.user_create + '</small>' +
-            '</footer>' +
-            '</blockquote>';
-
-          let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + addComment._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+window['colorName'+addComment.user_create]+'"><span class="initialName">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index="0" data-replyid=' + addComment._id + ' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-end"><label for="commentFile'+addComment._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /><p class="commentFileName'+addComment._id+'"></p></label><input id="commentFile'+addComment._id+'" type="file" /></div></div></div></div>';
-
-          cardCommentNew += '<hr/>';
-          cardCommentNew += emptyComment;
-
-          cardCommentNew += '</div>';
-
-          $('.commentContent[data-id=' + id + ']').prepend(cardCommentNew);
-
-          if($('.commentTask[data-id='+id+']').data('available') == 'false' || $('.commentTask[data-id='+id+']').data('available') == false){
-            containerOnLoad('cardGT'+groupIdData+'')
-            $('.headerGT[data-id='+groupIdData+']').click()
-            setTimeout(() => {
-                $('.headerGT[data-id='+groupIdData+']').click()
-                
-            }, 500);
-            let intervalData = setInterval(() => {
-                if($('#table'+groupIdData).length > 0){
-                    clearInterval(intervalData)
-                    containerDone('cardGT'+groupIdData+'')
-                }
-            }, 1000);
-          }
+          await refreshComment(id);
+        } else {
+          toastrNotifFull('failed to comment','error');
         }
       }
       setTimeout(() => {
@@ -225,6 +190,23 @@ $(document).on('click','.filePrev',async function(){
   $.fancybox.open('<img src="'+imageData+'"/>');
 })
 
+async function refreshComment(commentId){
+  $('.commentContent[data-id=' + commentId + ']').empty();
+  $(".commentContent[data-id="+commentId+"]").append('Getting comment data...');
+  try {
+    let commentData = await getComment(commentId);
+    if (commentData != 500) {
+      if (commentData.length > 0) {
+        await domComment(commentData, commentId);
+      } else {
+        $('.commentContent[data-id=' + commentId + ']').empty();
+      }
+    }
+  } catch (error) {
+    
+  }
+}
+
 $(document).on('keydown', '.txtAreaReply', async function (ev) {
   if (ev.key === 'Enter') {
     let replyComment = $(this).val();
@@ -248,22 +230,13 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
       formUpdateComment.append('user_create', ct.name);
 
       let replyId = $(this).data('replyid');
-
-      // console.log('reply atas', replyingComment);
+      let commentId = $(this).data('commentid');
+      
       $(this).attr('readonly', true);
       let res = await globalUpdateReplyComment('POST', formUpdateComment);
       $(this).removeAttr('readonly');
       if (res != 500) {
-        res.data = res.data[0];
-        var maxId = Number.MIN_VALUE;
-        $('.rowDelete').each(function (item) {
-          maxId = Math.max(maxId, $(this).data('index'))
-        });
-        let indexNew = maxId + 1;
-        let htmlReply = '<div class="row mb-3 rowDelete" data-index=' + indexNew + '><div class="col-lg-2 nameReply" style="background:'+window['colorName'+res.data.user_create]+'" data-toggle="tooltip" data-placement="bottom" title="' + res.data.comment + '"><span class="initialName">' + getInitials(res.data.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-10"><textarea data-aidi=' + res.data._id + ' data-index=' + indexNew + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + res.data.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply" data-own=' + res.data._id + ' data-aidi=' + res.data._id + ' data-index=' + indexNew + ' data-id=' + res.data._id + ' data-feather="trash-2"></i></div></div></div></div></div>';
-        $(htmlReply).insertBefore($('.rowDelete').first());
-        feather.replace();
-        $(this).val('');
+        await refreshComment(commentId);
       }
     }
 
@@ -429,7 +402,7 @@ $(document).on('click', '.deleteComment', function () {
   notifDeleteComment(deletedComment,groupId);
 })
 
-$(document).on('click', '.deleteReply', function () {
+$(document).on('click', '.deleteReply', async function () {
   let indexDelete = $(this).data('index');
   let indexComment = $(this).data('id');
   let taskid = $(this).data('aidi');
@@ -455,7 +428,10 @@ $(document).on('click', '.deleteReply', function () {
         '_id': ownId,
       }
 
-      globalUpdateReplyComment('DELETE', deletingComment);
+      let delReply = await globalUpdateReplyComment('DELETE', deletingComment);
+      if(delReply != 500){
+        await refreshComment(taskid);
+      }
       $('.rowDelete[data-index=' + indexDelete + ']').remove();
     },
     allowOutsideClick: () => !Swal.isLoading()
@@ -501,7 +477,7 @@ $(document).on('click', '.commentTask', async function () {
   }
 
   let intervalComment = setInterval(async () => {
-    if(!$(".txtAreaReply").is(":focus")){
+    if(!$(".txtAreaReply").is(":focus") || !$(".txtAreaEdit").is(":focus")){
       $('.commentContent[data-id='+id+']').empty();
       $('.commentContent[data-id='+id+']').append('Getting comment data...');
       let commentData = await getComment(id);
@@ -539,8 +515,6 @@ $(document).on('click', '.commentTask', async function () {
   } catch (e) {
 
   }
-
-  feather.replace();
 
   $('.commentInputArea').attr('data-id', id);
 })
@@ -1030,7 +1004,7 @@ async function triggerPopoverFileAttachment(id,groupid,name){
   if($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined){
     let htmlMember = '';
     window['fileAttachment'+id].forEach(element => {
-      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i data-feather="eye" class="showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
+      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
     });
     let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
 
@@ -1043,10 +1017,6 @@ async function triggerPopoverFileAttachment(id,groupid,name){
       html: true,
       sanitize: false
     });
-
-    $('.fileAttach[data-id=' + id + ']').on('shown.bs.popover', async function () {
-      feather.replace();
-    })
   }
 }
 
@@ -1084,7 +1054,6 @@ $(document).on('change', '.emploPic', function () {
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
   $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
-  feather.replace();
   globalUpdateTask('pic', updatePic);
 
 })
@@ -1092,8 +1061,11 @@ $(document).on('change', '.emploPic', function () {
 $(document).on('mouseenter', '.pic', function () {
   let id = $(this).data("id");
   if (!$('.pic[data-id=' + id + ']').children().hasClass('picVal')) {
-    $('.icon_user[data-id=' + id + ']').attr('data-feather', 'user-plus');
-    feather.replace();
+    if(!$('.icon_user[data-id=' + id + ']').hasClass('fa-user-plus')){
+      $('.icon_user[data-id=' + id + ']').removeClass('far fa-user fa-lg');
+      $('.icon_user[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
+    }
+    
   }
 
 })
@@ -1101,8 +1073,11 @@ $(document).on('mouseenter', '.pic', function () {
 $(document).on('mouseleave', '.pic', function () {
   let id = $(this).data("id");
   if (!$('.pic[data-id=' + id + ']').children().hasClass('picVal')) {
-    $('.icon_user[data-id=' + id + ']').attr('data-feather', 'user');
-    feather.replace();
+    if(!$('.icon_user[data-id=' + id + ']').hasClass('fa-user')){
+      $('.icon_user[data-id=' + id + ']').removeClass('fas fa-user-plus fa-lg');
+      $('.icon_user[data-id=' + id + ']').addClass('far fa-user fa-lg');
+    }
+    
   }
 })
 
@@ -1143,19 +1118,34 @@ async function triggerPopoverMemberList(id){
   }
 }
 
+$(document).on('mouseleave', '.team', function () {
+  let id = $(this).data("id");
+  if (!$('.team[data-id=' + id + ']').children().hasClass('picVal')) {
+    if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user')){
+      $('.icon_team[data-id=' + id + ']').removeClass('fas fa-user-plus fa-lg');
+      $('.icon_team[data-id=' + id + ']').addClass('far fa-user fa-lg');
+    }
+  }
+
+  if (!$('.team[data-id=' + id + ']').children().hasClass('addTeamIcon')) {
+    $('.addTeamIcon[data-id=' + id + ']').addClass('d-none');
+  }
+})
+
 $(document).on('mouseenter', '.team', function () {
   let id = $(this).data("id");
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
   let haveTeam = $(this).data('team');
   window['dataTeam' + id + ''] = [];
-
   if (!$('.team[data-id=' + id + ']').children().hasClass('addTeamIcon')) {
     if (haveTeam) {
       $('.addTeamIcon[data-id=' + id + ']').removeClass('d-none');
     } else {
-      $('.icon_team[data-id=' + id + ']').attr('data-feather', 'user-plus');
-      feather.replace();
+      if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user-plus')){
+        $('.icon_team[data-id=' + id + ']').removeClass('far fa-user fa-lg');
+        $('.icon_team[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
+      }
     }
   }
 
@@ -1285,22 +1275,11 @@ $(document).on('click', '.removeAllTeam', function () {
     'user_update': ct.name,
     'member': JSON.stringify([])
   }
-  let htmlRemove = '<div class="colTeam" data-id=' + id + '><i class="icon_team" data-id="' + id + '" data-feather="user"></i></div>';
+  
+  let htmlRemove = '<div class="colTeam" data-id=' + id + '><i class="far fa-user fa-lg icon_team" data-id="' + id + '"></i></div>';
   $('.team[data-id=' + id + ']').html(htmlRemove);
-  feather.replace();
+  $('.team[data-id=' + id + ']').data('team',false)
   globalUpdateTask('team', updateTeam);
-})
-
-$(document).on('mouseleave', '.team', function () {
-  let id = $(this).data("id");
-  if (!$('.team[data-id=' + id + ']').children().hasClass('picVal')) {
-    $('.icon_team[data-id=' + id + ']').attr('data-feather', 'user');
-    feather.replace();
-  }
-
-  if (!$('.team[data-id=' + id + ']').children().hasClass('addTeamIcon')) {
-    $('.addTeamIcon[data-id=' + id + ']').addClass('d-none');
-  }
 })
 
 
@@ -1358,8 +1337,6 @@ $(document).on('change', '.emploTeam', function () {
 
   console.log('the team after', window['dataTeam' + id + '']);
   console.log('the team current', window['dataCurrentTeam' + id + '']);
-
-  feather.replace();
 })
 
 $(document).on('click', '.submitTeam', function () {

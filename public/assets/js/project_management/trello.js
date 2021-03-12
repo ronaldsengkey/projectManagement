@@ -22,7 +22,6 @@ async function getTrelloPage(){
             $('#wrapper').first().remove();
             $(result).insertAfter($('#shortcutSection'));
             $('.beefup').beefup();
-            feather.replace();
         }
     })
 }
@@ -57,8 +56,6 @@ async function manageTrelloBoard(data){
     })
 
     loadingDeactivated();
-
-    feather.replace();
 }
 
 $(document).on('click', '.trelloBoardList', async function () {
@@ -150,9 +147,7 @@ function domTrelloTools(data) {
     
     $('.boardHeaderTrello').append(tools);
     if(pref != 'all') $('.switchTaskPref').prop('checked',true);
-    if ($('.removeSidebarTrello').length == 0) $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello mr-2"><i data-feather="arrow-left"></i></span>');
-
-    feather.replace();
+    if ($('.removeSidebarTrello').length == 0) $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello mr-2"><i class="fas fa-arrow-left fa-lg"></i></span>');
 }
 
 $(document).on('click','.switchTaskPref',function(){
@@ -241,12 +236,11 @@ $(document).on('click', '.removeSidebarTrello', function () {
         $('#sidebar-wrapper').removeClass('w767');
         $('#sidebar-wrapper').addClass('w768');
         $('.removeSidebarTrello').remove();
-        $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello mr-2"><i data-feather="arrow-left"></i></span>');
+        $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello mr-2"><i class="fas fa-arrow-left fa-lg"></i></span>');
     } else if ($('#sidebar-wrapper').hasClass('w768')) {
         $('#sidebar-wrapper').removeClass('w768');
         $('#sidebar-wrapper').addClass('w767');
         $('.removeSidebarTrello').remove();
-        $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello"><i data-feather="arrow-right"></i>&nbsp;</span>');
+        $('.boardPlaceHeaderTrello').prepend('<span class="removeSidebarTrello"><i class="fas fa-arrow-right fa-lg"></i>&nbsp;</span>');
     }
-    feather.replace();
 })
