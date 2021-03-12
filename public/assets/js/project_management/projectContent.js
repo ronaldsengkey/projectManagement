@@ -79,7 +79,6 @@ async function domBoardContent() {
     }
     let camelizeBoard = camelize(element.name);
     // let joinBoardAndId = camelize(element.name) + element.board_id;
-
     let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
     let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
       '<div class="card-header" id="' + camelizeBoard + '">' +
@@ -213,17 +212,17 @@ async function domTaskTable(data, id, result, boardMember) {
       if (havePic) {
         window['picTask' + element._id + ''] = element.pic;
         try {
-          let colorCheck = lightOrDark(window['color'+element.account_id]);
-          if(window['color'+element.account_id] == undefined){
+          let colorCheck = lightOrDark(window['color'+JSON.parse(element.pic)[0].account_id]);
+          if(window['color'+JSON.parse(element.pic)[0].account_id] == undefined){
             window['color'+JSON.parse(element.pic)[0].account_id] = getRandomColor()
             colorCheck = lightOrDark(window['color'+JSON.parse(element.pic)[0].account_id]);
           }
-          if(colorCheck == 'light') window['colorClass'+element.account_id] = 'text-dark fontWeight400';
-          else window['colorClass'+element.account_id] = 'text-white';
+          if(colorCheck == 'light') window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-dark fontWeight400';
+          else window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-white';
         } catch (error) {
-          window['colorClass'+element.account_id] = 'text-white';
+          window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-white';
         }
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+element.account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
+        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user" data-id="' + element._id + '" data-feather="user"></i></td>';
       }
@@ -311,7 +310,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       //if pic of task is login user then he / she is allowed to edit tasks
-      if(havePic && JSON.parse(element.pic)[0].account_name == ct.name){
+      if(havePic && JSON.parse(element.pic)[0].account_name == ct.name && result.user_create != ct.name){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
         // pic only allowed to edit status and priority
@@ -325,7 +324,7 @@ async function domTaskTable(data, id, result, boardMember) {
       } 
 
       //only if login user is part of member that is allowed to see his/her own task
-      if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee){
+      if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name){
         let member = element.member;
         member.forEach(elements => {
           if(elements.account_id == ct.id_employee){

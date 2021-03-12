@@ -470,7 +470,6 @@ $(document).on('click', '.commentTask', async function () {
   $('.commentContent').attr('data-id', id);
   $('.commentInputArea').attr('data-id',id);
   $('.commentTaskName').html(taskName);
-  $('.commentTaskMember').empty();
   $(".commentContent[data-id="+id+"]").empty();
   $(".commentContent[data-id="+id+"]").append('Getting comment data...');
 
@@ -502,17 +501,20 @@ $(document).on('click', '.commentTask', async function () {
   }
 
   let intervalComment = setInterval(async () => {
-    $('.commentContent[data-id='+id+']').empty();
-    $('.commentContent[data-id='+id+']').append('Getting comment data...');
-    let commentData = await getComment(id);
-    if (commentData != 500) {
-      if (commentData.length > 0) {
-        $('.commentContent[data-id='+id+']').empty('');
-        await domComment(commentData, id);
-      } else {
-        $('.commentContent[data-id='+id+']').empty();
+    if(!$(".txtAreaReply").is(":focus")){
+      $('.commentContent[data-id='+id+']').empty();
+      $('.commentContent[data-id='+id+']').append('Getting comment data...');
+      let commentData = await getComment(id);
+      if (commentData != 500) {
+        if (commentData.length > 0) {
+          $('.commentContent[data-id='+id+']').empty('');
+          await domComment(commentData, id);
+        } else {
+          $('.commentContent[data-id='+id+']').empty();
+        }
       }
     }
+    
   }, 20000);
 
   $('#commentModal').on('hidden.bs.modal', function (e) {
@@ -533,11 +535,9 @@ $(document).on('click', '.commentTask', async function () {
       } catch (error) {
         window['colorClass'+element.user_create] = 'text-white';
       }
-
-      $('.commentTaskMember').append('<div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="commentLogo" style="background:'+choose+'"><span class="initialPic '+window['colorClass'+element.user_create]+'">' + getInitials(element.account_name) + '</span></div>');
     });
   } catch (e) {
-    $('.commentTaskMember').append('<div>No member yet</div>');
+
   }
 
   feather.replace();
@@ -655,7 +655,23 @@ $(document).on('click','.savingCanvas',async function(){
   let idFile = $(this).data("id");
   let idTask = $(this).data("idTask");
   let groupId = $(this).data('groupid');
-  await exportCanvas(idFile,idTask,groupId);
+  let pdf = $(this).data('pdf');
+  let multiple = $(this).data('multiple')
+  if(pdf && multiple){
+    console.log('current page',parseInt($('.currPage').html()),window['signatureMultiple']);
+    window['signatureMultiple'].forEach(element => {
+      if(element.id == parseInt($('.currPage').html())){
+        element.image = window['signaturePad'].toDataURL('image/jpeg')
+      }
+    });
+    window['signatureMultiple'].forEach(element => {
+      delete element.id;
+    })
+    console.log('awal',window['signatureMultiple'],pdf,multiple);
+    await exportCanvas(idFile,idTask,groupId,window['signatureMultiple'],pdf,multiple);
+  } else {
+    await exportCanvas(idFile,idTask,groupId,window['signaturePad'].toDataURL('image/jpeg'),pdf,multiple);
+  }
 })
 
 $(document).on('click','.enablingCanvas',function(){
@@ -678,38 +694,102 @@ $(document).on('click','.clearingCanvas',function(){
   clearCanvas()
 })
 
-async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].toDataURL('image/jpeg')) {
-  let formAttachmentFile = new FormData();
-  let dataFile = JSON.stringify({
-      "fileId": fileId,
-      "file": file
-  })
-  formAttachmentFile.append('file', dataFile);
-  formAttachmentFile.append('id',idTask);
-  loadingActivated();
-  let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
-  loadingDeactivated();
-  if(attachFile == '200'){
-    disableCanvas();
-    containerOnLoad('cardGT'+groupId+'')
-    $('.headerGT[data-id='+groupId+']').click()
-    setTimeout(() => {
-        $('.headerGT[data-id='+groupId+']').click()
-    }, 500);
-    let intervalData = setInterval(() => {
-        if($('#table'+groupId).length > 0){
-            clearInterval(intervalData)
-            containerDone('cardGT'+groupId+'')
-        }
-    }, 1000);
-    $('#modalAttachmentFile').modal('toggle')
+async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].toDataURL('image/jpeg'),pdf = false,multiple = false) {
+  var pageWidth = 700;
+  var pageHeight = 1000;
+  let contentData;
+  if(pdf){
+    if(!multiple){
+      
+      contentData = [
+        {
+          // in browser is supported loading images via url from reference by name in images
+          image: file,
+          width: pageWidth,
+          height: pageHeight
+        },
+      ]
+    } else {
+      contentData = file;
+    }
+    var docDefinition = {
+      pageSize: {
+          width: pageWidth,
+          height: pageHeight
+      },
+      pageMargins: [1, 1, 1, 1],
+      content: contentData
+    };
+    console.log('conte',docDefinition);
+    pdfMake.createPdf(docDefinition).download();
+    // const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    // let fileDataPdf;
+    // pdfDocGenerator.getDataUrl(async (dataUrl) => {
+    //   console.log('data urlll',dataUrl);
+    //   fileDataPdf = dataUrl;
+
+    //   console.log('file ',fileDataPdf);
+    //   let formAttachmentFile = new FormData();
+    //   let dataFile = JSON.stringify({
+    //       "fileId": fileId,
+    //       "file": fileDataPdf
+    //   })
+    //   formAttachmentFile.append('file', dataFile);
+    //   formAttachmentFile.append('id',idTask);
+    //   loadingActivated();
+    //   let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+    //   loadingDeactivated();
+    //   if(attachFile == '200'){
+    //     disableCanvas();
+    //     containerOnLoad('cardGT'+groupId+'')
+    //     $('.headerGT[data-id='+groupId+']').click()
+    //     setTimeout(() => {
+    //         $('.headerGT[data-id='+groupId+']').click()
+    //     }, 500);
+    //     let intervalData = setInterval(() => {
+    //         if($('#table'+groupId).length > 0){
+    //             clearInterval(intervalData)
+    //             containerDone('cardGT'+groupId+'')
+    //         }
+    //     }, 1000);
+    //     $('#modalAttachmentFile').modal('toggle')
+    //   }
+    // });
+  } else {
+    let formAttachmentFile = new FormData();
+    let dataFile = JSON.stringify({
+        "fileId": fileId,
+        "file": file
+    })
+    formAttachmentFile.append('file', dataFile);
+    formAttachmentFile.append('id',idTask);
+    loadingActivated();
+    let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+    loadingDeactivated();
+    if(attachFile == '200'){
+      disableCanvas();
+      containerOnLoad('cardGT'+groupId+'')
+      $('.headerGT[data-id='+groupId+']').click()
+      setTimeout(() => {
+          $('.headerGT[data-id='+groupId+']').click()
+      }, 500);
+      let intervalData = setInterval(() => {
+          if($('#table'+groupId).length > 0){
+              clearInterval(intervalData)
+              containerDone('cardGT'+groupId+'')
+          }
+      }, 1000);
+      $('#modalAttachmentFile').modal('toggle')
+    }
   }
+  
 }
 
 var numPages = 0;
 
 var pdfDoc = null,
     pageNum = 1,
+    pageNumMultiple = 1,
     pageRendering = false,
     pageNumPending = null,
     scale = 1.2,
@@ -800,7 +880,7 @@ $(document).on('click','.showAttachment',async function(){
       let url = attachShow.data.source;
       var pdfData = atob(url.split('data:application/pdf;base64,')[1]);
       var loadingTask = pdfjsLib.getDocument({data: pdfData});
-      loadingTask.promise.then(function(pdf) {
+      loadingTask.promise.then(async function(pdf) {
         // Fetch the first page
         var pageNumber = 1;
         //How many pages it has
@@ -808,7 +888,12 @@ $(document).on('click','.showAttachment',async function(){
         pdfDoc = pdf;
         
         if(numPages > 1){
-          // pdf.getPage(pageNumber).then(handlePages)
+          $('.savingCanvas').data('pdf',true);
+          $('.savingCanvas').data('multiple',true);
+          pageNum = 1;
+          pageNumMultiple = 1;
+          window['signatureMultiple'] = [];
+          pdf.getPage(pageNumber).then(handlePages)
           // $('#canvasPlace').addClass('d-none');
           if($('.legendData').length == 0){
             let legend = '<div class="legendData"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
@@ -817,18 +902,12 @@ $(document).on('click','.showAttachment',async function(){
             document.getElementById('next').addEventListener('click', onNextPage);
             $('<span style="float:right;">Page : <span class="currPage"></span> / '+numPages+'</span>').appendTo($('.legendData'));
           }
-          pageNum = 1;
+          
           renderPage(pageNum);
-
-          // var docDefinition = {
-          //   content: [
-          //     {
-          //       image:'https://d24xkw9p26rh4b.cloudfront.net/cHJvbWFuOnRhc2s6dW5kZWZpbmVkOjE2MTUxOTcwNzIxMzY%3D.PNG'
-          //     }
-          //   ]
-          // };
-          // pdfMake.createPdf(docDefinition).download();
+          await activateCanvas(attachShow.data.source,true);
         } else {
+          $('.savingCanvas').data('pdf',true);
+          $('.savingCanvas').data('multiple',false);
           $('.legendData').remove();
           pdf.getPage(pageNumber).then(function(page) {
             var scale = 1.2;
@@ -854,14 +933,19 @@ $(document).on('click','.showAttachment',async function(){
               console.log('Page rendered');
             });
           });
+          await activateCanvas(attachShow.data.source);
         }
       }, function (reason) {
         // PDF loading error
         console.error(reason);
       });
       $('#canvasPlace').css('max-width','735px');
+    } else {
+      $('.savingCanvas').data('pdf',false);
+      $('.savingCanvas').data('multiple',false);
+      await activateCanvas(attachShow.data.source);
     }
-    await activateCanvas(attachShow.data.source);
+    
   }
 })
 
@@ -873,28 +957,51 @@ function handlePages(page)
 
     //We'll create a canvas for each page to draw it on
     var canvas = document.createElement( "canvas" );
-    canvas.style.display = "block";
-    canvas.className = 'canvas'+pageNum
-    canvas.style.border = "2px solid black";
+    canvas.setAttribute('id','canvasMultiple'+pageNumMultiple)
     var context = canvas.getContext('2d');
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
     //Draw it on the canvas
-    page.render({canvasContext: context, viewport: viewport});
+    let paged = page.render({canvasContext: context, viewport: viewport});
 
-    //Add it to the web page
-    // document.body.appendChild( canvas );
-    document.getElementById('newPlaces').appendChild( canvas );
-    $('<div style="float:right;margin-bottom:1.5em;">'+pageNum+' / '+numPages+'</div>').insertAfter($(canvas));
-    // $(canvas).appendTo($('#newPlaces'))
+    paged.promise.then(function() {
+      console.log('promisee');
+      document.getElementById('newPlaces').appendChild( canvas );
+      activateCanvasMultiple(pageNumMultiple)
 
-    //Move to next page
-    pageNum++;
-    if ( pdfDoc !== null && pageNum <= numPages )
+        //Move to next page
+      
+      pageNumMultiple++;
+      if ( pdfDoc !== null && pageNumMultiple <= numPages )
+      {
+          pdfDoc.getPage( pageNumMultiple ).then( handlePages );
+      }
+    });
+    
+}
+
+async function activateCanvasMultiple(id){
+  let canvasMultiple = document.querySelector("#canvasMultiple"+id);
+  let signaturePadMultiple = new SignaturePad(canvasMultiple);
+
+  signaturePadMultiple.on();
+  // Draws signature image from data URL.
+  // Returns signature image as an array of point groups
+  const data = signaturePadMultiple.toData();
+
+  // Draws signature image from an array of point groups
+  signaturePadMultiple.fromData(data);
+
+  window['signatureMultiple'].push(
     {
-        pdfDoc.getPage( pageNum ).then( handlePages );
+      // in browser is supported loading images via url from reference by name in images
+      id: id,
+      image: signaturePadMultiple.toDataURL('image/jpeg'),
+      width: 700,
+      height: 1000
     }
+  );
 }
 
 $(document).on('mouseenter', '.fileAttach', function () {
@@ -976,7 +1083,7 @@ $(document).on('change', '.emploPic', function () {
     'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
-  $('.pic[data-id=' + id + ']').html('<div class="memberLogo' + rand + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
+  $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
   feather.replace();
   globalUpdateTask('pic', updatePic);
 
@@ -1018,7 +1125,7 @@ $(document).on('mouseenter', '.moreMember', function () {
 async function triggerPopoverMemberList(id){
   let htmlMember = '';
   window['dataSpliceLeft'+id].forEach(element => {
-    htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+window['color'+element.account_id]+'"><span class="initialPic text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
+    htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+window['color'+element.account_id]+'"><span class="initialPic'+window['colorClass'+element.account_id]+' text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
   });
   let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
   let joinHtmlTeam =  empHtmlTeam;
@@ -1220,9 +1327,9 @@ $(document).on('change', '.emploTeam', function () {
   }
   
   if (haveTeam) {
-    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
   } else {
-    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic text-white">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
     $(this).data('team', true);
     $('.colTeam[data-id=' + id + ']').css('display', 'flex');
     $('.colTeam[data-id=' + id + ']').addClass('justify-content-center');
