@@ -11,7 +11,7 @@
   overflow: scroll;
  }
 
- .boardList{
+ .boardList, .analyticList{
    &:hover{
     background: #ffca28;
    }
@@ -190,6 +190,13 @@ textarea {
   width: 100%;
   grid-gap: 5px;
   grid-template-columns: 1fr 1fr 1fr;
+}
+
+.gridLayout5 { 
+  display: grid;
+  width: 100%;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }
 
 .nameReply {
@@ -427,6 +434,11 @@ textarea {
   width: 20vw !important;
 }
 
+#formFilter {
+  transform: translate3d(-100px, 38px, 0px) !important;
+  width: 25vw !important;
+}
+
 .inputCommentAreaAttachment > input {
   display: none;
 }
@@ -464,3 +476,29 @@ textarea {
 .modal-dialog.modal-notify.modal-warning .fab, .modal-dialog.modal-notify.modal-warning .far, .modal-dialog.modal-notify.modal-warning .fas {
   color: black;
 }
+
+// .canvasTask-legend ul {
+//   list-style: none;
+//   margin: 0;
+//   padding: 0;
+// }
+
+//   .canvasTask-legend span {
+//       display: inline-block;
+//       width: 14px;
+//       height: 14px;
+//       border-radius: 100%;
+//       margin-right: 16px;
+//       margin-bottom: -2px;
+//   }
+
+//   .canvasTask-legend li {
+//       margin-bottom: 10px;
+//       display: inline-block;
+//       margin-right: 10px;
+//   }
+
+//   #legendPlace {
+//     display: table-cell;
+//     vertical-align: middle;
+// }

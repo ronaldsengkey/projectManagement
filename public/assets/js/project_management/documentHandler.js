@@ -272,7 +272,7 @@ $(document).on('click', '.menuRename', async function () {
       callNotif(param);
       $('#modalOptions').modal('toggle');
       $('a[data-id='+renameBoardId+']').click();
-      $('#chartSection').remove();
+      $('#chartSection').addClass('d-none');
      } else if (result.responseCode == '401') {
       logoutNotif();
   } else {
@@ -315,7 +315,7 @@ $(document).on('click', '.menuDelete', function () {
           callNotif(param);
           $('#modalOptions').modal('toggle');
           $('a[data-id='+deleteBoardId+']').click();
-          $('#chartSection').remove();
+          $('#chartSection').addClass('d-none');
         } else if (result.responseCode == '401') {
           logoutNotif();
       } else {
@@ -909,7 +909,7 @@ $(document).on('click','.showAttachment',async function(){
         // PDF loading error
         console.error(reason);
       });
-      $('#canvasPlace').css('max-width','735px');
+      // $('#canvasPlace').css('max-width','735px');
     } else {
       $('.savingCanvas').data('pdf',false);
       $('.savingCanvas').data('multiple',false);
@@ -1086,6 +1086,31 @@ $('html').on('click', function(e) {
     $('[data-original-title]').popover('hide');
   }
 });
+let popoverLegend = false;
+$(document).on('mouseenter', '.moreLegend', function () {
+  let id = $(this).data("id");
+  if(!popoverLegend)
+  triggerPopoverLegend(id);
+})
+
+async function triggerPopoverLegend(id){
+  let htmlLegend = '';
+  window['legendLeft'+id].forEach(element => {
+    htmlLegend += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+element.color+'"><span class="text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
+  });
+  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlLegend+'</ul></div></div>';
+  if($('.moreLegend[data-id=' + id + ']').data("bs.popover") == undefined){
+    $('.moreLegend[data-id=' + id + ']').attr('tabindex', '0');
+    $('.moreLegend[data-id=' + id + ']').attr('data-toggle', 'popover');
+
+    $('.moreLegend[data-id=' + id + ']').popover({
+      content: empHtmlTeam,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
+  }
+}
 
 $(document).on('mouseenter', '.moreMember', function () {
   let id = $(this).data("id");
@@ -1397,7 +1422,7 @@ $(document).on('click', '.duedate', function () {
         'group_id': groupid,
         'name': name,
         'user_update': ct.name,
-        'due_date': date
+        'due_date': moment(date).format('YYYY-MM-DD')
       }
       $('.duedate[data-id="' + id + '"]').html(date);
       globalUpdateTask('duedate', updateDueDate);
@@ -1426,6 +1451,7 @@ $(document).on('click', '.timeline', function () {
 
   $('input[name="datesPicker"][data-id="' + $(this).data('id') + '"]').daterangepicker({
     opens: 'center',
+    minDate: new Date(),
     autoUpdateInput: false,
     ranges: {
         'Next 7 Days': [moment().add(6, 'days'), moment()],
@@ -1436,8 +1462,8 @@ $(document).on('click', '.timeline', function () {
       cancelLabel: 'Clear'
     }
   }, async function (start, end) {
-    let startDate = start.format('MM/DD/YYYY');
-    let endDate = end.format('MM/DD/YYYY');
+    let startDate = start.format('YYYY-MM-DD');
+    let endDate = end.format('YYYY-MM-DD');
     $('.timeline[data-id=' + id + ']').html(startDate + ' - ' + endDate);
 
     let updateTimeline = {

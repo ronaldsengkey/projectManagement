@@ -180,6 +180,7 @@ function actionGet(data) {
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
             if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
+            else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
             else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
             else result.data = cryptography.decryptMessage(result.data);
           } else {
@@ -1192,6 +1193,44 @@ fastify.delete("/deleteBoardTrello", async function (req, reply) {
     };
 
     let a = await actionDelete(data);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.get("/getChartAnalytic", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    console.log('qqq',req.headers.param);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/summary',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          target: 'chartAnalytic',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param: cryptography.aesEncrypt(
+            req.headers.param
+          ),
+        },
+      },
+    };
+
+    console.log("coba get analytical", data);
+    let a = await actionGet(data);
+    console.log('aaaaa',a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);

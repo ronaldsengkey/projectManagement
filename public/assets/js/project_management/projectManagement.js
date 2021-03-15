@@ -171,6 +171,31 @@ async function getBoard() {
 
 }
 
+async function getChartAnalytic(param = {}) {
+    return new Promise(async function(resolve){
+        let headers = {
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "secretKey": ct.secretKey,
+            "param": JSON.stringify(param),
+            "token": ct.token,
+            "signature": ct.signature
+        };
+        // console.log('rParam =>',rParam)
+        $.ajax({
+            url: 'getChartAnalytic',
+            method: 'GET',
+            headers: headers,
+            success: function (result) {
+                loadingDeactivated();
+                resolve(result);
+            }
+        })
+    })
+    
+}
+
 async function getSummaryBoard(category, param = '') {
     var userData = JSON.parse(localStorage.getItem('accountProfile'));
     var account_id = userData.id_employee;
@@ -229,10 +254,16 @@ async function manageBoardData(data) {
 
     $('.boardListPlaceMain').empty();
     $('.boardListPlacePrivate').empty();
+    $('.boardAnalytical').empty();
     let publicBoard = '<div class="publicBoardLabelName text-center mt-2" style="font-size: xx-large;">Public Board</div>';
     let privateBoard = '<div class="privateBoardLabel text-center mt-2" style="font-size: xx-large;">Private Board</div>';
+    let analyticBoard = '<div class="analyticalBoard text-center mt-5" style="font-size: x-large;">Analytic Board</div>';
     if ($('.publicBoardLabelName').length == 0) $(publicBoard).insertBefore($('.boardListPlaceMain'));
     if ($('.privateBoardLabel').length == 0) $(privateBoard).insertBefore($('.boardListPlacePrivate'));
+    if ($('.analyticalBoard').length == 0) $(analyticBoard).insertBefore($('.boardAnalytical'));
+
+    let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a><a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Personal Board</a>';
+    $('.boardAnalytical').append(analyticHTML);
 
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
@@ -466,6 +497,314 @@ async function manageNullBoardData(data) {
 
     // }
 }
+
+$(document).on('click','.analyticList',async function(){
+    $('.boardHeader').remove();
+    $('.boardContentData').empty();
+    $('.allChart').empty();
+    $('#chartSection').removeClass('d-none');
+    $('a[class*="boardList"]').removeClass('amber');
+    $('a[class*="boardList"]').removeClass('lighten-1');
+    $('a[class*="analyticList"]').removeClass('amber');
+    $('a[class*="analyticList"]').removeClass('lighten-1');
+    $(this).addClass('amber');
+    $(this).addClass('lighten-1');
+    switch($(this).data('for')){
+        case 'global':
+            loadingActivated();
+            let chartsAnalytic = await getChartAnalytic({});
+            loadingDeactivated();
+            console.log('aaaa',chartsAnalytic);
+            if(chartsAnalytic.responseCode == '200'){
+                let charts = '<div class="row" style="gap:3.5em;" id="boardTaskData"></div>';
+                $('.allChart').append(charts);
+                $('#boardTaskData').empty();
+                let html = '<div class="row"><div class="col-lg-6 text-left mt-2 ml-2" style="font-size: x-large;">Team Board</div><div class="col-lg-5 align-self-center" style="font-size: x-large;"><div class="row" style="justify-content:flex-end;">'+filterAllChart+filterChartType+'</div></div></div>';
+                $(html).insertBefore($('#boardTaskData'));
+                let html2 = '<div class="col-lg-12"><canvas id="canvasTask"></canvas></div></div><div class="col-lg-12 legend gridLayout5" id="legendPlace"></div>'
+                $('#boardTaskData').append(html2);
+                $('#pageFilter').empty();
+                $('input[name="datePickerRangeFilter"]').daterangepicker({
+                    opens: 'center',
+                    autoUpdateInput: false,
+                    minDate: new Date(),
+                    ranges: {
+                        'Next 7 Days': [moment().add(6, 'days'), moment()],
+                        'Next 30 Days': [moment().add(29, 'days'), moment()],
+                        'Rest of this month': [moment(), moment().endOf('month')],
+                    },
+                    locale: {
+                      cancelLabel: 'Clear'
+                    }
+                  }, async function (start, end) {
+                    let chartRangeFilter;
+                    let startDate = start.format('YYYY-MM-DD');
+                    let endDate = end.format('YYYY-MM-DD');
+                    loadingActivated();
+                    chartRangeFilter = await getChartAnalytic({startDate: startDate,endDate: endDate});
+                    loadingDeactivated();
+                    if(chartRangeFilter.responseCode == '200'){
+                        $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
+                        if(charted != null) charted.destroy();
+                        $("select.chartTaskEmployee").val("all");
+                        $("select.chartLabelName").val("all");
+                        $('#datepickerFilter').val('').attr('placeholder','all')
+                        await processTaskCanvas(chartRangeFilter.data,'canvasTask')
+                    }
+                })
+                $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function(ev, picker) {
+                    if(charted != null) charted.destroy();
+                    $("select.chartTaskEmployee").val("all");
+                    $("select.chartLabelName").val("all");
+                    $('#datepickerFilter').val('').attr('placeholder','all')
+                    $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
+                    await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                });
+
+                $(".dateDueFilter").datepicker({
+                    showButtonPanel: true,
+                    closeText: 'Clear',
+                        onClose: async function (dateText, inst) {
+                        if ($(window.event.srcElement).hasClass('ui-datepicker-close'))
+                        {
+                            document.getElementById(this.id).value = '';
+                            if(charted != null) charted.destroy();
+                            $("select.chartTaskEmployee").val("all");
+                            $("select.chartLabelName").val("all");
+                            $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
+                            await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                        }
+                    },
+                    onSelect: async function (date) {
+                        let dateUsed = moment(date).format('YYYY-MM-DD')
+                        loadingActivated();
+                        $("select.chartLabelName").val('all')
+                        let chartFiltered;
+                        chartFiltered = await getChartAnalytic({dueDate:dateUsed});
+                        loadingDeactivated();
+                        if(chartFiltered.responseCode == '200'){
+                            if(charted != null) charted.destroy();
+                            processTaskCanvas(chartFiltered.data,'canvasTask')
+                        }
+                    },
+                });
+                await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+            } else if(chartsAnalytic.responseCode == '401') {
+                logoutNotif()
+            } else {
+                toastrNotifFull(chartsAnalytic.responseMessage,'error')
+            }
+            break;
+        default:
+            let charts = '<div class="row"><div class="col-lg-12" id="boardTypeForMe"></div></div><div class="row"><div class="col-lg-12" id="boardType"></div></div>';
+            $('.allChart').append(charts);
+            loadingActivated();
+            $('#boardTypeForMe').empty()
+            await chartBoardChecking();
+            break;
+    }
+})
+
+var charted=null;
+
+async function distributeColorChart(data) {
+    data.forEach(element => {
+        element['color'] = getRandomColor()
+    });
+    // check duplicates
+    let checkDupe = hasDuplicates(data)
+    if (checkDupe) distributeColorChart(id);
+}
+
+$(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async function(){
+    let data = window['data'+$(this).data('id')];
+    $('.filterChartType').html($('select.chartType option:selected').text());
+    if($('#datepickerFilter').val() != ''){
+        let dates = moment($('#datepickerFilter').val()).format('YYYY-MM-DD');
+        let employeeName = $('select.chartTaskEmployee option:selected').text()
+        if(employeeName != 'all'){
+            let filteredData = await getChartAnalytic({'dueDate':dates,'member':employeeName})
+            console.log('fil',filteredData);
+        }
+        
+    }
+    var ctxB = document.getElementById($(this).data('id')).getContext('2d');
+    await distributeColorChart(data)
+    let name = [];
+    let count = [];
+    let background = [];
+    let status = $('select.chartLabelName option:selected').text();
+
+    data = data.filter(function(e){
+        if($('select.chartTaskEmployee option:selected').text() != 'all')
+        return e.name == $('select.chartTaskEmployee option:selected').text()
+        else return e;
+    })
+    
+    let colorStatus = [
+        {
+            status: 'all',
+            color: 'lightgrey'
+        },
+        {
+            status: 'pending',
+            color: 'teal'
+        },
+        {
+            status: 'working',
+            color: 'orange'
+        },
+        {
+            status: 'stuck',
+            color: 'red'
+        },
+        {
+            status: 'review',
+            color: 'cadetblue'
+        },
+        {
+            status: 'done',
+            color: 'limegreen'
+        },
+    ]
+    
+    if($('select.chartTaskEmployee option:selected').text() == 'all'){
+        data.forEach(element => {
+            if(status == 'all'){
+                name.push(element.name);
+                count.push(element.total)
+                background.push(element.color);
+            } else {
+                for (let [key, value] of Object.entries(element)) {
+                    if(key == status){
+                        name.push(element.name);
+                        count.push(value);
+                        background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    }
+                }
+            }
+        });
+    } else {
+        data.forEach(element => {
+            for (let [key, value] of Object.entries(element)) {
+                if(status != 'all'){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                        name.push(key);
+                        count.push(value);
+                        background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    }
+                } else {
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                        name.push(key);
+                        count.push(value);
+                        background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    }
+                }
+            }
+        });
+    }
+    window['dataChart'+$(this).data('id')] = data;
+    console.log('data',name,count,background);
+    if(charted != null) charted.destroy();
+    charted = new Chart(ctxB, {
+        type: $('select.chartType option:selected').text(),
+        data: {
+            labels: name,
+            datasets: [{
+                label: 'team board',
+                data: count,
+                backgroundColor: background,
+            }]
+        },
+        options: {
+            responsive: true,
+            scaleBeginAtZero: true,
+            legendCallback: function (chart) {
+                let htmls = '';
+                for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                        let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                        let colorFont;
+                        let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                        if(colorCheck == 'light') colorFont = 'text-dark';
+                        else colorFont = 'text-white';
+                        htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.5rem;">'+chart.data.labels[i]+'</div>'+
+                        '<div class="card-body text-center pb-3">'+
+                            '<p class="card-text '+colorFont+'" style="font-size:1.2rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                        '</div>'+
+                    '</div>';
+                }
+                return htmls;
+            },
+            legend: {display: false},
+        }
+    });
+    $("#legendPlace").html(charted.generateLegend());
+    $('.filterChartName').html($('select.chartTaskEmployee option:selected').text());
+})
+
+
+
+async function processTaskCanvas(data,idCanvas){
+    window['data'+idCanvas] = data;
+    window['dataChart'+idCanvas] = [];
+    var ctxB = document.getElementById(idCanvas).getContext('2d');
+    await distributeColorChart(data)
+    let name = [];
+    let count = [];
+    let background = [];
+    data.forEach(element => {
+        name.push(element.name);
+        count.push(element.total)
+        background.push(element.color);
+    });
+    $('.chartTaskEmployee').children().not(':first-child').remove();
+    name.forEach(element => {
+        $('.chartTaskEmployee').append('<option value="'+element+'">'+element+'</option>')
+    });
+    $('.chartLabelName').children().not(':first-child').remove();
+    statArray.forEach(element => {
+        $('.chartLabelName').append('<option value="'+element+'">'+element+'</option>')
+    });
+    $('.chartTaskEmployee').attr('data-id',idCanvas);
+    $('.chartLabelName').attr('data-id',idCanvas);
+    $('.chartType').attr('data-id',idCanvas);
+    charted = new Chart(ctxB, {
+        type: $('select.chartType option:selected').text(),
+        data: {
+            labels: name,
+            datasets: [{
+                label: 'team board',
+                data: count,
+                backgroundColor: background,
+            }]
+        },
+        options: {
+            responsive: true,
+            scaleBeginAtZero: true,
+            legendCallback: function (chart) {
+                let htmls = '';
+                for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                        let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                        let colorFont;
+                        let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                        if(colorCheck == 'light') colorFont = 'text-dark';
+                        else colorFont = 'text-white';
+                        htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.5rem;">'+chart.data.labels[i]+'</div>'+
+                        '<div class="card-body text-center pb-3">'+
+                            '<p class="card-text '+colorFont+'" style="font-size:1.2rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                        '</div>'+
+                    '</div>';
+                }
+                return htmls;
+            },
+            legend: {display: false},
+        }
+    });
+    $("#legendPlace").html(charted.generateLegend());
+}
+
 $(document).on('click', '.delBoard', async function () {
     let boardId = $(this).data('id');
     let boardName = $(this).data('name');
@@ -697,6 +1036,10 @@ async function distributeColor(id) {
 
 $(document).on('click', '.boardList', async function () {
     loadingActivated();
+    if($('.boardHeader').length == 0){
+        let headeerBoard = '<div class="boardHeader" style="border-bottom:1px solid #dee2e6;"></div>';
+        $(headeerBoard).insertBefore($('.boardContentData'))
+    }
     let boardName = capitalize($(this).data('name'));
     let camelized = camelize($(this).data('name'));
     let type = $(this).data('type');
@@ -706,10 +1049,11 @@ $(document).on('click', '.boardList', async function () {
     let member = $(this).data('member');
     $('a[class*="boardList"]').removeClass('amber');
     $('a[class*="boardList"]').removeClass('lighten-1');
+    $('a[class*="analyticList"]').removeClass('amber');
+    $('a[class*="analyticList"]').removeClass('lighten-1');
     $(this).addClass('amber');
     $(this).addClass('lighten-1');
     $('.boardContentData').empty();
-    $('.boardContent').empty();
     $('.boardHeader').empty();
     // if ($('.removeSidebar').length > 0) $('.removeSidebar').remove();
     try {
@@ -756,7 +1100,7 @@ $(document).on('click', '.boardList', async function () {
                 },
                 success: function (result) {
                     $('#chartSection').prev().removeClass('d-none');
-                    $('#chartSection').remove();
+                    $('#chartSection').addClass('d-none');
                     $('.boardContentData').html(result);
                     let pass = {
                         boardName: boardName,

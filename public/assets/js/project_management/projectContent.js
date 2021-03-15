@@ -2,7 +2,7 @@
 
 $(async function () {
   $('#chartSection').prev().removeClass('d-none');
-  $('#chartSection').remove();
+  $('#chartSection').addClass('d-none');
   await domBoardContent();
 })
 
@@ -16,14 +16,28 @@ function scrollHorizontally(e) {
 
 async function appendLegend(id){
   let gridTag = '<div class="container-fluid"><div id="legendOnly" class="row flex-row flex-nowrap legendOnly legend'+id+'" style="overflow-x:auto;white-space:nowrap;">';
-  window['dataBoardMember' + id + ''].forEach(function(e){
-    let checkColor = lightOrDark(e.color);
-    let colorFont;
-    if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
-    else colorFont = 'text-white';
-    // gridTag += '<div class="text-center"><span class="picLogo '+colorFont+' mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
-    gridTag += '<div class="col-2"><div data-toggle="tooltip" data-placement="bottom" title="' + e.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+e.color+';">'+getInitials(e.account_name)+'</div></div>';
-  })
+  
+
+  if(window['dataBoardMember' + id + ''].length > 3){
+    window['legendLeft'+id] = objDiff(window['dataBoardMember'+id],window['dataBoardMember'+id].slice(0,3));
+    window['dataBoardMember'+id].slice(0,3).forEach(function(e){
+      let checkColor = lightOrDark(e.color);
+      let colorFont;
+      if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+      else colorFont = 'text-white';
+      gridTag += '<div class="col-2"><div data-toggle="tooltip" data-placement="bottom" title="' + e.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+e.color+';">'+getInitials(e.account_name)+'</div></div>';
+    })
+    gridTag += '<div class="col-2 moreLegend" data-id='+id+'><div data-toggle="tooltip" data-placement="bottom" title="view more" style="width:40px;background:lightgrey;" class="picLogo mr-0"><i class="fas fa-ellipsis-h"></i></div></div>';
+  } else {
+    window['dataBoardMember' + id + ''].forEach(function(e){
+      let checkColor = lightOrDark(e.color);
+      let colorFont;
+      if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+      else colorFont = 'text-white';
+      // gridTag += '<div class="text-center"><span class="picLogo '+colorFont+' mr-0" style="background:'+e.color+';">'+getInitials(e.account_name)+'</span><div class="align-self-center mt-2">'+e.account_name+'</div></div>';
+      gridTag += '<div class="col-2"><div data-toggle="tooltip" data-placement="bottom" title="' + e.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+e.color+';">'+getInitials(e.account_name)+'</div></div>';
+    })
+  }
   gridTag += '</div></div>';
   // $(gridTag).insertBefore($('.accordionBoard'))
   $(gridTag).appendTo($('.memberAvatar'+id));

@@ -166,7 +166,7 @@ $(document).on('click', '.menuRenameTrello', function () {
                 if (result.responseCode == '200') {
                     toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + renameBoardId + ']').click();
-                    $('#chartSection').remove();
+                    $('#chartSection').addClass('d-none');
                 } else if (result.responseCode == '401') {
                     logoutNotif();
                 } else {
@@ -197,7 +197,7 @@ $(document).on('click', '.menuDeleteTrello', function () {
                 if (result.responseCode == '200') {
                     toastrNotifFull(result.responseMessage);
                     $('a[data-id=' + deleteBoardId + ']').click();
-                    $('#chartSection').remove();
+                    $('#chartSection').addClass('d-none');
                 } else if (result.responseCode == '401') {
                     logoutNotif();
                 } else {

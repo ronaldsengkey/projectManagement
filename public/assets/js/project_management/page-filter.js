@@ -194,7 +194,63 @@ const filterChartUp = `<div id="filterChart" class="dropdown mx-1">
     </div>
 </div>`
 
-function appendFilter(filters = '') {
+const statArray = ['pending','working','stuck','done','review'];
+
+const filterAllChart = `<div id="filterAllChart" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartAll" style="font-size:x-large">Filter</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formFilter" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group" style="gap:1em;">
+                    <span style="align-self:center;">Display by who :</span >
+                    <select class="form-control chartTaskEmployee">
+                        <option value="all" selected>all</option>
+                    </select>
+                </div>
+                <div class="input-group mt-3" style="gap:1em;">
+                    <span style="align-self:center;">Display status :</span >
+                    <select class="form-control chartLabelName">
+                        <option value="all" selected>all</option>
+                    </select>
+                </div>
+                <div class="input-group mt-3" style="gap:1em;">
+                    <span style="align-self:center;">Duedate :</span >
+                    <input type="text" id="datepickerFilter" class="form-control dateDueFilter" placeholder="all">
+                </div>
+                <div class="input-group mt-3" style="gap:1em;">
+                    <span style="align-self:center;">Timeline :</span >
+                    <input type="text" name="datePickerRangeFilter" class="form-control dateTimelineFilter" placeholder="all">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
+const filterChartType = `<div id="filterChartType" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartType" style="font-size:x-large">Chart Type</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formChart" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group">
+                    <select class="form-control chartType">
+                        <option value="pie" selected>pie</option>
+                        <option value="bar">bar</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
+function appendFilter(filters = '',task = false) {
     $('#pageFilter').empty();
 
     const lengthFilters = filters.length;
@@ -203,9 +259,12 @@ function appendFilter(filters = '') {
             $('#pageFilter').append(value);
         })
         
-        openFilterTimeRanges()
-        filterDatePicker()
-        dropdownSelected()
+        if(!task){
+            openFilterTimeRanges()
+            filterDatePicker()
+            dropdownSelected()
+        }
+        
     }
 }
 
