@@ -262,7 +262,11 @@ async function manageBoardData(data) {
     if ($('.privateBoardLabel').length == 0) $(privateBoard).insertBefore($('.boardListPlacePrivate'));
     if ($('.analyticalBoard').length == 0) $(analyticBoard).insertBefore($('.boardAnalytical'));
 
-    let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a><a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Personal Board</a>';
+    if(parseInt(ct.grade) <= 4){
+        let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a>';
+        $('.boardAnalytical').append(analyticHTML);
+    }
+    let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Personal Board</a>';
     $('.boardAnalytical').append(analyticHTML);
 
     boardMain.forEach(element => {
