@@ -246,8 +246,11 @@ async function getSummaryBoard(category, param = '') {
                         result.category = category;
                     }
                     // // result.category = category;
-                    if (result.responseCode == '200' || result.responseCode == '404') {
+                    if (result.responseCode == '200') {
                         resolve(manageSummaryBoardData(result));
+                    } else {
+                        loadingDeactivated();
+                        callNotif({type:'error',text:result.responseMessage})
                     }
                 }
                 
