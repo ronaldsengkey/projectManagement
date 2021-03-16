@@ -15,9 +15,10 @@ const filterTimeRanges = `<div id="filterTimeRanges" class="dropdown mx-1">
             </form>
             <div class="dropdown-divider"></div>
             <label class="px-3">Range</label>
-            <a class="dropdown-item px-3 active" href="#" data-selected="1" data-value="Last 7 days" onclick="filterPage(this)">Last 7 days</a>
-            <a class="dropdown-item px-3" href="#" data-selected="2" data-value="Last 30 days" onclick="filterPage(this)">Last 30 days</a>
-            <a class="dropdown-item px-3" href="#" data-selected="3" data-value="Last 365 days" onclick="filterPage(this)">Last 365 days</a>
+            <a class="dropdown-item timelineRange px-3 active" data-selected="0" data-value="all">All</a>
+            <a class="dropdown-item timelineRange px-3" data-selected="1" data-value="Last 7 days">Last 7 days</a>
+            <a class="dropdown-item timelineRange px-3" data-selected="2" data-value="Last 30 days">Last 30 days</a>
+            <a class="dropdown-item timelineRange px-3" data-selected="3" data-value="Last 365 days">Last 365 days</a>
         </div>
     </div>`
 
@@ -196,10 +197,81 @@ const filterChartUp = `<div id="filterChart" class="dropdown mx-1">
 
 const statArray = ['pending','working','stuck','done','review'];
 
+const personalGrade = `<select class="form-control chartTaskPersonal">
+<option value="mytask" selected>My Task</option>
+<option value="assign">Assign to Me</option>
+<option value="pictask">PIC of Task</option>
+<option value="mygroup">My Group Task</option>
+<option value="picgroup">PIC of Group Task</option>
+<option value="myboard">My Board</option>
+</select>`;
+
+const grade4AndBelow = `<select class="form-control chartTaskProject">
+<option value="boardTypeMe">Board Type</option>
+<option value="boardDivision">Board Division</option>
+<option value="boardMember">Board Member</option>
+<option value="boardTask">Board Task</option>
+<option value="taskByDivision">Task By Division</option>
+<option value="taskByStatus">Task By Status</option>
+<option value="taskByPriority">Task By Priority</option>
+<option value="taskByDivisionAndStatus">Task By Division & Status</option>
+<option value="taskByDeadLine">Task By Deadline</option>
+</select>`;
+
+const filterAllChartPersonalProject = `<div id="filterAllChartPersonalProject" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartProjectAll" style="font-size:initial">Filter</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formFilter" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group forFilterProject" style="gap:1em;">
+                    <span style="align-self:center;">Display by :</span >
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
+
+const filterAllChartPersonal = `<div id="filterAllChartPersonal" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartPersonalAll" style="font-size:initial">Filter</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formFilter" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group forFilter" style="gap:1em;">
+                    <span style="align-self:center;">Display by :</span >
+
+                </div>
+                <div class="input-group mt-3 ownProperty" style="gap:1em;">
+                    <span style="align-self:center;">Display status :</span >
+                    <select class="form-control chartLabelPersonal">
+                        <option value="all" selected>all</option>
+                    </select>
+                </div>
+                <div class="input-group mt-3 ownProperty" style="gap:1em;">
+                    <span style="align-self:center;">Duedate :</span >
+                    <input type="text" id="datepickerFilterPersonal" class="form-control dateDueFilterPersonal" placeholder="all">
+                </div>
+                <div class="input-group mt-3 ownProperty" style="gap:1em;">
+                    <span style="align-self:center;">Timeline :</span >
+                    <input type="text" name="datePickerRangeFilterPersonal" class="form-control dateTimelineFilterPersonal" placeholder="all">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
 const filterAllChart = `<div id="filterAllChart" class="dropdown mx-1">
     <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
     aria-expanded="false">
-        <span class="filterChartAll" style="font-size:x-large">Filter</span><span id="onFilter" class="text-success"></span>
+        <span class="filterChartAll" style="font-size:initial">Filter</span><span id="onFilter" class="text-success"></span>
         <i class="fas ml-2 fa-chevron-down"></i>
     </a>
     <div id="formFilter" class="dropdown-menu dropdown-menu-right px-3">
@@ -230,10 +302,50 @@ const filterAllChart = `<div id="filterAllChart" class="dropdown mx-1">
     </div>
 </div>`
 
+const filterChartTypePersonal = `<div id="filterChartTypePersonal" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartTypePersonalText" style="font-size:initial">Chart Type</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formChart" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group">
+                    <select class="form-control chartTypePersonal">
+                        <option value="pie" selected>pie</option>
+                        <option value="bar">bar</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
+const filterChartTypeProject = `<div id="filterChartTypeProject" class="dropdown mx-1">
+    <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">
+        <span class="filterChartTypeProjectText" style="font-size:initial">Chart Type</span><span id="onFilter" class="text-success"></span>
+        <i class="fas ml-2 fa-chevron-down"></i>
+    </a>
+    <div id="formChart" class="dropdown-menu dropdown-menu-right px-3">
+        <form onsubmit="return false">
+            <div class="form-group m-0">
+                <div class="input-group">
+                    <select class="form-control chartTypeProject">
+                        <option value="pie" selected>pie</option>
+                        <option value="bar">bar</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>`
+
 const filterChartType = `<div id="filterChartType" class="dropdown mx-1">
     <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
     aria-expanded="false">
-        <span class="filterChartType" style="font-size:x-large">Chart Type</span><span id="onFilter" class="text-success"></span>
+        <span class="filterChartType" style="font-size:initial">Chart Type</span><span id="onFilter" class="text-success"></span>
         <i class="fas ml-2 fa-chevron-down"></i>
     </a>
     <div id="formChart" class="dropdown-menu dropdown-menu-right px-3">
@@ -250,13 +362,18 @@ const filterChartType = `<div id="filterChartType" class="dropdown mx-1">
     </div>
 </div>`
 
-function appendFilter(filters = '',task = false) {
-    $('#pageFilter').empty();
+function appendFilter(filters = '',task = false,type = 'team') {
+    if(type == 'personal') $('#pageFilter').empty();
+    else if(type == 'team') $('#pageFilterTeam').empty();
+    else $('#pageFilterProject').empty();
 
     const lengthFilters = filters.length;
     if (lengthFilters > 0) {
         $.each(filters, function (key, value) {
-            $('#pageFilter').append(value);
+            if(type == 'personal') $('#pageFilter').append(value);
+            else if(type == 'team') $('#pageFilterTeam').append(value);
+            else $('#pageFilterProject').append(value);
+            
         })
         
         if(!task){

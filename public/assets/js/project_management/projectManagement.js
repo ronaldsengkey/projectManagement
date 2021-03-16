@@ -1,4 +1,5 @@
 'use strict'
+
 var arrBackground = ["rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"];
 var arrBackground2 = ["rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)", "rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"];
 var arrbBorder = ["rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"];
@@ -23,8 +24,8 @@ $(async function () {
                 await chartBoardChecking();
                 // appendFilter();
                 // appendFilter([filterTimeRanges]);
-                if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterChart]);
-                else appendFilter([filterTimeRanges, filterChartUp]);
+                if (parseInt(ct.grade) <= 5) appendFilter([filterAllChartPersonal, filterChartTypePersonal]);
+                else appendFilter([filterAllChartPersonal, filterChartTypePersonal]);
 
                 $('.filterChartName').html('Board Type');
                 $('.filterTimeName').html('Last 7 Days');
@@ -40,11 +41,15 @@ $(async function () {
         if(boardDataStatus == '401'){
             logoutNotif()
         } else {
-            await chartBoardChecking();
+            // await chartBoardChecking();
             // appendFilter();
             // appendFilter([filterTimeRanges]);
-            if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterChart]);
-            else appendFilter([filterTimeRanges, filterChartUp]);
+            // if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterChart]);
+            // else appendFilter([filterTimeRanges, filterChartUp]);
+
+            // $('.analyticList[data-for="personal"]').addClass('amber lighten-1')
+
+            $('.analyticList[data-for="personal"]').click();
 
             $('.filterChartName').html('Board Type');
             $('.filterTimeName').html('Last 7 Days');
@@ -204,43 +209,55 @@ async function getSummaryBoard(category, param = '') {
     }
     var rParam = extend({}, dParam, param);
     // console.log('rParam =>',rParam)
-    $.ajax({
-        url: 'summaryBoard',
-        method: 'GET',
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-            "param": JSON.stringify(rParam),
-            // "param": JSON.stringify({
-            //     "_id": "",
-            //     "type": "",
-            //     "name": "",
-            //     "account_id": account_id
-            // }),
-            "category": category,
-            "secretKey": ct.secretKey,
-            "token": ct.token,
-            "signature": ct.signature
-        },
-        success: function (result) {
-            loadingDeactivated();
-            console.log('category =>', category, ' =>', result);
-            // if(category == 'taskForMeByStatus'){
-            // }
-            if (ct.grade == '4' || ct.grade == '5') {
-                result.category = 'boardTypeForMe';
-                result.names = category;
-            } else {
-                result.category = 'boardType';
-                result.names = category;
+    return new Promise(async function(resolve){
+        $.ajax({
+            url: 'summaryBoard',
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "param": JSON.stringify(rParam),
+                // "param": JSON.stringify({
+                //     "_id": "",
+                //     "type": "",
+                //     "name": "",
+                //     "account_id": account_id
+                // }),
+                "category": category,
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            },
+            success: function (result) {
+                // loadingDeactivated();
+                console.log('category =>', category, ' =>', result);
+                if(category == 'boardTypeForMe' || category == 'myTaskStatus' || category == 'boardDivision' || category == 'boardMember' || category == 'boardTask' || category == 'taskByDivision' || category == 'taskByStatus' || category == 'taskByPriority' || category == 'taskByDivisionAndStatus' || category == 'taskByDeadLine'){
+                    resolve(result);
+                } else {
+                    if (parseInt(ct.grade) <= 5) {
+                        result.category = 'boardTypeForMe';
+                        result.names = category;
+                    } else {
+                        result.category = 'boardType';
+                        result.names = category;
+                    }
+                    if(category == 'taskForMe'){
+                        result.category = category;
+                    }
+                    // // result.category = category;
+                    if (result.responseCode == '200' || result.responseCode == '404') {
+                        resolve(manageSummaryBoardData(result));
+                    }
+                }
+                
+                // if(category == 'taskForMeByStatus'){
+                // }
+                
             }
-            // result.category = category;
-            if (result.responseCode == '200' || result.responseCode == '404') {
-                manageSummaryBoardData(result);
-            }
-        }
+        })
     })
+    
 }
 
 async function manageBoardData(data) {
@@ -262,11 +279,17 @@ async function manageBoardData(data) {
     if ($('.privateBoardLabel').length == 0) $(privateBoard).insertBefore($('.boardListPlacePrivate'));
     if ($('.analyticalBoard').length == 0) $(analyticBoard).insertBefore($('.boardAnalytical'));
 
-    if(parseInt(ct.grade) <= 4){
-        let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a>';
-        $('.boardAnalytical').append(analyticHTML);
+    // staff and below cannot see team board 
+    if(parseInt(ct.grade) > 4){
+        // let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a>';
+        // $('.boardAnalytical').append(analyticHTML);
+        $('.colTeams').remove();
+        $('.colPersonal').removeClass('col-lg-6').addClass('col-lg-12');
     }
-    let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Personal Board</a>';
+    if(parseInt(ct.grade) >= 3){
+        $('.colProjects').remove();
+    }
+    let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Chart Statistic</a>';
     $('.boardAnalytical').append(analyticHTML);
 
     boardMain.forEach(element => {
@@ -300,31 +323,201 @@ async function manageBoardData(data) {
     })
 }
 
-async function manageSummaryBoardData(data) {
+$(document).on('click','.timelineRange',async function(){
+    let startDate;
+    let endDate;
+    switch($(this).data('value')){
+        case 'Last 7 days':
+            startDate = moment().subtract(6, 'days').format('YYYY-MM-DD');
+            endDate = moment().format('YYYY-MM-DD')
+            break;
+        case 'Last 30 days':
+            startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+            endDate = moment().format('YYYY-MM-DD')
+            break;
+        case 'Last 365 days':
+            startDate = moment().subtract(365, 'days').format('YYYY-MM-DD');
+            endDate = moment().format('YYYY-MM-DD')
+            break;
+        default:
+            startDate = '';
+            endDate = '';
+            break;
+    }
+    $('.filterTimeName').html($(this).data('value'));
+    loadingActivated();
+    let chartRangeFilter;
+    let taskValue = $("select.chartTaskPersonal").val();
+    chartRangeFilter = await getChartAnalytic({startDate: startDate,endDate: endDate,name:ct.name,category:$("select.chartTaskPersonal").val(),type:'personal'});
+    loadingDeactivated();
+    if(chartRangeFilter.responseCode == '200'){
+        $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
+        if(myBarChart != null) myBarChart.destroy();
+        $("select.chartTaskPersonal").val(taskValue);
+        $("select.chartLabelPersonal").val("all");
+        $('#datepickerFilterPersonal').val('').attr('placeholder','all')
+        await processTaskCanvas(chartRangeFilter.data,'chartTaskForMe','personal')
+    }
+})
 
+async function fireMyTask(){
+    loadingActivated();
+    let chAnalytic = await getChartAnalytic({category:'mytask',name:ct.name,type:'personal'})
+    loadingDeactivated();
+    if(chAnalytic.responseCode == '200'){
+        if(myBarChart != null) myBarChart.destroy();
+        $('.chartLabelPersonal').children().not(':first-child').remove();
+        statArray.forEach(element => {
+            $('.chartLabelPersonal').append('<option value="'+element+'">'+element+'</option>')
+        });
+        $('.publicBoardLabel').html('Personal Board');
+        $('input[name="datePickerRangeFilterPersonal"]').daterangepicker({
+            opens: 'center',
+            autoUpdateInput: false,
+            minDate: new Date(),
+            ranges: {
+                'Next 7 Days': [moment().add(6, 'days'), moment()],
+                'Next 30 Days': [moment().add(29, 'days'), moment()],
+                'Rest of this month': [moment(), moment().endOf('month')],
+            },
+            locale: {
+            cancelLabel: 'Clear'
+            }
+        }, async function (start, end) {
+            let chartRangeFilter;
+            let startDate = start.format('YYYY-MM-DD');
+            let endDate = end.format('YYYY-MM-DD');
+            loadingActivated();
+            chartRangeFilter = await getChartAnalytic({startDate: startDate,endDate: endDate,name:ct.name,category:$("select.chartTaskPersonal").val(),type:'personal'});
+            loadingDeactivated();
+            if(chartRangeFilter.responseCode == '200'){
+                $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
+                if(myBarChart != null) myBarChart.destroy();
+                $("select.chartTaskPersonal").val("mytask");
+                $("select.chartLabelPersonal").val("all");
+                $('#datepickerFilterPersonal').val('').attr('placeholder','all')
+                await processTaskCanvas(chartRangeFilter.data,'chartTaskForMe','personal')
+            }
+        })
+        $('input[name="datePickerRangeFilterPersonal"]').on('cancel.daterangepicker', async function(ev, picker) {
+            if(myBarChart != null) myBarChart.destroy();
+            $("select.chartTaskPersonal").val("mytask");
+            $("select.chartLabelPersonal").val("all");
+            $('#datepickerFilterPersonal').val('').attr('placeholder','all')
+            $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder','all');
+            await processTaskCanvas(chAnalytic.data, 'chartTaskForMe','personal');
+        });
+        $(".dateDueFilterPersonal").datepicker({
+            showButtonPanel: true,
+            closeText: 'Clear',
+                onClose: async function (dateText, inst) {
+                if ($(window.event.srcElement).hasClass('ui-datepicker-close'))
+                {
+                    document.getElementById(this.id).value = '';
+                    if(myBarChart != null) myBarChart.destroy();
+                    $("select.chartTaskPersonal").val("mytask");
+                    $("select.chartLabelPersonal").val("all");
+                    $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder','all');
+                    await processTaskCanvas(chAnalytic.data, 'chartTaskForMe','personal');
+                }
+            },
+            onSelect: async function (date) {
+                let dateUsed = moment(date).format('YYYY-MM-DD')
+                loadingActivated();
+                $("select.chartLabelPersonal").val('all')
+                let chartFiltered;
+                chartFiltered = await getChartAnalytic({dueDate:dateUsed,name:ct.name,category:$("select.chartTaskPersonal").val(),type:'personal'});
+                loadingDeactivated();
+                if(chartFiltered.responseCode == '200'){
+                    if(myBarChart != null) myBarChart.destroy();
+                    await processTaskCanvas(chartFiltered.data,'chartTaskForMe','personal')
+                }
+            },
+        });
+        await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+    } else {
+        callNotif({type:'error',text:chAnalytic.responseMessage})
+    }
+}
+async function manageSummaryBoardData(data,idCanvas='chartTaskForMe') {
+    let pageFilterr = '<div id="pageFilter" class="d-flex flex-row-reverse align-items-center p-3"></div>';
     if (data.data != undefined || data.data != null) {
         var result = JSON.stringify(data.data);
         var divId = data.category;
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
         var chartId = 'chart' + chartName;
-        console.log('data summary', data);
+        console.log('data summary', data,data.category,data.names,chartId);
+        if($('#legendPlacePersonal').length > 0 && idCanvas == 'chartTaskForMe') $('#legendPlacePersonal').empty();
+        if($('#legendPlaceProject').length > 0 && idCanvas != 'chartTaskForMe') $('#legendPlaceProject').empty();
 
         if (data.names == 'taskByDivisionAndStatus') {
-            $('#' + divId).empty();
-            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">' + splitCamel(data.names) + '</div>';
-            html += '<canvas id="' + chartId + '" class="p-2"></canvas>';
-            $('#' + divId).html(html);
-            await getDoubleBarChart(data.names, result);
+            // if($('.publicBoardLabel').length == 0){
+            //     $('#' + divId).empty();
+            //     let html = '<div class="row"><div class="col-lg-4 publicBoardLabel text-start align-self-center mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+            //     html += '<div class="row"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam"></div></div>';
+            //     $('#' + divId).html(html);
+
+            //     $(pageFilterr).appendTo($('.filterPlace'))
+            //     appendFilter([filterAllChartPersonal,filterChartTypePersonal],false,'personal');
+            //     // if (parseInt(ct.grade) > 4) {
+            //     //     $('.forFilter').append(grade5andAbove)
+            //     // } 
+            //     // else {
+            //     //     $('.forFilter').append(grade4andDown)
+            //     // }
+            //     $('.forFilter').append(personalGrade);
+
+            //     $('.filterChartPersonalAll').css('font-size','initial')
+            //     $('.filterChartTypePersonal').css('font-size','initial')
+            //     $('.filterChartName').html('Board Type');
+            //     $('.filterTimeName').html('All');
+
+            // }
+            
+
+            // // if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterAllChartPersonal,filterChartTypePersonal]);
+            // // else appendFilter([filterTimeRanges, filterChartUp]);
+
+            
+            // if(data.category == 'boardTypeForMe'){
+            //     await getDoubleBarChart(data.names, result);
+            // }
+            
         } else {
-            $('#' + divId).empty();
-            let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">' + splitCamel(data.names) + '</div>';
-            html += '<canvas id="' + chartId + '" class="p-2"></canvas>';
-            $('#' + divId).html(html);
-            await getBarChart(data.names, result);
+            if($('.publicBoardLabel').length == 0){
+                $('#' + divId).empty();
+                let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+                if(idCanvas == 'chartTaskForMe')
+                html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+                else 
+                html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+                $('#' + divId).html(html);
+
+                $(pageFilterr).appendTo($('.filterPlace'))
+                appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
+                // if (parseInt(ct.grade) > 4) {
+                //     $('.forFilter').append(grade5andAbove)
+                // } 
+                // else {
+                //     $('.forFilter').append(grade4andDown)
+                // }
+                $('.forFilter').append(personalGrade);
+
+                $('.filterChartPersonalAll').css('font-size','initial')
+                $('.filterChartTypePersonal').css('font-size','initial')
+                $('.filterChartName').html('Board Type');
+                $('.filterTimeName').html('All');
+            }
+
+            if(data.category == 'boardTypeForMe'){
+                await getBarChart(data.names, result,data.realCategory,idCanvas);
+            }
+            
         }
+        if(data.category != 'boardTypeForMe') fireMyTask()
     } else {
         let names;
-        if (ct.grade == '4' || ct.grade == '5') {
+        if (parseInt(ct.grade) <= 5) {
             names = 'boardTypeForMe';
         } else {
             names = 'boardType';
@@ -434,8 +627,15 @@ async function manageNullBoardData(data) {
     // let html = node.outerHTML;
 
     $('#' + divId).empty();
-    let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div>';
+    let html = '<div class="row"><div class="col-lg-6 publicBoardLabel text-start mt-2" style="font-size: x-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div><div class="col-lg-6 filterPlace"></div></div>';
     $('#' + divId).html(html);
+
+    $(pageFilterr).appendTo($('.filterPlace'))
+    if (parseInt(ct.grade) <= 5) appendFilter([filterTimeRanges, filterChart]);
+    else appendFilter([filterTimeRanges, filterChartUp]);
+
+    $('.filterChartName').html('Board Type');
+    $('.filterTimeName').html('Last 7 Days');
 
     // if(data.category == 'boardType'){
     //     $('#boardType').empty();
@@ -502,10 +702,52 @@ async function manageNullBoardData(data) {
     // }
 }
 
+$(document).on('change','.chartTaskProject, .chartTypeProject',async function(){
+    let dropValue = $('select.chartTaskProject option:selected').val();
+    loadingActivated();
+    if(dropValue == 'boardTypeMe') dropValue = 'boardTypeForMe';
+    let summaryBoard = await getSummaryBoard(dropValue);
+    loadingDeactivated();
+    if(summaryBoard.responseCode == '200'){
+        $('.filterChartTypeProjectText').html($('select.chartTypeProject option:selected').text())
+        if (ct.grade == '4' || ct.grade == '5') {
+            summaryBoard.category = 'boardTypeForMe';
+            summaryBoard.names = summaryBoard.category;
+            summaryBoard.realCategory = dropValue
+        } else {
+            summaryBoard.category = 'boardTypeForMe';
+            summaryBoard.names = summaryBoard.category;
+            summaryBoard.realCategory = dropValue
+        }
+        if(myProjectChart != null) myProjectChart.destroy();
+        manageSummaryBoardData(summaryBoard,'canvasTaskProject');
+    } else if(summaryBoard.responseCode == '404'){
+        if(myProjectChart != null) myProjectChart.destroy();
+        $('#legendPlaceProject').empty();
+    }
+})
+
+$(document).on('change','.chartTaskPersonal, .chartTypePersonal',async function(){
+    let dropValue = $('select.chartTaskPersonal option:selected').val();
+    loadingActivated();
+    let chAnalytic = await getChartAnalytic({category:dropValue,name:ct.name,type:'personal'})
+    loadingDeactivated();
+    $('#filterChartTypePersonal').removeClass('d-none');
+    $('.ownProperty').removeClass('d-none');
+    if(chAnalytic.responseCode == '200'){
+        if(myBarChart != null) myBarChart.destroy();
+        $('.chartLabelPersonal').val('all');
+        await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+    } else {
+        callNotif({type:'error',text:chAnalytic.responseMessage})
+    }
+    $('.filterChartTypePersonalText').html($('select.chartTypePersonal option:selected').text())
+})
+
 $(document).on('click','.analyticList',async function(){
     $('.boardHeader').remove();
     $('.boardContentData').empty();
-    $('.allChart').empty();
+    // $('.allChart').empty();
     $('#chartSection').removeClass('d-none');
     $('a[class*="boardList"]').removeClass('amber');
     $('a[class*="boardList"]').removeClass('lighten-1');
@@ -515,96 +757,139 @@ $(document).on('click','.analyticList',async function(){
     $(this).addClass('lighten-1');
     switch($(this).data('for')){
         case 'global':
-            loadingActivated();
-            let chartsAnalytic = await getChartAnalytic({});
-            loadingDeactivated();
-            console.log('aaaa',chartsAnalytic);
-            if(chartsAnalytic.responseCode == '200'){
-                let charts = '<div class="row" style="gap:3.5em;" id="boardTaskData"></div>';
-                $('.allChart').append(charts);
-                $('#boardTaskData').empty();
-                let html = '<div class="row"><div class="col-lg-6 text-left mt-2 ml-2" style="font-size: x-large;">Team Board</div><div class="col-lg-5 align-self-center" style="font-size: x-large;"><div class="row" style="justify-content:flex-end;">'+filterAllChart+filterChartType+'</div></div></div>';
-                $(html).insertBefore($('#boardTaskData'));
-                let html2 = '<div class="col-lg-12"><canvas id="canvasTask"></canvas></div></div><div class="col-lg-12 legend gridLayout5" id="legendPlace"></div>'
-                $('#boardTaskData').append(html2);
-                $('#pageFilter').empty();
-                $('input[name="datePickerRangeFilter"]').daterangepicker({
-                    opens: 'center',
-                    autoUpdateInput: false,
-                    minDate: new Date(),
-                    ranges: {
-                        'Next 7 Days': [moment().add(6, 'days'), moment()],
-                        'Next 30 Days': [moment().add(29, 'days'), moment()],
-                        'Rest of this month': [moment(), moment().endOf('month')],
-                    },
-                    locale: {
-                      cancelLabel: 'Clear'
-                    }
-                  }, async function (start, end) {
-                    let chartRangeFilter;
-                    let startDate = start.format('YYYY-MM-DD');
-                    let endDate = end.format('YYYY-MM-DD');
-                    loadingActivated();
-                    chartRangeFilter = await getChartAnalytic({startDate: startDate,endDate: endDate});
-                    loadingDeactivated();
-                    if(chartRangeFilter.responseCode == '200'){
-                        $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
+            break;
+        default:
+            if($('.colTeam').length > 0){
+                loadingActivated();
+                let chartsAnalytic = await getChartAnalytic({});
+                loadingDeactivated();
+                if(chartsAnalytic.responseCode == '200'){
+                    $('.colTeam').empty();
+                    let charts = '<div class="row" style="gap:3.5em;" id="boardTaskData"></div';
+                    $('.colTeam').append(charts);
+                    $('#boardTaskData').empty();
+                    let html = '<div class="row"><div class="col-lg-4 text-start mt-2 align-self-center" style="font-size: x-large;">Team Board</div><div class="col-lg-8 placeForFilter"></div></div>';
+                    $(html).insertBefore($('#boardTaskData'));
+                    let html2 = '<div class="col-lg-12"><canvas id="canvasTask"></canvas></div></div><div class="col-lg-12 legend gridLayout3" id="legendPlace"></div>'
+                    $('#boardTaskData').append(html2);
+                    $('#pageFilter').empty();
+                    let pageFilterr = '<div id="pageFilterTeam" class="d-flex flex-row-reverse align-items-center p-3"></div>';
+                    $(pageFilterr).appendTo($('.placeForFilter'));
+                    appendFilter([filterAllChart, filterChartType],false,'team');
+                    $('input[name="datePickerRangeFilter"]').daterangepicker({
+                        opens: 'center',
+                        autoUpdateInput: false,
+                        minDate: new Date(),
+                        ranges: {
+                            'Next 7 Days': [moment().add(6, 'days'), moment()],
+                            'Next 30 Days': [moment().add(29, 'days'), moment()],
+                            'Rest of this month': [moment(), moment().endOf('month')],
+                        },
+                        locale: {
+                        cancelLabel: 'Clear'
+                        }
+                    }, async function (start, end) {
+                        let chartRangeFilter;
+                        let startDate = start.format('YYYY-MM-DD');
+                        let endDate = end.format('YYYY-MM-DD');
+                        loadingActivated();
+                        chartRangeFilter = await getChartAnalytic({startDate: startDate,endDate: endDate});
+                        loadingDeactivated();
+                        if(chartRangeFilter.responseCode == '200'){
+                            $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
+                            if(charted != null) charted.destroy();
+                            $("select.chartTaskEmployee").val("all");
+                            $("select.chartLabelName").val("all");
+                            $('#datepickerFilter').val('').attr('placeholder','all')
+                            await processTaskCanvas(chartRangeFilter.data,'canvasTask')
+                        }
+                    })
+                    $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function(ev, picker) {
                         if(charted != null) charted.destroy();
                         $("select.chartTaskEmployee").val("all");
                         $("select.chartLabelName").val("all");
                         $('#datepickerFilter').val('').attr('placeholder','all')
-                        await processTaskCanvas(chartRangeFilter.data,'canvasTask')
-                    }
-                })
-                $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function(ev, picker) {
-                    if(charted != null) charted.destroy();
-                    $("select.chartTaskEmployee").val("all");
-                    $("select.chartLabelName").val("all");
-                    $('#datepickerFilter').val('').attr('placeholder','all')
-                    $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
-                    await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
-                });
+                        $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
+                        await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                    });
 
-                $(".dateDueFilter").datepicker({
-                    showButtonPanel: true,
-                    closeText: 'Clear',
-                        onClose: async function (dateText, inst) {
-                        if ($(window.event.srcElement).hasClass('ui-datepicker-close'))
-                        {
-                            document.getElementById(this.id).value = '';
-                            if(charted != null) charted.destroy();
-                            $("select.chartTaskEmployee").val("all");
-                            $("select.chartLabelName").val("all");
-                            $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
-                            await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
-                        }
-                    },
-                    onSelect: async function (date) {
-                        let dateUsed = moment(date).format('YYYY-MM-DD')
-                        loadingActivated();
-                        $("select.chartLabelName").val('all')
-                        let chartFiltered;
-                        chartFiltered = await getChartAnalytic({dueDate:dateUsed});
-                        loadingDeactivated();
-                        if(chartFiltered.responseCode == '200'){
-                            if(charted != null) charted.destroy();
-                            processTaskCanvas(chartFiltered.data,'canvasTask')
-                        }
-                    },
-                });
-                await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
-            } else if(chartsAnalytic.responseCode == '401') {
-                logoutNotif()
-            } else {
-                toastrNotifFull(chartsAnalytic.responseMessage,'error')
+                    $(".dateDueFilter").datepicker({
+                        showButtonPanel: true,
+                        closeText: 'Clear',
+                            onClose: async function (dateText, inst) {
+                            if ($(window.event.srcElement).hasClass('ui-datepicker-close'))
+                            {
+                                document.getElementById(this.id).value = '';
+                                if(charted != null) charted.destroy();
+                                $("select.chartTaskEmployee").val("all");
+                                $("select.chartLabelName").val("all");
+                                $('input[name="datePickerRangeFilter"]').val('').attr('placeholder','all');
+                                await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                            }
+                        },
+                        onSelect: async function (date) {
+                            let dateUsed = moment(date).format('YYYY-MM-DD')
+                            loadingActivated();
+                            $("select.chartLabelName").val('all')
+                            let chartFiltered;
+                            chartFiltered = await getChartAnalytic({dueDate:dateUsed});
+                            loadingDeactivated();
+                            if(chartFiltered.responseCode == '200'){
+                                if(charted != null) charted.destroy();
+                                await processTaskCanvas(chartFiltered.data,'canvasTask')
+                            }
+                        },
+                    });
+                    await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                } else if(chartsAnalytic.responseCode == '401') {
+                    logoutNotif()
+                } else {
+                    toastrNotifFull(chartsAnalytic.responseMessage,'error')
+                }
             }
-            break;
-        default:
-            let charts = '<div class="row"><div class="col-lg-12" id="boardTypeForMe"></div></div><div class="row"><div class="col-lg-12" id="boardType"></div></div>';
+            
+            $('.allChart').empty();
+            let charts = '<div class="row"><div class="col-lg-12" id="taskForMe"></div></div><div class="row"><div class="col-lg-12" id="boardType"></div></div>';
             $('.allChart').append(charts);
             loadingActivated();
-            $('#boardTypeForMe').empty()
+            $('#taskForMe').empty()
             await chartBoardChecking();
+
+            if($('.colProject').length > 0){
+
+                $('.colProject').empty();
+                let charts = '<div class="row" style="gap:3.5em;" id="projectTaskData"></div';
+                $('.colProject').append(charts);
+                $('#projectTaskData').empty();
+                let html = '<div class="row"><div class="col-lg-4 text-start mt-2 align-self-center" style="font-size: x-large;">Project Board</div><div class="col-lg-8 placeForFilterProject"></div></div>';
+                $(html).insertBefore($('#projectTaskData'));
+                let html2 = '<div class="col-lg-12"><canvas id="canvasTaskProject"></canvas></div></div><div class="col-lg-12 gridLayout3" id="legendPlaceProject"></div>'
+                $('#projectTaskData').append(html2);
+                $('#pageFilterProject').empty();
+                let pageFilterrProject = '<div id="pageFilterProject" class="d-flex flex-row-reverse align-items-center p-3"></div>';
+                $(pageFilterrProject).appendTo($('.placeForFilterProject'));
+                appendFilter([filterAllChartPersonalProject, filterChartTypeProject],true,'project');
+                $('.forFilterProject').append(grade4AndBelow);
+                loadingActivated()
+                let summaryBoard = await getSummaryBoard('boardTypeForMe');
+                loadingDeactivated();
+                if(summaryBoard.responseCode == '200'){
+                    if (ct.grade == '4' || ct.grade == '5') {
+                        summaryBoard.category = 'boardTypeForMe';
+                        summaryBoard.names = summaryBoard.category;
+                        summaryBoard.realCategory = 'boardTypeForMe'
+                    } else {
+                        summaryBoard.category = 'boardTypeForMe';
+                        summaryBoard.names = summaryBoard.category;
+                        summaryBoard.realCategory = 'boardTypeForMe'
+                    }
+                    if(myProjectChart != null) myProjectChart.destroy();
+                    manageSummaryBoardData(summaryBoard,'canvasTaskProject');
+                } else if(summaryBoard.responseCode == '404'){
+                    if(myProjectChart != null) myProjectChart.destroy();
+                    $('#legendPlaceProject').empty();
+                }
+            }
             break;
     }
 })
@@ -619,6 +904,96 @@ async function distributeColorChart(data) {
     let checkDupe = hasDuplicates(data)
     if (checkDupe) distributeColorChart(id);
 }
+
+$(document).on('change','.chartLabelPersonal',async function(){
+    let data = window['data'+$(this).data('id')];
+    var ctxP = document.getElementById($(this).data('id')).getContext('2d');
+    await distributeColorChart(data)
+    let name = [];
+    let count = [];
+    let background = [];
+    let status = $('select.chartLabelPersonal option:selected').text();
+    let colorStatus = [
+        {
+            status: 'all',
+            color: 'lightgrey'
+        },
+        {
+            status: 'pending',
+            color: 'teal'
+        },
+        {
+            status: 'working',
+            color: 'orange'
+        },
+        {
+            status: 'stuck',
+            color: 'red'
+        },
+        {
+            status: 'review',
+            color: 'cadetblue'
+        },
+        {
+            status: 'done',
+            color: 'limegreen'
+        },
+    ]
+
+    data.forEach(element => {
+        for (let [key, value] of Object.entries(element)) {
+            if(status != 'all'){
+                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                    name.push(key);
+                    count.push(value);
+                    background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                }
+            } else {
+                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                    name.push(key);
+                    count.push(value);
+                    background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                }
+            }
+        }
+    });
+
+    if(myBarChart != null) myBarChart.destroy();
+    myBarChart = new Chart(ctxP, {
+        type: $('select.chartTypePersonal option:selected').val(),
+        data: {
+            labels: name,
+            datasets: [{
+                label: 'personal board',
+                data: count,
+                backgroundColor: background,
+            }]
+        },
+        options: {
+            responsive: true,
+            scaleBeginAtZero: true,
+            legendCallback: function (chart) {
+                let htmls = '';
+                for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                        let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                        let colorFont;
+                        let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                        if(colorCheck == 'light') colorFont = 'text-dark';
+                        else colorFont = 'text-white';
+                        htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+ chart.data.labels[i] +' :</div>'+
+                        '<div class="card-body text-center pb-3">'+
+                            '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                        '</div>'+
+                    '</div>';
+                }
+                return htmls;
+            },
+            legend: {display: false},
+        }
+    });
+    $("#legendPlacePersonal").html(myBarChart.generateLegend());
+})
 
 $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async function(){
     let data = window['data'+$(this).data('id')];
@@ -732,9 +1107,9 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
                         if(colorCheck == 'light') colorFont = 'text-dark';
                         else colorFont = 'text-white';
                         htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
-                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.5rem;">'+chart.data.labels[i]+'</div>'+
+                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+chart.data.labels[i]+'</div>'+
                         '<div class="card-body text-center pb-3">'+
-                            '<p class="card-text '+colorFont+'" style="font-size:1.2rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                            '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
                         '</div>'+
                     '</div>';
                 }
@@ -749,7 +1124,7 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
 
 
 
-async function processTaskCanvas(data,idCanvas){
+async function processTaskCanvas(data,idCanvas,category = 'team'){
     window['data'+idCanvas] = data;
     window['dataChart'+idCanvas] = [];
     var ctxB = document.getElementById(idCanvas).getContext('2d');
@@ -757,56 +1132,142 @@ async function processTaskCanvas(data,idCanvas){
     let name = [];
     let count = [];
     let background = [];
-    data.forEach(element => {
-        name.push(element.name);
-        count.push(element.total)
-        background.push(element.color);
-    });
-    $('.chartTaskEmployee').children().not(':first-child').remove();
-    name.forEach(element => {
-        $('.chartTaskEmployee').append('<option value="'+element+'">'+element+'</option>')
-    });
-    $('.chartLabelName').children().not(':first-child').remove();
-    statArray.forEach(element => {
-        $('.chartLabelName').append('<option value="'+element+'">'+element+'</option>')
-    });
-    $('.chartTaskEmployee').attr('data-id',idCanvas);
-    $('.chartLabelName').attr('data-id',idCanvas);
-    $('.chartType').attr('data-id',idCanvas);
-    charted = new Chart(ctxB, {
-        type: $('select.chartType option:selected').text(),
-        data: {
-            labels: name,
-            datasets: [{
-                label: 'team board',
-                data: count,
-                backgroundColor: background,
-            }]
-        },
-        options: {
-            responsive: true,
-            scaleBeginAtZero: true,
-            legendCallback: function (chart) {
-                let htmls = '';
-                for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+    if(category == 'personal'){
+        let colorStatus = [
+            {
+                status: 'all',
+                color: 'lightgrey'
+            },
+            {
+                status: 'pending',
+                color: 'teal'
+            },
+            {
+                status: 'working',
+                color: 'orange'
+            },
+            {
+                status: 'stuck',
+                color: 'red'
+            },
+            {
+                status: 'review',
+                color: 'cadetblue'
+            },
+            {
+                status: 'done',
+                color: 'limegreen'
+            },
+        ]
+
+        let status = $('select.chartLabelPersonal option:selected').text();
+
+        data.forEach(element => {
+            for (let [key, value] of Object.entries(element)) {
+                if(status != 'all'){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                        name.push(key);
+                        count.push(value);
+                        background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    }
+                } else {
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                        name.push(key);
+                        count.push(value);
+                        background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    }
+                }
+            }
+        });
+
+        $('.chartLabelPersonal').attr('data-id',idCanvas)
+        myBarChart = new Chart(ctxB, {
+            type: $('select.chartTypePersonal option:selected').val(),
+            data: {
+                labels: name,
+                datasets: [{
+                    label: 'personal board',
+                    data: count,
+                    backgroundColor: background,
+                }]
+            },
+            options: {
+                responsive: true,
+                scaleBeginAtZero: true,
+                legendCallback: function (chart) {
+                    let htmls = '';
+                    for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
                         let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
                         let colorFont;
                         let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                         if(colorCheck == 'light') colorFont = 'text-dark';
                         else colorFont = 'text-white';
                         htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
-                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.5rem;">'+chart.data.labels[i]+'</div>'+
+                        '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+ chart.data.labels[i] +' :</div>'+
                         '<div class="card-body text-center pb-3">'+
-                            '<p class="card-text '+colorFont+'" style="font-size:1.2rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                            '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
                         '</div>'+
                     '</div>';
                 }
-                return htmls;
+                    return htmls;
+                },
+                legend: {display: false},
+            }
+        });
+        $("#legendPlacePersonal").html(myBarChart.generateLegend());
+    } else {
+        data.forEach(element => {
+            name.push(element.name);
+            count.push(element.total)
+            background.push(element.color);
+        });
+        $('.chartTaskEmployee').children().not(':first-child').remove();
+        name.forEach(element => {
+            $('.chartTaskEmployee').append('<option value="'+element+'">'+element+'</option>')
+        });
+        $('.chartLabelName').children().not(':first-child').remove();
+        statArray.forEach(element => {
+            $('.chartLabelName').append('<option value="'+element+'">'+element+'</option>')
+        });
+        $('.chartTaskEmployee').attr('data-id',idCanvas);
+        $('.chartLabelName').attr('data-id',idCanvas);
+        $('.chartType').attr('data-id',idCanvas);
+
+        charted = new Chart(ctxB, {
+            type: $('select.chartType option:selected').text(),
+            data: {
+                labels: name,
+                datasets: [{
+                    label: 'team board',
+                    data: count,
+                    backgroundColor: background,
+                }]
             },
-            legend: {display: false},
-        }
-    });
-    $("#legendPlace").html(charted.generateLegend());
+            options: {
+                responsive: true,
+                scaleBeginAtZero: true,
+                legendCallback: function (chart) {
+                    let htmls = '';
+                    for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                            let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                            let colorFont;
+                            let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                            if(colorCheck == 'light') colorFont = 'text-dark';
+                            else colorFont = 'text-white';
+                            htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                            '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+chart.data.labels[i]+' :</div>'+
+                            '<div class="card-body text-center pb-3">'+
+                                '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                            '</div>'+
+                        '</div>';
+                    }
+                    return htmls;
+                },
+                legend: {display: false},
+            }
+        });
+        $("#legendPlace").html(charted.generateLegend());
+    }
 }
 
 $(document).on('click', '.delBoard', async function () {
@@ -1908,6 +2369,9 @@ async function postGroupTask(body) {
     });
 }
 
+var myBarChart;
+var myProjectChart;
+
 async function getDoubleBarChart(chartName, data) {
     var nameArray = new Array();
     var workingOnItArray = new Array();
@@ -1925,7 +2389,7 @@ async function getDoubleBarChart(chartName, data) {
     });
 
     let chartUsed;
-    if (ct.grade == '4' || ct.grade == '5') {
+    if (parseInt(ct.grade) <= 5) {
         chartUsed = 'chartBoardTypeForMe';
     } else {
         chartUsed = 'chartBoardType';
@@ -1933,7 +2397,7 @@ async function getDoubleBarChart(chartName, data) {
 
     var ctxB = document.getElementById(chartUsed)
         .getContext('2d');
-    var myBarChart = new Chart(ctxB, {
+    myBarChart = new Chart(ctxB, {
         type: 'bar',
         data: {
             labels: nameArray,
@@ -1979,7 +2443,8 @@ async function getDoubleBarChart(chartName, data) {
         }
     });
 }
-async function getBarChart(chartName, data) {
+
+async function getBarChart(chartName, data,category,idCanvas) {
     var nameArray = new Array();
     var totalArray = new Array();
     var backgroundArray = new Array();
@@ -1988,7 +2453,7 @@ async function getBarChart(chartName, data) {
     var barId, labelName;
     var barName = chartName.charAt(0).toUpperCase() + chartName.slice(1);
     var barId = 'chart' + barName
-    console.log('barId =>', barId)
+    console.log('barId =>', barId,category)
 
     // $('#'+divId).empty();
     var chartType = 'pie';
@@ -2034,7 +2499,7 @@ async function getBarChart(chartName, data) {
     // }
     let labelused;
     let chartUsed;
-    if (ct.grade == '4' || ct.grade == '5') {
+    if (parseInt(ct.grade) <= 5) {
         labelused = 'lblBoardTypeForMe';
         chartUsed = 'chartBoardTypeForMe';
     } else {
@@ -2094,29 +2559,96 @@ async function getBarChart(chartName, data) {
         }
 
         try {
-            var ctxB = document.getElementById(chartUsed).getContext('2d');
-            var myBarChart = new Chart(ctxB, {
-                type: chartType,
-                data: {
-                    labels: nameArray,
-                    datasets: [{
-                        label: labelName,
-                        data: totalArray,
-                        backgroundColor: backgroundArray,
-                        borderColor: borderArray,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
+            if(idCanvas == 'chartTaskForMe'){
+                var ctxB = document.getElementById('chartTaskForMe').getContext('2d');
+                myBarChart = new Chart(ctxB, {
+                    type: chartType,
+                    data: {
+                        labels: nameArray,
+                        datasets: [{
+                            label: labelName,
+                            data: totalArray,
+                            backgroundColor: backgroundArray,
+                            borderColor: borderArray,
+                            borderWidth: 1
                         }]
-                    }
-                }
-            });
+                    },
+                    options: {
+                        responsive: true,
+                        scaleBeginAtZero: true,
+                        legendCallback: function (chart) {
+                            let htmls = '';
+                            for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                                    let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                                    let colorFont;
+                                    let boardTask = ~category.indexOf('board')
+                                    let plural;
+                                    if(boardTask){
+                                        plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'boards' : 'board'
+                                    } else {
+                                        plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                                    }
+                                    if(colorCheck == 'light') colorFont = 'text-dark';
+                                    else colorFont = 'text-white';
+                                    htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                                    '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.0rem;">'+ chart.data.labels[i] +'</div>'+
+                                    '<div class="card-body text-center pb-3">'+
+                                        '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                                    '</div>'+
+                                '</div>';
+                            }
+                            return htmls;
+                        },
+                        legend: {display: false},
+                    },
+                });
+                $("#legendPlacePersonal").html(myBarChart.generateLegend());
+            } else {
+                var ctxB = document.getElementById(idCanvas).getContext('2d');
+                myProjectChart = new Chart(ctxB, {
+                    type: $('select.chartTypeProject option:selected').val(),
+                    data: {
+                        labels: nameArray,
+                        datasets: [{
+                            label: labelName,
+                            data: totalArray,
+                            backgroundColor: backgroundArray,
+                            borderColor: borderArray,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scaleBeginAtZero: true,
+                        legendCallback: function (chart) {
+                            let htmls = '';
+                            for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+                                    let colorCheck = lightOrDark(chart.data.datasets[0].backgroundColor[i]);
+                                    let colorFont;
+                                    let boardTask = ~category.indexOf('board')
+                                    let plural;
+                                    if(boardTask){
+                                        plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'boards' : 'board'
+                                    } else {
+                                        plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
+                                    }
+                                    if(colorCheck == 'light') colorFont = 'text-dark';
+                                    else colorFont = 'text-white';
+                                    htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+                                    '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.0rem;">'+ chart.data.labels[i] +'</div>'+
+                                    '<div class="card-body text-center pb-3">'+
+                                        '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
+                                    '</div>'+
+                                '</div>';
+                            }
+                            return htmls;
+                        },
+                        legend: {display: false},
+                    },
+                });
+                $("#legendPlaceProject").html(myProjectChart.generateLegend());
+            }
+            
         } catch (error) {
 
         }
