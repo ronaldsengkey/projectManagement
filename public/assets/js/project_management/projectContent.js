@@ -333,7 +333,7 @@ async function domTaskTable(data, id, result, boardMember) {
         $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
         // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
         $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-          if($(element).attr('class') != 'status mediumPrio text-white'){
+          if($(element).attr('class') != 'status'){
             $('td.'+$(element).attr('class')).addClass('disableInputInside')
           }
         })
