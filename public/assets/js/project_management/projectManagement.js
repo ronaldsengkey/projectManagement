@@ -1,5 +1,4 @@
 'use strict'
-
 var arrBackground = ["rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"];
 var arrBackground2 = ["rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)", "rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"];
 var arrbBorder = ["rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"];
@@ -360,12 +359,19 @@ $(document).on('click','.timelineRange',async function(){
         $("select.chartLabelPersonal").val("all");
         $('#datepickerFilterPersonal').val('').attr('placeholder','all')
         await processTaskCanvas(chartRangeFilter.data,'chartTaskForMe','personal')
+    } else if(chartRangeFilter.responseCode == '401') {
+        logoutNotif();
+    } else if(chartRangeFilter.responseCode == '404') {
+        callNotif({type:'error',text:chartRangeFilter.responseMessage})
+        if(myBarChart != null) myBarChart.destroy();
+    } else {
+        callNotif({type:'error',text:chAnalytic.responseMessage})
     }
 })
 
 async function fireMyTask(){
     loadingActivated();
-    let chAnalytic = await getChartAnalytic({category:'mytask',name:ct.name,type:'personal'})
+    let chAnalytic = await getChartAnalytic({category:'assign',name:ct.name,type:'personal'})
     loadingDeactivated();
     if(chAnalytic.responseCode == '200'){
         if(myBarChart != null) myBarChart.destroy();
@@ -400,6 +406,13 @@ async function fireMyTask(){
                 $("select.chartLabelPersonal").val("all");
                 $('#datepickerFilterPersonal').val('').attr('placeholder','all')
                 await processTaskCanvas(chartRangeFilter.data,'chartTaskForMe','personal')
+            } else if(chartRangeFilter.responseCode == '401') {
+                logoutNotif();
+            } else if(chartRangeFilter.responseCode == '404') {
+                callNotif({type:'error',text:chartRangeFilter.responseMessage})
+                if(myBarChart != null) myBarChart.destroy();
+            } else {
+                callNotif({type:'error',text:chartRangeFilter.responseMessage})
             }
         })
         $('input[name="datePickerRangeFilterPersonal"]').on('cancel.daterangepicker', async function(ev, picker) {
@@ -434,10 +447,22 @@ async function fireMyTask(){
                 if(chartFiltered.responseCode == '200'){
                     if(myBarChart != null) myBarChart.destroy();
                     await processTaskCanvas(chartFiltered.data,'chartTaskForMe','personal')
+                }  else if(chartFiltered.responseCode == '401') {
+                    logoutNotif();
+                } else if(chartFiltered.responseCode == '404') {
+                    callNotif({type:'error',text:chartFiltered.responseMessage})
+                    if(myBarChart != null) myBarChart.destroy();
+                } else {
+                    callNotif({type:'error',text:chartFiltered.responseMessage})
                 }
             },
         });
         await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+    } else if(chAnalytic.responseCode == '401') {
+        logoutNotif();
+    } else if(chAnalytic.responseCode == '404') {
+        callNotif({type:'error',text:chAnalytic.responseMessage})
+        if(myBarChart != null) myBarChart.destroy();
     } else {
         callNotif({type:'error',text:chAnalytic.responseMessage})
     }
@@ -737,6 +762,11 @@ $(document).on('change','.chartTaskPersonal, .chartTypePersonal',async function(
         if(myBarChart != null) myBarChart.destroy();
         $('.chartLabelPersonal').val('all');
         await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+    } else if(chAnalytic.responseCode == '401') {
+        logoutNotif();
+    } else if(chAnalytic.responseCode == '404') {
+        callNotif({type:'error',text:chAnalytic.responseMessage})
+        if(myBarChart != null) myBarChart.destroy();
     } else {
         callNotif({type:'error',text:chAnalytic.responseMessage})
     }
@@ -801,6 +831,13 @@ $(document).on('click','.analyticList',async function(){
                             $("select.chartLabelName").val("all");
                             $('#datepickerFilter').val('').attr('placeholder','all')
                             await processTaskCanvas(chartRangeFilter.data,'canvasTask')
+                        }  else if(chartRangeFilter.responseCode == '401') {
+                            logoutNotif();
+                        } else if(chartRangeFilter.responseCode == '404') {
+                            callNotif({type:'error',text:chartRangeFilter.responseMessage})
+                            if(charted != null) charted.destroy();
+                        } else {
+                            callNotif({type:'error',text:chartRangeFilter.responseMessage})
                         }
                     })
                     $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function(ev, picker) {
@@ -836,6 +873,13 @@ $(document).on('click','.analyticList',async function(){
                             if(chartFiltered.responseCode == '200'){
                                 if(charted != null) charted.destroy();
                                 await processTaskCanvas(chartFiltered.data,'canvasTask')
+                            }  else if(chartFiltered.responseCode == '401') {
+                                logoutNotif();
+                            } else if(chartFiltered.responseCode == '404') {
+                                callNotif({type:'error',text:chartFiltered.responseMessage})
+                                if(charted != null) charted.destroy();
+                            } else {
+                                callNotif({type:'error',text:chartFiltered.responseMessage})
                             }
                         },
                     });
@@ -1001,8 +1045,23 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
         let dates = moment($('#datepickerFilter').val()).format('YYYY-MM-DD');
         let employeeName = $('select.chartTaskEmployee option:selected').text()
         if(employeeName != 'all'){
+            loadingActivated();
             let filteredData = await getChartAnalytic({'dueDate':dates,'member':employeeName})
-            console.log('fil',filteredData);
+            loadingDeactivated();
+            if(filteredData.responseCode == '200'){
+                data = filteredData.data;
+            }
+            else if(filteredData.responseCode == '401') {
+                logoutNotif();
+                return;
+            } else if(filteredData.responseCode == '404') {
+                callNotif({type:'error',text:filteredData.responseMessage})
+                if(charted != null) charted.destroy();
+                return;
+            } else {
+                callNotif({type:'error',text:filteredData.responseMessage})
+                return;
+            }
         }
         
     }

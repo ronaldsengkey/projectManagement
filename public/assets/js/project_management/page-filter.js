@@ -198,8 +198,8 @@ const filterChartUp = `<div id="filterChart" class="dropdown mx-1">
 const statArray = ['pending','working','stuck','done','review'];
 
 const personalGrade = `<select class="form-control chartTaskPersonal">
-<option value="mytask" selected>My Task</option>
-<option value="assign">Assign to Me</option>
+<option value="assign" selected>Assign to Me</option>
+<option value="mytask">My Task</option>
 <option value="pictask">PIC of Task</option>
 <option value="mygroup">My Group Task</option>
 <option value="picgroup">PIC of Group Task</option>

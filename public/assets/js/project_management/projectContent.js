@@ -43,23 +43,27 @@ async function appendLegend(id){
   $(gridTag).appendTo($('.memberAvatar'+id));
 }
 
-function createdByIcon(user,id){
-  if(user == ct.name){
-    let html;
-    window['dataBoardMember' + id + ''].forEach(element => {
-      if(element.account_name == ct.name){
-        let checkColor = lightOrDark(element.color);
-        let colorFont;
-        if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
-        else colorFont = 'text-white';
-        html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
-      }
-    });
-    if(html != undefined)
-    return html;
-    else return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
-  } else {
+function createdByIcon(user,id,boardType){
+  if(boardType != 'Private'){
     return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+  } else {
+    if(user == ct.name){
+      let html;
+      window['dataBoardMember' + id + ''].forEach(element => {
+        if(element.account_name == ct.name){
+          let checkColor = lightOrDark(element.color);
+          let colorFont;
+          if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+          else colorFont = 'text-white';
+          html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
+        }
+      });
+      if(html != undefined)
+      return html;
+      else return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+    } else {
+      return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+    }
   }
 }
 
@@ -103,7 +107,7 @@ async function domBoardContent() {
       '</button>' +
       '</h2>' +
       '</div>'+
-      '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id)+'</div>'+
+      '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
       '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a></div></div>'+
       
       '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
