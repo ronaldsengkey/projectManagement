@@ -443,7 +443,7 @@ async function fireMyTask(){
     }
 }
 async function manageSummaryBoardData(data,idCanvas='chartTaskForMe') {
-    let pageFilterr = '<div id="pageFilter" class="d-flex flex-row-reverse align-items-center p-3"></div>';
+    let pageFilterr = '<div id="pageFilter" class="d-flex align-items-center justify-content-end p-3"></div>';
     if (data.data != undefined || data.data != null) {
         var result = JSON.stringify(data.data);
         var divId = data.category;
@@ -453,69 +453,65 @@ async function manageSummaryBoardData(data,idCanvas='chartTaskForMe') {
         if($('#legendPlacePersonal').length > 0 && idCanvas == 'chartTaskForMe') $('#legendPlacePersonal').empty();
         if($('#legendPlaceProject').length > 0 && idCanvas != 'chartTaskForMe') $('#legendPlaceProject').empty();
 
-        if (data.names == 'taskByDivisionAndStatus') {
-            // if($('.publicBoardLabel').length == 0){
-            //     $('#' + divId).empty();
-            //     let html = '<div class="row"><div class="col-lg-4 publicBoardLabel text-start align-self-center mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
-            //     html += '<div class="row"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam"></div></div>';
-            //     $('#' + divId).html(html);
+        // if (data.names == 'taskByDivisionAndStatus') {
+        //     // if($('.publicBoardLabel').length == 0){
+        //     //     $('#' + divId).empty();
+        //     //     let html = '<div class="row"><div class="col-lg-4 publicBoardLabel text-start align-self-center mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+        //     //     html += '<div class="row"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam"></div></div>';
+        //     //     $('#' + divId).html(html);
 
-            //     $(pageFilterr).appendTo($('.filterPlace'))
-            //     appendFilter([filterAllChartPersonal,filterChartTypePersonal],false,'personal');
-            //     // if (parseInt(ct.grade) > 4) {
-            //     //     $('.forFilter').append(grade5andAbove)
-            //     // } 
-            //     // else {
-            //     //     $('.forFilter').append(grade4andDown)
-            //     // }
-            //     $('.forFilter').append(personalGrade);
+        //     //     $(pageFilterr).appendTo($('.filterPlace'))
+        //     //     appendFilter([filterAllChartPersonal,filterChartTypePersonal],false,'personal');
+        //     //     // if (parseInt(ct.grade) > 4) {
+        //     //     //     $('.forFilter').append(grade5andAbove)
+        //     //     // } 
+        //     //     // else {
+        //     //     //     $('.forFilter').append(grade4andDown)
+        //     //     // }
+        //     //     $('.forFilter').append(personalGrade);
 
-            //     $('.filterChartPersonalAll').css('font-size','initial')
-            //     $('.filterChartTypePersonal').css('font-size','initial')
-            //     $('.filterChartName').html('Board Type');
-            //     $('.filterTimeName').html('All');
+        //     //     $('.filterChartPersonalAll').css('font-size','initial')
+        //     //     $('.filterChartTypePersonal').css('font-size','initial')
+        //     //     $('.filterChartName').html('Board Type');
+        //     //     $('.filterTimeName').html('All');
 
-            // }
+        //     // }
             
 
-            // // if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterAllChartPersonal,filterChartTypePersonal]);
-            // // else appendFilter([filterTimeRanges, filterChartUp]);
+        //     // // if (ct.grade == '4' || ct.grade == '5') appendFilter([filterTimeRanges, filterAllChartPersonal,filterChartTypePersonal]);
+        //     // // else appendFilter([filterTimeRanges, filterChartUp]);
 
             
-            // if(data.category == 'boardTypeForMe'){
-            //     await getDoubleBarChart(data.names, result);
-            // }
+        //     // if(data.category == 'boardTypeForMe'){
+        //     //     await getDoubleBarChart(data.names, result);
+        //     // }
             
-        } else {
-            if($('.publicBoardLabel').length == 0){
-                $('#' + divId).empty();
-                let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
-                if(idCanvas == 'chartTaskForMe')
-                html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
-                else 
-                html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
-                $('#' + divId).html(html);
-
-                $(pageFilterr).appendTo($('.filterPlace'))
-                appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
-                // if (parseInt(ct.grade) > 4) {
-                //     $('.forFilter').append(grade5andAbove)
-                // } 
-                // else {
-                //     $('.forFilter').append(grade4andDown)
-                // }
-                $('.forFilter').append(personalGrade);
-
-                $('.filterChartPersonalAll').css('font-size','initial')
-                $('.filterChartTypePersonal').css('font-size','initial')
-                $('.filterChartName').html('Board Type');
-                $('.filterTimeName').html('All');
-            }
-
-            if(data.category == 'boardTypeForMe'){
-                await getBarChart(data.names, result,data.realCategory,idCanvas);
-            }
+        // } else {
             
+            
+        // }
+
+        if($('.publicBoardLabel').length == 0){
+            $('#' + divId).empty();
+            let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lbl' + chartName + '">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+            if(idCanvas == 'chartTaskForMe')
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+            else 
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + chartId + '" class="p-2"></canvas></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+            $('#' + divId).html(html);
+
+            $(pageFilterr).appendTo($('.filterPlace'))
+            appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
+            $('.forFilter').append(personalGrade);
+
+            $('.filterChartPersonalAll').css('font-size','initial')
+            $('.filterChartTypePersonal').css('font-size','initial')
+            $('.filterChartName').html('Board Type');
+            $('.filterTimeName').html('All');
+        }
+
+        if(data.category == 'boardTypeForMe'){
+            await getBarChart(data.names, result,data.realCategory,idCanvas);
         }
         if(data.category != 'boardTypeForMe') fireMyTask()
     } else {
@@ -776,7 +772,7 @@ $(document).on('click','.analyticList',async function(){
                     let html2 = '<div class="col-lg-12"><canvas id="canvasTask"></canvas></div></div><div class="col-lg-12 legend gridLayout3" id="legendPlace"></div>'
                     $('#boardTaskData').append(html2);
                     $('#pageFilter').empty();
-                    let pageFilterr = '<div id="pageFilterTeam" class="d-flex flex-row-reverse align-items-center p-3"></div>';
+                    let pageFilterr = '<div id="pageFilterTeam" class="d-flex align-items-center justify-content-end p-3"></div>';
                     $(pageFilterr).appendTo($('.placeForFilter'));
                     appendFilter([filterAllChart, filterChartType],false,'team');
                     $('input[name="datePickerRangeFilter"]').daterangepicker({
@@ -869,7 +865,7 @@ $(document).on('click','.analyticList',async function(){
                 let html2 = '<div class="col-lg-12"><canvas id="canvasTaskProject"></canvas></div></div><div class="col-lg-12 gridLayout3" id="legendPlaceProject"></div>'
                 $('#projectTaskData').append(html2);
                 $('#pageFilterProject').empty();
-                let pageFilterrProject = '<div id="pageFilterProject" class="d-flex flex-row-reverse align-items-center p-3"></div>';
+                let pageFilterrProject = '<div id="pageFilterProject" class="d-flex align-items-center justify-content-end p-3"></div>';
                 $(pageFilterrProject).appendTo($('.placeForFilterProject'));
                 appendFilter([filterAllChartPersonalProject, filterChartTypeProject],true,'project');
                 $('.forFilterProject').append(grade4AndBelow);

@@ -1105,7 +1105,7 @@ async function triggerPopoverLegend(id){
 
     $('.moreLegend[data-id=' + id + ']').popover({
       content: empHtmlTeam,
-      placement: "right",
+      placement: "bottom",
       html: true,
       sanitize: false
     });
