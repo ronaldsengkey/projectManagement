@@ -39,18 +39,7 @@ $(document).on('change','.fileAttachData',async function(){
     document.getElementById('fileAttachData'+aidi).value= null;
     loadingDeactivated();
     if(attachFile == '200'){
-      containerOnLoad('cardGT'+groupId+'')
-          $('.headerGT[data-id='+groupId+']').click()
-          setTimeout(() => {
-              $('.headerGT[data-id='+groupId+']').click()
-              
-          }, 500);
-          let intervalData = setInterval(() => {
-              if($('#table'+groupId).length > 0){
-                  clearInterval(intervalData)
-                  containerDone('cardGT'+groupId+'')
-              }
-      }, 1000);
+      refreshTableData(groupId);
     }
   }
 })
@@ -81,6 +70,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
   if (ev.key === 'Enter') {
     let id = $(this).data('id');
     let newCommentValue = $(this).val();
+    let groupId = $(this).data('groupid');
     let commentFile;
     let base64CommentFile;
     if(newCommentValue.trim() != ''){
@@ -99,16 +89,14 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
-
         $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
         $(this).val('');
         $(this).blur();
         $(this).mouseleave();
         let addComment = await globalAddComment(formUpdateComment);
-        console.log("addComment::", addComment);
         $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
         if (addComment != 500) {
-          await refreshComment(id);
+          await refreshComment(id,groupId);
         } else {
           toastrNotifFull('failed to comment','error');
         }
@@ -190,7 +178,21 @@ $(document).on('click','.filePrev',async function(){
   $.fancybox.open('<img src="'+imageData+'"/>');
 })
 
-async function refreshComment(commentId){
+async function refreshTableData(groupId){
+  containerOnLoad('cardGT'+groupId+'')
+  $('.headerGT[data-id='+groupId+']').click()
+  setTimeout(() => {
+      $('.headerGT[data-id='+groupId+']').click()
+  }, 500);
+  let intervalData = setInterval(() => {
+      if($('#table'+groupId).length > 0){
+          clearInterval(intervalData)
+          containerDone('cardGT'+groupId+'')
+      }
+  }, 1000);
+}
+
+async function refreshComment(commentId,groupId = ''){
   $('.commentContent[data-id=' + commentId + ']').empty();
   $(".commentContent[data-id="+commentId+"]").append('Getting comment data...');
   try {
@@ -198,6 +200,9 @@ async function refreshComment(commentId){
     if (commentData != 500) {
       if (commentData.length > 0) {
         await domComment(commentData, commentId);
+        if($('.commentTask[data-id='+commentId+']').data('available') == false && groupId != ''){
+          refreshTableData(groupId);
+        }
       } else {
         $('.commentContent[data-id=' + commentId + ']').empty();
       }
@@ -210,6 +215,7 @@ async function refreshComment(commentId){
 $(document).on('keydown', '.txtAreaReply', async function (ev) {
   if (ev.key === 'Enter') {
     let replyComment = $(this).val();
+    let groupid = $(this).data('groupid');
     if (replyComment.trim() == '') {
       toastrNotifFull('please fill comment reply','info');
     } else {
@@ -236,7 +242,7 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
       let res = await globalUpdateReplyComment('POST', formUpdateComment);
       $(this).removeAttr('readonly');
       if (res != 500) {
-        await refreshComment(commentId);
+        await refreshComment(commentId,groupid);
       }
     }
 
@@ -407,6 +413,7 @@ $(document).on('click', '.deleteReply', async function () {
   let indexComment = $(this).data('id');
   let taskid = $(this).data('aidi');
   let ownId = $(this).data('own');
+  let groupId = $(this).data('groupid');
 
   let newData = [];
 
@@ -430,7 +437,7 @@ $(document).on('click', '.deleteReply', async function () {
 
       let delReply = await globalUpdateReplyComment('DELETE', deletingComment);
       if(delReply != 500){
-        await refreshComment(taskid);
+        await refreshComment(taskid,groupId);
       }
       $('.rowDelete[data-index=' + indexDelete + ']').remove();
     },
@@ -445,6 +452,7 @@ $(document).on('click', '.commentTask', async function () {
   let available = $('.commentTask[data-id='+id+']').data('available');
   $('.commentContent').attr('data-id', id);
   $('.commentInputArea').attr('data-id',id);
+  $('.commentInputArea').attr('data-groupid',groupid);
   $('.commentTaskName').html(taskName);
   $(".commentContent[data-id="+id+"]").empty();
   $(".commentContent[data-id="+id+"]").append('Getting comment data...');
@@ -711,17 +719,7 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
       loadingDeactivated();
       if(attachFile == '200'){
         disableCanvas();
-        containerOnLoad('cardGT'+groupId+'')
-        $('.headerGT[data-id='+groupId+']').click()
-        setTimeout(() => {
-            $('.headerGT[data-id='+groupId+']').click()
-        }, 500);
-        let intervalData = setInterval(() => {
-            if($('#table'+groupId).length > 0){
-                clearInterval(intervalData)
-                containerDone('cardGT'+groupId+'')
-            }
-        }, 1000);
+        refreshTableData(groupId);
         $('#modalAttachmentFile').modal('toggle')
       }
     });
@@ -738,17 +736,7 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
     loadingDeactivated();
     if(attachFile == '200'){
       disableCanvas();
-      containerOnLoad('cardGT'+groupId+'')
-      $('.headerGT[data-id='+groupId+']').click()
-      setTimeout(() => {
-          $('.headerGT[data-id='+groupId+']').click()
-      }, 500);
-      let intervalData = setInterval(() => {
-          if($('#table'+groupId).length > 0){
-              clearInterval(intervalData)
-              containerDone('cardGT'+groupId+'')
-          }
-      }, 1000);
+      refreshTableData(groupId);
       $('#modalAttachmentFile').modal('toggle')
     }
   }
@@ -1380,17 +1368,7 @@ $(document).on('click', '.submitTeam', function () {
     'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
-  containerOnLoad('cardGT'+groupid+'')
-  $('.headerGT[data-id='+groupid+']').click()
-  setTimeout(() => {
-      $('.headerGT[data-id='+groupid+']').click()
-  }, 500);
-  let intervalData = setInterval(() => {
-      if($('#table'+groupid).length > 0){
-          clearInterval(intervalData)
-          containerDone('cardGT'+groupid+'')
-      }
-  }, 1000);
+  refreshTableData(groupid);
 })
 
 $(document).on('click', '.duedate', function () {
@@ -1627,18 +1605,7 @@ $(document).on('click', '.rowStat', async function () {
   }
   globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);
-  containerOnLoad('cardGT'+groupid+'')
-  $('.headerGT[data-id='+groupid+']').click()
-  setTimeout(() => {
-      $('.headerGT[data-id='+groupid+']').click()
-      
-  }, 500);
-  let intervalData = setInterval(() => {
-      if($('#table'+groupid).length > 0){
-          clearInterval(intervalData)
-          containerDone('cardGT'+groupid+'')
-      }
-  }, 1000);
+  refreshTableData(groupid);
 })
 
 $(document).on('mouseenter', '.priorityChild', function () {
@@ -1715,18 +1682,7 @@ $(document).on('click', '.rowPrio', async function () {
   }
   globalUpdateTask('priority', dataPrio);
   // await updatePriorityProgressBar(dataPrio, currentPrio);
-  containerOnLoad('cardGT'+groupid+'')
-      $('.headerGT[data-id='+groupid+']').click()
-  setTimeout(() => {
-      $('.headerGT[data-id='+groupid+']').click()
-      
-  }, 500);
-  let intervalData = setInterval(() => {
-      if($('#table'+groupid).length > 0){
-          clearInterval(intervalData)
-          containerDone('cardGT'+groupid+'')
-      }
-  }, 1000);
+  refreshTableData(groupid);
 })
 
 $(document).on('click', '.delTask', async function () {

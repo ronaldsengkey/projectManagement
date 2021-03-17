@@ -732,26 +732,14 @@ function notifDeleteComment(bodyDelete,groupId) {
         return e._id != bodyDelete._id;
       })
       window['dataComment' + bodyDelete.task_id + ''] = JSON.stringify(window['dataComment' + bodyDelete.task_id + '']);
-      if($('.commentContent[data-id='+bodyDelete._id+']').children().length == 0){
-        
-        containerOnLoad('cardGT'+groupId+'')
-          $('.headerGT[data-id='+groupId+']').click()
-          setTimeout(() => {
-              $('.headerGT[data-id='+groupId+']').click()
-              
-          }, 500);
-          let intervalData = setInterval(() => {
-              if($('#table'+groupId).length > 0){
-                  clearInterval(intervalData)
-                  containerDone('cardGT'+groupId+'')
-              }
-          }, 1000);
+      if($('.commentContent[data-id='+bodyDelete._id+']').children().length == 0 && $('.commentTask[data-id='+bodyDelete.task_id+']').data('available') == true){
+        refreshTableData(groupId);
       }
     }
   })
 }
 
-function processReplyData(replyData, replyId, id) {
+function processReplyData(replyData, replyId, id,groupId) {
   let dataReply = JSON.parse(window['comment' + replyId + '']);
   if (dataReply.length > 0) {
     dataReply = dataReply.reverse()
@@ -791,9 +779,9 @@ function processReplyData(replyData, replyId, id) {
         }
 
         if(haveFile){
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage far fa-image fa-lg mr-2" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply far fa-trash-alt fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea><div class="mt-2 placeReply" data-id='+element._id+'><label for="editReplyFile'+element._id+'" id="editFileReplyLabel"><i class="editReplyImage far fa-image fa-lg mr-2" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none mb-0" data-id='+element._id+' type="file" /></label><i class="deleteReply far fa-trash-alt fa-lg" data-groupid='+groupId+' data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div><div class="col-lg-2 align-self-center filePrev" data-image="'+element.file+'"><div class="badge badge-pill badge-danger" style="padding:.75rem"><i class="fas fa-lg fa-paperclip mr-2" style="color:white;"></i>1</div></div></div></div>';
         } else {
-          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage far fa-image fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply far fa-trash-alt fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div></div></div></div>';
+          htmlReply = '<div class="row mb-3 rowDelete" data-index=' + index + '><div class="col-lg-2 nameReply" style="background:'+choose+'" data-toggle="tooltip" data-placement="bottom" title="' + element.user_create + '"><span class="initialName '+ window['colorClass'+element.user_create]+'">' + getInitials(element.user_create) + '</span></div><div class="col-lg-10"><div class="row"><div class="col-lg-8"><textarea data-aidi=' + element._id + ' data-index=' + index + ' data-idonly=' + id + ' class="form-control txtAreaEdit" data-replyid='+replyId+' placeholder="Write a reply here (press enter to submit)">' + element.comment + '</textarea></div><div class="col-lg-2" style="align-self:center;"><label for="editReplyFile'+element._id+'" id="editFileReplyLabel" class="mb-0"><i class="editReplyImage far fa-image fa-lg" data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i><input id="editReplyFile'+element._id+'" class="editReplyFile d-none" type="file" /></label></div><div class="col-lg-2" style="align-self:center;"><i class="deleteReply far fa-trash-alt fa-lg" data-groupid='+groupId+' data-own=' + element._id + ' data-aidi=' + id + ' data-index=' + index + ' data-id=' + replyId + '></i></div></div></div></div></div>';
         }
 
         
@@ -849,7 +837,7 @@ async function domComment(commentData, id) {
         window['colorClass'+element.user_create] = 'text-white';
       }
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' data-commentid='+id+' class="form-control txtAreaReply" placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' data-commentid='+id+' class="form-control txtAreaReply" data-groupid='+$('.commentTask[data-id='+id+']').data('groupid')+' placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 
@@ -858,7 +846,7 @@ async function domComment(commentData, id) {
     if (haveReply) {
       if (JSON.parse(haveReply) != '[]') {
         window['comment' + element._id + ''] = element.reply
-        processReplyData(element.reply, element._id, id);
+        processReplyData(element.reply, element._id, id,$('.commentTask[data-id='+id+']').data('groupid'));
       }
     }
 

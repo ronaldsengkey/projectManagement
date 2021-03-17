@@ -226,18 +226,7 @@ async function addTask(value, groupId) {
             success: async function (result) {
                 if (result.responseCode == '200') {
                     toastrNotifFull('success add task');
-                    containerOnLoad('cardGT'+groupId+'')
-                    $('.headerGT[data-id='+groupId+']').click()
-                    setTimeout(() => {
-                        $('.headerGT[data-id='+groupId+']').click()
-                        
-                    }, 500);
-                    let intervalData = setInterval(() => {
-                        if($('#table'+groupId).length > 0){
-                            clearInterval(intervalData)
-                            containerDone('cardGT'+groupId+'')
-                        }
-                    }, 1000);
+                    refreshTableData(groupId)
 
                 } else if (result.responseCode == '401') {
                     logoutNotif();
