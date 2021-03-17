@@ -784,6 +784,7 @@ $(document).on('click','.analyticList',async function(){
     $('a[class*="analyticList"]').removeClass('lighten-1');
     $(this).addClass('amber');
     $(this).addClass('lighten-1');
+    $('.boardContentData').removeClass('h-100');
     switch($(this).data('for')){
         case 'global':
             break;
