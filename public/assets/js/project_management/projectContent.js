@@ -260,7 +260,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
         let dataPic = 0;
         if(havePic) dataPic = JSON.parse(element.pic)[0].account_id
-        htmlTask += '<td class="status ' + statusClass + ' text-white" data-gtpic='+JSON.parse(result.pic)[0].account_id+' data-pic='+dataPic+' data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + haveStatus + '</td>';
+        htmlTask += '<td class="status"><div data-gtpic='+JSON.parse(result.pic)[0].account_id+' data-pic='+dataPic+' data-identity="stat' + element._id + '" data-status="' + haveStatus + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '" class="statusChild ' + statusClass + ' text-white">' + haveStatus + '</div></td>';
       } else {
         htmlTask += '<td class="status" data-name="' + element.name + '" data-identity="stat' + element._id + '" data-status="No Status" data-groupid="' + element.group_id + '" data-id="' + element._id + '">No Status Yet</td>';
       }
@@ -270,7 +270,7 @@ async function domTaskTable(data, id, result, boardMember) {
         else if (havePriority == 'High') priorityClass = 'highPrio'
         else if (havePriority == 'Medium') priorityClass = 'mediumPrio'
         else priorityClass = 'lowPrio';
-        htmlTask += '<td class="priority ' + priorityClass + ' text-white" data-identity="prio' + element._id + '" data-prio="' + havePriority + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + havePriority + '</td>';
+        htmlTask += '<td class="priority"><div data-identity="prio' + element._id + '" data-prio="' + havePriority + '" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '" class="priorityChild ' + priorityClass + ' text-white">' + havePriority + '</div></td>';
       } else {
         htmlTask += '<td class="priority" data-name="' + element.name + '" data-identity="prio' + element._id + '" data-prio="No Priority" data-groupid="' + element.group_id + '" data-id="' + element._id + '">no priority</td>';
       }

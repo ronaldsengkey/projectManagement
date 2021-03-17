@@ -1481,7 +1481,13 @@ $(document).on('mouseenter', '.name', function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name')
-  let html = '<input type="text" class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '" value="' + name + '">';
+  let valuenya = $(this).html();
+  let html;
+  if(valuenya.length > 14){
+    html = '<textarea class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '">'+name+'</textarea>'
+  } else {
+    html = '<input type="text" class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '" value="' + name + '">';
+  }
   $('.name[data-id=' + id + ']').html(html);
   $('.nameTask[data-id="' + id + '"]').keypress(async function (e) {
     var key = e.which;
@@ -1517,8 +1523,7 @@ $(document).on('mouseleave', '.name', function () {
   $('.name[data-id=' + id + ']').html(name);
 });
 
-
-$(document).on('click', '.status', function () {
+$(document).on('mouseenter', '.statusChild', function () {
   let id = $(this).data('id');
   let currentStatus = $(this).data('status');
   let pic = $(this).data('pic')
@@ -1548,6 +1553,7 @@ $(document).on('click', '.status', function () {
     placement: "right",
     html: true
   });
+  
 
   $(this).on('shown.bs.popover', function () {
     $('.rowStat').attr('data-id', id);
@@ -1558,54 +1564,55 @@ $(document).on('click', '.status', function () {
     $('.lowPrio').attr('data-status', 'Done');
     $('.reviewStat').attr('data-status', 'Waiting for review');
   })
+  
 })
 
 $(document).on('click', '.rowStat', async function () {
   let stat = $(this).data('status');
   let currentStat = $(this).data('current');
   let id = $(this).data('id');
-  let groupid = $('.status[data-id=' + id + ']').data('groupid');
-  let name = $('.status[data-id=' + id + ']').data('name');
+  let groupid = $('.statusChild[data-id=' + id + ']').data('groupid');
+  let name = $('.statusChild[data-id=' + id + ']').data('name');
 
   $('[data-original-title]').popover('dispose');
 
-  $('.status[data-id=' + id + ']').html(stat);
+  $('.statusChild[data-id=' + id + ']').html(stat);
   
-  if ($('.status[data-id=' + id + ']').hasClass('reviewStat')) {
-    $('.status[data-id=' + id + ']').removeClass('reviewStat');
+  if ($('.statusChild[data-id=' + id + ']').hasClass('reviewStat')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('reviewStat');
   }
 
-  if ($('.status[data-id=' + id + ']').hasClass('highPrio')) {
-    $('.status[data-id=' + id + ']').removeClass('highPrio');
+  if ($('.statusChild[data-id=' + id + ']').hasClass('highPrio')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('highPrio');
   }
 
-  if ($('.status[data-id=' + id + ']').hasClass('mediumPrio')) {
-    $('.status[data-id=' + id + ']').removeClass('mediumPrio');
+  if ($('.statusChild[data-id=' + id + ']').hasClass('mediumPrio')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('mediumPrio');
   }
 
-  if ($('.status[data-id=' + id + ']').hasClass('lowPrio')) {
-    $('.status[data-id=' + id + ']').removeClass('lowPrio');
+  if ($('.statusChild[data-id=' + id + ']').hasClass('lowPrio')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('lowPrio');
   }
 
-  if ($('.status[data-id=' + id + ']').hasClass('pendingPrio')) {
-    $('.status[data-id=' + id + ']').removeClass('pendingPrio');
+  if ($('.statusChild[data-id=' + id + ']').hasClass('pendingPrio')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('pendingPrio');
   }
 
   switch (stat) {
     case 'Waiting for review':
-      $('.status[data-id=' + id + ']').addClass('reviewStat text-white');
+      $('.statusChild[data-id=' + id + ']').addClass('reviewStat text-white');
       break;
     case 'Stuck':
-      $('.status[data-id=' + id + ']').addClass('highPrio text-white');
+      $('.statusChild[data-id=' + id + ']').addClass('highPrio text-white');
       break;
     case 'Working on it':
-      $('.status[data-id=' + id + ']').addClass('mediumPrio text-white');
+      $('.statusChild[data-id=' + id + ']').addClass('mediumPrio text-white');
       break;
     case 'Done':
-      $('.status[data-id=' + id + ']').addClass('lowPrio text-white');
+      $('.statusChild[data-id=' + id + ']').addClass('lowPrio text-white');
       break;
     case 'Pending':
-      $('.status[data-id=' + id + ']').addClass('pendingPrio text-white');
+      $('.statusChild[data-id=' + id + ']').addClass('pendingPrio text-white');
       break;
   }
 
@@ -1634,7 +1641,7 @@ $(document).on('click', '.rowStat', async function () {
   }, 1000);
 })
 
-$(document).on('click', '.priority', function () {
+$(document).on('mouseenter', '.priorityChild', function () {
   let id = $(this).data('id');
   let currentPrio = $(this).data('prio');
   $(this).attr('tabindex', '0');
@@ -1662,38 +1669,38 @@ $(document).on('click', '.rowPrio', async function () {
   let prio = $(this).data('priority');
   let id = $(this).data('id');
   let currentPrio = $(this).data('prio');
-  let groupid = $('.priority[data-id=' + id + ']').data('groupid');
-  let name = $('.priority[data-id=' + id + ']').data('name');
+  let groupid = $('.priorityChild[data-id=' + id + ']').data('groupid');
+  let name = $('.priorityChild[data-id=' + id + ']').data('name');
 
-  $('.priority[data-id=' + id + ']').html(prio);
-  if ($('.priority[data-id=' + id + ']').hasClass('urgentPrio')) {
-    $('.priority[data-id=' + id + ']').removeClass('urgentPrio');
+  $('.priorityChild[data-id=' + id + ']').html(prio);
+  if ($('.priorityChild[data-id=' + id + ']').hasClass('urgentPrio')) {
+    $('.priorityChild[data-id=' + id + ']').removeClass('urgentPrio');
   }
 
-  if ($('.priority[data-id=' + id + ']').hasClass('highPrio')) {
-    $('.priority[data-id=' + id + ']').removeClass('highPrio');
+  if ($('.priorityChild[data-id=' + id + ']').hasClass('highPrio')) {
+    $('.priorityChild[data-id=' + id + ']').removeClass('highPrio');
   }
 
-  if ($('.priority[data-id=' + id + ']').hasClass('mediumPrio')) {
-    $('.priority[data-id=' + id + ']').removeClass('mediumPrio');
+  if ($('.priorityChild[data-id=' + id + ']').hasClass('mediumPrio')) {
+    $('.priorityChild[data-id=' + id + ']').removeClass('mediumPrio');
   }
 
-  if ($('.priority[data-id=' + id + ']').hasClass('lowPrio')) {
-    $('.priority[data-id=' + id + ']').removeClass('lowPrio');
+  if ($('.priorityChild[data-id=' + id + ']').hasClass('lowPrio')) {
+    $('.priorityChild[data-id=' + id + ']').removeClass('lowPrio');
   }
 
   switch (prio) {
     case 'Urgent':
-      $('.priority[data-id=' + id + ']').addClass('urgentPrio text-white');
+      $('.priorityChild[data-id=' + id + ']').addClass('urgentPrio text-white');
       break;
     case 'High':
-      $('.priority[data-id=' + id + ']').addClass('highPrio text-white');
+      $('.priorityChild[data-id=' + id + ']').addClass('highPrio text-white');
       break;
     case 'Medium':
-      $('.priority[data-id=' + id + ']').addClass('mediumPrio text-white');
+      $('.priorityChild[data-id=' + id + ']').addClass('mediumPrio text-white');
       break;
     case 'Low':
-      $('.priority[data-id=' + id + ']').addClass('lowPrio text-white');
+      $('.priorityChild[data-id=' + id + ']').addClass('lowPrio text-white');
       break;
   }
 
