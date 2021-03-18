@@ -485,6 +485,32 @@ function iterateObjectDecryptAESLogin(obj) {
   return obj;
 }
 
+fastify.post("/oneSignalInit", async function (request, reply) {
+  try {
+    let data = request.body;
+    if (data.settings.target == "onesignal") {
+      data.settings.server_url = hostNameServer;
+      data.settings.port_url = backendPort;
+      data.settings.url = await convertURLRedis(data.settings);
+    }
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      data.settings.headers.signature
+    );
+    data.settings.headers.secretKey = cryptography.aesEncrypt(
+      data.settings.headers.secretKey
+    );
+    data.settings.headers.token = cryptography.aesEncrypt(
+      data.settings.headers.token
+    );
+    data.settings.body = encryptPostBody(data);
+    let a = await actionPost(data);
+    console.log('response',a);
+    reply.send(a);
+  } catch (err) {
+    reply.send(err);
+  }
+});
+
 
 fastify.post("/postData", async function (request, reply) {
   try {

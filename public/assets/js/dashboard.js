@@ -48,11 +48,9 @@ function toTitleCase(str) {
         return match.toUpperCase();
     });
 }
-
 $(document).on('click', '.profilePict', function () {
     location.reload();
 })
-
 $(async function () {
     loadingActivated();
     disableDevTools();
@@ -101,6 +99,7 @@ $(async function () {
                         getPage('project_management');
                     }
                     await initializeServerPort();
+                    await subscribeOneSignal();
                     openProfile()
                 },
                 error: function(callback,timeout){
@@ -153,6 +152,7 @@ $(async function () {
         }
         $('#empName').html(ct.fullname);
         await initializeServerPort();
+        await subscribeOneSignal();
         openProfile()
     }
 
@@ -160,6 +160,16 @@ $(async function () {
         console.log("error read document processing", err);
     }
 });
+
+async function subscribeOneSignal(){
+    $.ajax({
+        url: domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/onesignal.js",
+        dataType: "script",
+        error: function(){
+            $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/onesignal.js", function (data, textStatus, jqxhr){})
+        }
+    });
+}
 
 async function openProfile(){
     if($('.toProfile').length > 0){
