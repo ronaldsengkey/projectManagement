@@ -318,7 +318,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
       
       //if pic of group task is login user then he / she is allowed to edit tasks
-      if(JSON.parse(result.pic)[0].account_id == ct.id_employee){
+      if(JSON.parse(result.pic)[0].account_id == ct.id_employee && $('#table'+id).attr('data-type') != 'Main'){
         result.condition = true;
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       } else if(result.user_create == ct.name && $('#table'+id).attr('data-type') != 'Main'){
