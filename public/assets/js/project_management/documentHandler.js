@@ -827,6 +827,38 @@ function onNextPage() {
   queueRenderPage(pageNum);
 }
 
+$(document).on('click','.deleteAttachment',async function(){
+  let fileId = $(this).data('id');
+  let idTask = $(this).data('idtask');
+  let groupId = $(this).data('groupid');
+
+  Swal.fire({
+      title: 'Are you sure to delete this attachment?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete it!',
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+          let formAttachmentFile = new FormData();
+          let dataFile = JSON.stringify({
+              "fileId": fileId,
+          })
+          formAttachmentFile.append('file', dataFile);
+          formAttachmentFile.append('id',idTask);
+          loadingActivated();
+          let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+          loadingDeactivated();
+          if(attachFile == '200'){
+            callNotif({type:'success',text:attachFile.responseMessage})
+            refreshTableData(groupId);
+          }
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+  })
+
+  
+})
+
 $(document).on('click','.showAttachment',async function(){
   let fileId = $(this).data('id');
   let idTask = $(this).data('idtask');
@@ -1014,7 +1046,7 @@ async function triggerPopoverFileAttachment(id,groupid,name){
   if($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined){
     let htmlMember = '';
     window['fileAttachment'+id].forEach(element => {
-      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
+      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span><span style="float:right;cursor:pointer;"><i class="far fa-trash-alt fa-lg deleteAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
     });
     let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
 
