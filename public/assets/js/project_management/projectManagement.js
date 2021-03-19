@@ -312,10 +312,17 @@ async function manageBoardData(data) {
     if(parseInt(ct.grade) > 4){
         $('.colTeams').remove();
         $('.colPersonal').removeClass('col-lg-6').addClass('col-lg-12');
-    }
+    } 
+    // manager and below cannot see project board
     if(parseInt(ct.grade) >= 3){
         $('.colProjects').remove();
+    } 
+    // super admin, ceo, cto not allowed to see team board
+    if(parseInt(ct.grade) < 3){
+        $('.colTeams').remove();
     }
+    
+    
     let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="personal" style="border-top:0;">Chart Statistic</a>';
     $('.boardAnalytical').append(analyticHTML);
 
@@ -867,7 +874,7 @@ $(document).on('click','.analyticList',async function(){
         default:
             if($('.colTeam').length > 0){
                 loadingActivated();
-                let chartsAnalytic = await getChartAnalytic({});
+                let chartsAnalytic = await getChartAnalytic({division_id:ct.division_id});
                 loadingDeactivated();
                 if(chartsAnalytic.responseCode == '200'){
                     $('.colTeam').empty();
@@ -2917,7 +2924,10 @@ async function getBarChart(chartName, data,category,idCanvas) {
                                     let boardTask = ~category.indexOf('board')
                                     let plural;
                                     if(boardTask){
+                                        if(category != 'boardTask')
                                         plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'boards' : 'board'
+                                        else
+                                        plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                                     } else {
                                         plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                                     }

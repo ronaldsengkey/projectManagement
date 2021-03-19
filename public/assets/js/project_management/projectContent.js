@@ -341,7 +341,7 @@ async function domTaskTable(data, id, result, boardMember) {
       } 
 
       //only if login user is part of member that is allowed to see his/her own task
-      if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name){
+      if(haveTeam && JSON.parse(element.pic)[0].account_name != ct.name && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name && $('#table'+id).attr('data-type') != 'Main'){
         let member = element.member;
         member.forEach(elements => {
           if(elements.account_id == ct.id_employee){
