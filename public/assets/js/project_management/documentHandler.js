@@ -628,9 +628,16 @@ function disableCanvas(){
 }
 
 function clearCanvas(){
-  let backUpCanvas = $('#backupCanvas').attr('src');
-  window['signaturePad'].clear();
-  window['signaturePad'].fromDataURL(backUpCanvas);
+  if($('.currPage').length > 0) {
+    let currentPage = parseInt($('.currPage').html());
+    renderPage(currentPage)
+  }
+  else {
+    currentPage = 1;
+    let backUpCanvas = $('#backupCanvas').attr('src');
+    window['signaturePad'].clear();
+    window['signaturePad'].fromDataURL(backUpCanvas);
+  }
 }
 
 $(document).on('click','.savingCanvas',async function(){
@@ -709,27 +716,27 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
       content: contentData
     };
     console.log('conte',docDefinition);
-    pdfMake.createPdf(docDefinition).download();
-    // const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-    // let fileDataPdf;
-    // pdfDocGenerator.getDataUrl(async (dataUrl) => {
-    //   fileDataPdf = dataUrl;
-    //   let formAttachmentFile = new FormData();
-    //   let dataFile = JSON.stringify({
-    //       "fileId": fileId,
-    //       "file": fileDataPdf
-    //   })
-    //   formAttachmentFile.append('file', dataFile);
-    //   formAttachmentFile.append('id',idTask);
-    //   loadingActivated();
-    //   let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
-    //   loadingDeactivated();
-    //   if(attachFile == '200'){
-    //     disableCanvas();
-    //     refreshTableData(groupId);
-    //     $('#modalAttachmentFile').modal('toggle')
-    //   }
-    // });
+    // pdfMake.createPdf(docDefinition).download();
+    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    let fileDataPdf;
+    pdfDocGenerator.getDataUrl(async (dataUrl) => {
+      fileDataPdf = dataUrl;
+      let formAttachmentFile = new FormData();
+      let dataFile = JSON.stringify({
+          "fileId": fileId,
+          "file": fileDataPdf
+      })
+      formAttachmentFile.append('file', dataFile);
+      formAttachmentFile.append('id',idTask);
+      loadingActivated();
+      let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+      loadingDeactivated();
+      if(attachFile == '200'){
+        disableCanvas();
+        refreshTableData(groupId);
+        $('#modalAttachmentFile').modal('toggle')
+      }
+    });
   } else {
     let formAttachmentFile = new FormData();
     let dataFile = JSON.stringify({
@@ -910,7 +917,7 @@ $(document).on('click','.showAttachment',async function(){
         // PDF loading error
         console.error(reason);
       });
-      // $('#canvasPlace').css('max-width','735px');
+      $('#canvasPlace').css('max-width','735px');
     } else {
       $('.savingCanvas').data('pdf',false);
       $('.savingCanvas').data('multiple',false);
@@ -1655,7 +1662,8 @@ $(document).on('click', '.rowStat', async function () {
     'group_id': groupid,
     'status': stat,
     'name': name,
-    'user_update': ct.name
+    'user_update': ct.name,
+    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);
