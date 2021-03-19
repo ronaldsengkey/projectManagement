@@ -310,8 +310,6 @@ async function manageBoardData(data) {
 
     // staff and below cannot see team board 
     if(parseInt(ct.grade) > 4){
-        // let analyticHTML = '<a class="list-group-item list-group-item-action analyticList" data-for="global" style="border-top:0;">Team Board</a>';
-        // $('.boardAnalytical').append(analyticHTML);
         $('.colTeams').remove();
         $('.colPersonal').removeClass('col-lg-6').addClass('col-lg-12');
     }
@@ -497,23 +495,39 @@ async function fireMyTask(){
 async function manageSummaryBoardData(data,idCanvas='chartTaskForMe',specialCase = false) {
     let pageFilterr = '<div id="pageFilter" class="d-flex align-items-center justify-content-end p-3"></div>';
     if(specialCase){
-        $('#taskForMe').empty();
-        let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lblTaskForMe">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
-        if(idCanvas == 'chartTaskForMe')
-        html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="chartTaskForMe" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
-        else 
-        html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="chartTaskForMe" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
-        $('#taskForMe').html(html);
+            $('#taskForMe').empty();
+            let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lblTaskForMe">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+            if(idCanvas == 'chartTaskForMe')
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="'+idCanvas+'" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+            else 
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="'+idCanvas+'" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+            $('#taskForMe').html(html);
+            
+            // if(idCanvas == 'chartTaskForMe'){
+            //     $(pageFilterr).appendTo($('.filterPlace'))
+            //     appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
+            //     $('.forFilter').append(personalGrade);
 
-        $(pageFilterr).appendTo($('.filterPlace'))
-        appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
-        $('.forFilter').append(personalGrade);
+            //     $('.filterChartPersonalAll').css('font-size','initial')
+            //     $('.filterChartTypePersonal').css('font-size','initial')
+            //     $('.filterChartName').html('Board Type');
+            //     $('.filterTimeName').html('All');
+            //     $('#chartTaskForMe').css('display','block').css('width','772px').css('height','386px')
+            // } else {
+            //     $(pageFilterr).appendTo($('.filterPlace'))
+            //     appendFilter([filterAllChartPersonalProject,filterChartTypeProject],false,'project');
+            //     $('.forFilter').append(personalGrade);
+            //     $('#canvasTaskProject').css('display','block').css('width','772px').css('height','386px')
+            // }
+            $(pageFilterr).appendTo($('.filterPlace'))
+            appendFilter([filterAllChartPersonal,filterChartTypePersonal,filterTimeRanges],false,'personal');
+            $('.forFilter').append(personalGrade);
 
-        $('.filterChartPersonalAll').css('font-size','initial')
-        $('.filterChartTypePersonal').css('font-size','initial')
-        $('.filterChartName').html('Board Type');
-        $('.filterTimeName').html('All');
-        $('#chartTaskForMe').css('display','block').css('width','772px').css('height','386px')
+            $('.filterChartPersonalAll').css('font-size','initial')
+            $('.filterChartTypePersonal').css('font-size','initial')
+            $('.filterChartName').html('Board Type');
+            $('.filterTimeName').html('All');
+            $('#chartTaskForMeBackup').css('display','block').css('width','772px').css('height','386px')
         return;
     }
     if (data.data != undefined || data.data != null) {
@@ -791,8 +805,16 @@ $(document).on('change','.chartTaskProject, .chartTypeProject',async function(){
             summaryBoard.realCategory = dropValue
         }
         if(myProjectChart != null) myProjectChart.destroy();
+        $('#canvasTaskProjectBackup').remove();
+        $('#canvasTaskProject').removeClass('d-none');
         manageSummaryBoardData(summaryBoard,'canvasTaskProject');
     } else if(summaryBoard.responseCode == '404'){
+        if(myProjectChart != null) myProjectChart.destroy();
+        $('#legendPlaceProject').empty();
+        $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+        $('#canvasTaskProjectBackup').css('display','block').css('width','772px').css('height','386px')
+        $('#canvasTaskProject').addClass('d-none');
+    }  else if(summaryBoard.responseCode == '404'){
         if(myProjectChart != null) myProjectChart.destroy();
         $('#legendPlaceProject').empty();
     }
@@ -808,12 +830,19 @@ $(document).on('change','.chartTaskPersonal, .chartTypePersonal',async function(
     if(chAnalytic.responseCode == '200'){
         if(myBarChart != null) myBarChart.destroy();
         $('.chartLabelPersonal').val('all');
-        await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+        $('#chartTaskForMe').removeClass('d-none');
+        $('#chartTaskForMeBackup').remove();
+        if(chAnalytic.data.length == 0){
+            manageSummaryBoardData([],'chartTaskForMe',true)
+        } else {
+            await processTaskCanvas(chAnalytic.data,'chartTaskForMe','personal')
+        }
     } else if(chAnalytic.responseCode == '401') {
         logoutNotif();
     } else if(chAnalytic.responseCode == '404') {
         callNotif({type:'error',text:chAnalytic.responseMessage})
         if(myBarChart != null) myBarChart.destroy();
+        manageSummaryBoardData([],'chartTaskForMe',true)
     } else {
         callNotif({type:'error',text:chAnalytic.responseMessage})
     }
@@ -975,8 +1004,15 @@ $(document).on('click','.analyticList',async function(){
                         summaryBoard.realCategory = 'boardTypeForMe'
                     }
                     if(myProjectChart != null) myProjectChart.destroy();
+                    
                     manageSummaryBoardData(summaryBoard,'canvasTaskProject');
                 } else if(summaryBoard.responseCode == '404'){
+                    if(myProjectChart != null) myProjectChart.destroy();
+                    $('#legendPlaceProject').empty();
+                    $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+                    $('#canvasTaskProjectBackup').css('display','block').css('width','772px').css('height','386px')
+                    $('#canvasTaskProject').addClass('d-none');
+                } else {
                     if(myProjectChart != null) myProjectChart.destroy();
                     $('#legendPlaceProject').empty();
                 }
