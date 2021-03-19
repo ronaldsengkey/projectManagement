@@ -485,7 +485,7 @@ $(document).on('click', '.commentTask', async function () {
   }
 
   let intervalComment = setInterval(async () => {
-    if(!$(".txtAreaReply").is(":focus") || !$(".txtAreaEdit").is(":focus")){
+    if(!$(".txtAreaReply").is(":focus") && !$(".txtAreaEdit").is(":focus")){
       $('.commentContent[data-id='+id+']').empty();
       $('.commentContent[data-id='+id+']').append('Getting comment data...');
       let commentData = await getComment(id);
@@ -955,7 +955,7 @@ async function activateCanvasMultiple(id){
     {
       // in browser is supported loading images via url from reference by name in images
       id: id,
-      image: signaturePadMultiple.toDataURL('image/jpeg'),
+      image: signaturePadMultiple.toDataURL('image/png'),
       width: 700,
       height: 1000
     }
