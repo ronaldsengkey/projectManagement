@@ -1004,6 +1004,43 @@ async function triggerPopoverFileAttachment(id,groupid,name){
   }
 }
 
+$(document).on('click','.personalDetail',function(){
+  let forType = $(this).data('for');
+  triggerPopoverChartLegend(forType,capitalize(forType));
+})
+
+$(document).on('click','.openTask',async function(){
+  let idData = window['personalData'][0]['data'+$(this).data('for')][$(this).data('index')];
+  loadingActivated();
+  let idBoard = await getBoard({group_id:idData.group_id},'boardId');
+  let boardid = idBoard[0]._id;
+  if(boardid != undefined && boardid != null){
+    await checkGroupTaskRedirect('200',boardid,idData.group_id,idData._id);
+    loadingDeactivated();
+  } else loadingDeactivated();
+  
+})
+
+async function triggerPopoverChartLegend(type,capitalType){
+  if($('.personalDetail').data("bs.popover") == undefined){
+    let htmlLegendChart = '';
+    for(let i=0;i<window['data'+capitalType].length;i++){
+      htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">'+window['data'+capitalType][i]+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTask" data-for="'+capitalType+'" data-index='+i+'></i></span></li> '
+    }
+    let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlLegendChart+'</ul></div></div>';
+
+    $('.personalDetail[data-for='+type+']').attr('tabindex', '0');
+    $('.personalDetail[data-for='+type+']').attr('data-toggle', 'popover');
+
+    $('.personalDetail[data-for='+type+']').popover({
+      content: legendHTML,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
+  }
+}
+
 $(document).on('mouseenter', '.pic', function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
@@ -1068,7 +1105,7 @@ $(document).on('mouseleave', '.pic', function () {
 /// for dismiss popover on click outside
 $('html').on('click', function(e) {
   var l = $(e.target);
-  if (~l[0].className.indexOf("fa-ellipsis-h") || ~l[0].className.indexOf("moreMember") || ~l[0].className.indexOf("list-group-item") || ~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
+  if (~l[0].className.indexOf("fa-ellipsis-h") || ~l[0].className.indexOf("card-text") || ~l[0].className.indexOf("card-header") || ~l[0].className.indexOf("card-body") || ~l[0].className.indexOf("moreMember") || ~l[0].className.indexOf("list-group-item") || ~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
     return;
   } else if (typeof $(e.target).data('original-title') == 'undefined') {
     $('[data-original-title]').popover('hide');

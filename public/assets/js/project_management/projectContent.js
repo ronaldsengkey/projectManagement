@@ -17,8 +17,8 @@ function scrollHorizontally(e) {
 async function appendLegend(id){
   let gridTag = '<div class="container-fluid"><div id="legendOnly" class="row flex-row flex-nowrap legendOnly legend'+id+'" style="overflow-x:auto;white-space:nowrap;">';
   
-
   if(window['dataBoardMember' + id + ''].length > 3){
+    let lengthLeft = parseInt(window['dataBoardMember'+id].length) - 3
     window['legendLeft'+id] = objDiff(window['dataBoardMember'+id],window['dataBoardMember'+id].slice(0,3));
     window['dataBoardMember'+id].slice(0,3).forEach(function(e){
       let checkColor = lightOrDark(e.color);
@@ -27,7 +27,7 @@ async function appendLegend(id){
       else colorFont = 'text-white';
       gridTag += '<div class="col-2"><div data-toggle="tooltip" data-placement="bottom" title="' + e.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+e.color+';">'+getInitials(e.account_name)+'</div></div>';
     })
-    gridTag += '<div class="col-2 moreLegend" data-id='+id+'><div data-toggle="tooltip" data-placement="bottom" title="view more" style="width:40px;background:lightgrey;" class="picLogo mr-0"><i class="fas fa-ellipsis-h"></i></div></div>';
+    gridTag += '<div class="col-2 moreLegend" data-id='+id+'><div data-toggle="tooltip" data-placement="bottom" title="view more" style="width:40px;background:lightgrey;" class="picLogo mr-0 position-relative"><i class="fas fa-ellipsis-h"></i><span class="badge rounded-pill badge-notification bg-danger legendBadge">'+ lengthLeft+'</span></div></div>';
   } else {
     window['dataBoardMember' + id + ''].forEach(function(e){
       let checkColor = lightOrDark(e.color);

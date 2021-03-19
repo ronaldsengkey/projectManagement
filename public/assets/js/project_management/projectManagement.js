@@ -1,4 +1,5 @@
 'use strict'
+
 var arrBackground = ["rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"];
 var arrBackground2 = ["rgba(54, 162, 235, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)", "rgba(105, 0, 132, .2)", "rgba(0, 137, 132, .2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)"];
 var arrbBorder = ["rgba(200, 99, 132, .7)", "rgba(0, 10, 130, .7)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(54, 162, 235)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"];
@@ -30,7 +31,7 @@ $(async function () {
                 $('.filterTimeName').html('Last 7 Days');
 
                 //check for redirect email
-                checkGroupTaskRedirect(boardDataStatus);
+                await checkGroupTaskRedirect(boardDataStatus);
             }
 
         } else
@@ -58,52 +59,54 @@ $(async function () {
 
 })
 
-function checkGroupTaskRedirect(boardDataStatus) {
-    let getUrl = window.location.search;
-    let boardAidi = new URLSearchParams(getUrl).get('boardId');
-    let groupTaskAidi = new URLSearchParams(getUrl).get('groupTaskId');
-    let taskId = new URLSearchParams(getUrl).get('taskId');
-    if (boardAidi != undefined && boardAidi != '') {
-        if (boardDataStatus == '200') {
-            $('.boardList[data-id=' + boardAidi + ']').click();
-            let intervCardBorder = setInterval(() => {
-                if ($('.accordionBoard').length > 0) {
-                    $('#cardGT' + groupTaskAidi).css('border', '4px solid #ff8f00');
-                    $('.headerGT[data-id=' + groupTaskAidi + ']').click();
-                    $('#cardGT' + groupTaskAidi).hover(
-                        function () {
-                            $('#cardGT' + groupTaskAidi).css('border', 'none');
-                            history.pushState({}, null, 'employee');
-                        },
-                        function () {
-
-                        }
-                    );
-                    clearInterval(intervCardBorder);
-
-
-                }
-            }, 1500);
-
-            if (taskId != undefined && taskId != '') {
-                let intervTask = setInterval(() => {
-                    if ($('.dataTask[data-id=' + groupTaskAidi + ']').length > 0) {
-                        $('.taskRow[data-id=' + taskId + ']').addClass('amber lighten-2');
+function checkGroupTaskRedirect(boardDataStatus,boardId = '',groupTaskId = '',taskIdUrl = '') {
+    return new Promise(async function(resolve,reject){
+        let getUrl = window.location.search;
+        let boardAidi = boardId == '' ? new URLSearchParams(getUrl).get('boardId') : boardId;
+        let groupTaskAidi = groupTaskId == '' ? new URLSearchParams(getUrl).get('groupTaskId') : groupTaskId;
+        let taskId = taskIdUrl == '' ? new URLSearchParams(getUrl).get('taskId') : taskIdUrl;
+        if (boardAidi != undefined && boardAidi != '') {
+            if (boardDataStatus == '200') {
+                $('.boardList[data-id=' + boardAidi + ']').click();
+                let intervCardBorder = setInterval(() => {
+                    if ($('.accordionBoard').length > 0) {
+                        $('#cardGT' + groupTaskAidi).css('border', '4px solid #ff8f00');
+                        $('.headerGT[data-id=' + groupTaskAidi + ']').click();
                         $('#cardGT' + groupTaskAidi).hover(
                             function () {
-                                $('.taskRow[data-id=' + taskId + ']').removeClass('amber lighten-2');
+                                $('#cardGT' + groupTaskAidi).css('border', 'none');
+                                history.pushState({}, null, 'employee');
                             },
                             function () {
 
                             }
                         );
-                        clearInterval(intervTask);
+                        resolve(clearInterval(intervCardBorder));
+                        
+
                     }
                 }, 1500);
-            }
-        }
 
-    }
+                if (taskId != undefined && taskId != '') {
+                    let intervTask = setInterval(() => {
+                        if ($('.dataTask[data-id=' + groupTaskAidi + ']').length > 0) {
+                            $('.taskRow[data-id=' + taskId + ']').addClass('amber lighten-2');
+                            $('#cardGT' + groupTaskAidi).hover(
+                                function () {
+                                    $('.taskRow[data-id=' + taskId + ']').removeClass('amber lighten-2');
+                                },
+                                function () {
+
+                                }
+                            );
+                            resolve(clearInterval(intervTask));
+                        }
+                    }, 1500);
+                }
+            }
+
+        }
+    })
 }
 
 function loadingActivated() {
@@ -136,7 +139,12 @@ $(document).on('click', '.removeSidebar', function () {
     }
 })
 
-async function getBoard() {
+async function getBoard(param = {
+    "_id": "",
+    "type": "",
+    "name": "",
+    "account_id": ""
+},cases = '') {
     return new Promise(async function (resolve, reject) {
         $.ajax({
             url: 'board',
@@ -145,30 +153,45 @@ async function getBoard() {
                 "Content-Type": "application/json",
                 "Accept": "*/*",
                 "Cache-Control": "no-cache",
-                "param": JSON.stringify({
-                    "_id": "",
-                    "type": "",
-                    "name": "",
-                    "account_id": ""
-                }),
+                "param": JSON.stringify(param),
                 "secretKey": ct.secretKey,
                 "token": ct.token,
                 "signature": ct.signature
             },
             success: function (result) {
-                loadingDeactivated();
-                if (result.responseCode == '200') {
-                    manageBoardData(result.data);
-                } else if (result.responseCode == '404') {
-                    toastrNotifFull(result.responseMessage, 'error');
-                } else if (result.responseCode != '401') {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
+                
+                if(cases == 'boardId'){
+                    if (result.responseCode == '200') {
+                        resolve(result.data);
+                    } else if (result.responseCode == '404') {
+                        resolve(toastrNotifFull(result.responseMessage, 'error'));
+                        loadingDeactivated();
+                    } else if (result.responseCode != '401') {
+                        let param = {
+                            type: 'error',
+                            text: result.responseMessage
+                        };
+                        resolve(callNotif(param));
+                        loadingDeactivated();
+                    } else {
+                        logoutNotif();
+                        loadingDeactivated();
+                    }
+                } else {
+                    loadingDeactivated();
+                    if (result.responseCode == '200') {
+                        manageBoardData(result.data);
+                    } else if (result.responseCode == '404') {
+                        toastrNotifFull(result.responseMessage, 'error');
+                    } else if (result.responseCode != '401') {
+                        let param = {
+                            type: 'error',
+                            text: result.responseMessage
+                        };
+                        callNotif(param);
+                    }
+                    resolve(result.responseCode);
                 }
-                resolve(result.responseCode);
             }
         })
     })
@@ -980,6 +1003,17 @@ $(document).on('change','.chartLabelPersonal',async function(){
     let name = [];
     let count = [];
     let background = [];
+    let dataDone = [];
+    let dataWorking = [];
+    let dataStuck = [];
+    let dataPending = [];
+    let dataReview = [];
+    window['personalData'] = data;
+    window['dataDone'] = [];
+    window['dataWorking'] = [];
+    window['dataStuck'] = [];
+    window['dataPending'] = [];
+    window['dataReview'] = [];
     let status = $('select.chartLabelPersonal option:selected').text();
     let colorStatus = [
         {
@@ -1011,16 +1045,36 @@ $(document).on('change','.chartLabelPersonal',async function(){
     data.forEach(element => {
         for (let [key, value] of Object.entries(element)) {
             if(status != 'all'){
-                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
                     name.push(key);
                     count.push(value);
                     background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                } else if(key == 'dataDone'){
+                    dataDone.push(value);
+                } else if(key == 'dataWorking'){
+                    dataWorking.push(value);
+                }  else if(key == 'dataStuck'){
+                    dataStuck.push(value);
+                } else if(key == 'dataPending'){
+                    dataPending.push(value);
+                } else if(key == 'dataReview'){
+                    dataReview.push(value);
                 }
             } else {
-                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
                     name.push(key);
                     count.push(value);
                     background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                } else if(key == 'dataDone'){
+                    dataDone.push(value);
+                } else if(key == 'dataWorking'){
+                    dataWorking.push(value);
+                } else if(key == 'dataStuck'){
+                    dataStuck.push(value);
+                } else if(key == 'dataPending'){
+                    dataPending.push(value);
+                } else if(key == 'dataReview'){
+                    dataReview.push(value);
                 }
             }
         }
@@ -1048,7 +1102,34 @@ $(document).on('change','.chartLabelPersonal',async function(){
                         let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                         if(colorCheck == 'light') colorFont = 'text-dark';
                         else colorFont = 'text-white';
-                        htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+
+                        if(chart.data.labels[i] == 'working') {
+                            dataWorking[0].forEach(element => {
+                                window['dataWorking'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'done') {
+                            dataDone[0].forEach(element => {
+                                window['dataDone'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'stuck') {
+                            dataStuck[0].forEach(element => {
+                                window['dataStuck'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'review') {
+                            dataReview[0].forEach(element => {
+                                window['dataReview'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'pending') {
+                            dataPending[0].forEach(element => {
+                                window['dataPending'].push(element.name)
+                            });
+                        }
+
+                        htmls += '<div class="card text-white mb-3 personalDetail" data-for='+chart.data.labels[i]+' style="cursor:pointer;background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
                         '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+ chart.data.labels[i] +' :</div>'+
                         '<div class="card-body text-center pb-3">'+
                             '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
@@ -1150,13 +1231,13 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
         data.forEach(element => {
             for (let [key, value] of Object.entries(element)) {
                 if(status != 'all'){
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
                     }
                 } else {
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1205,8 +1286,6 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
     $('.filterChartName').html($('select.chartTaskEmployee option:selected').text());
 })
 
-
-
 async function processTaskCanvas(data,idCanvas,category = 'team'){
     window['data'+idCanvas] = data;
     window['dataChart'+idCanvas] = [];
@@ -1215,6 +1294,17 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
     let name = [];
     let count = [];
     let background = [];
+    let dataDone = [];
+    let dataWorking = [];
+    let dataStuck = [];
+    let dataPending = [];
+    let dataReview = [];
+    window['personalData'] = data;
+    window['dataDone'] = [];
+    window['dataWorking'] = [];
+    window['dataStuck'] = [];
+    window['dataPending'] = [];
+    window['dataReview'] = [];
     if(category == 'personal'){
         let colorStatus = [
             {
@@ -1248,21 +1338,40 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
         data.forEach(element => {
             for (let [key, value] of Object.entries(element)) {
                 if(status != 'all'){
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key == status){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    } else if(key == 'dataDone'){
+                        dataDone.push(value);
+                    } else if(key == 'dataWorking'){
+                        dataWorking.push(value);
+                    }  else if(key == 'dataStuck'){
+                        dataStuck.push(value);
+                    } else if(key == 'dataPending'){
+                        dataPending.push(value);
+                    } else if(key == 'dataReview'){
+                        dataReview.push(value);
                     }
                 } else {
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color'){
+                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
+                    } else if(key == 'dataDone'){
+                        dataDone.push(value);
+                    } else if(key == 'dataWorking'){
+                        dataWorking.push(value);
+                    } else if(key == 'dataStuck'){
+                        dataStuck.push(value);
+                    } else if(key == 'dataPending'){
+                        dataPending.push(value);
+                    } else if(key == 'dataReview'){
+                        dataReview.push(value);
                     }
                 }
             }
         });
-
         $('.chartLabelPersonal').attr('data-id',idCanvas)
         myBarChart = new Chart(ctxB, {
             type: $('select.chartTypePersonal option:selected').val(),
@@ -1285,12 +1394,39 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
                         let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                         if(colorCheck == 'light') colorFont = 'text-dark';
                         else colorFont = 'text-white';
-                        htmls += '<div class="card text-white mb-3" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
+
+                        if(chart.data.labels[i] == 'working') {
+                            dataWorking[0].forEach(element => {
+                                window['dataWorking'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'done') {
+                            dataDone[0].forEach(element => {
+                                window['dataDone'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'stuck') {
+                            dataStuck[0].forEach(element => {
+                                window['dataStuck'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'review') {
+                            dataReview[0].forEach(element => {
+                                window['dataReview'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'pending') {
+                            dataPending[0].forEach(element => {
+                                window['dataPending'].push(element.name)
+                            });
+                        }
+
+                        htmls += '<div class="card text-white mb-3 personalDetail" data-for='+chart.data.labels[i]+' style="cursor:pointer;background:' + chart.data.datasets[0].backgroundColor[i] + '"">'+
                         '<div class="card-header '+colorFont+'" style="border-bottom:none;background:unset;font-size:1.2rem;">'+ chart.data.labels[i] +' :</div>'+
                         '<div class="card-body text-center pb-3">'+
-                            '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>'+
-                        '</div>'+
-                    '</div>';
+                            '<p class="card-text '+colorFont+'" style="font-size:1.0rem;">'+chart.data.datasets[0].data[i]+' '+plural+' </p>' +
+                            '</div>'+
+                        '</div>';
                 }
                     return htmls;
                 },
