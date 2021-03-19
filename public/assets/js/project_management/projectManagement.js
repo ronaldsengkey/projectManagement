@@ -1044,12 +1044,14 @@ $(document).on('change','.chartLabelPersonal',async function(){
     let dataStuck = [];
     let dataPending = [];
     let dataReview = [];
+    let dataFixing = [];
     window['personalData'] = data;
     window['dataDone'] = [];
     window['dataWorking'] = [];
     window['dataStuck'] = [];
     window['dataPending'] = [];
     window['dataReview'] = [];
+    window['dataFixing'] = [];
     let status = $('select.chartLabelPersonal option:selected').text();
     let colorStatus = [
         {
@@ -1076,12 +1078,16 @@ $(document).on('change','.chartLabelPersonal',async function(){
             status: 'done',
             color: 'limegreen'
         },
+        {
+            status: 'fixing',
+            color: 'sienna'
+        },
     ]
 
     data.forEach(element => {
         for (let [key, value] of Object.entries(element)) {
             if(status != 'all'){
-                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
+                if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key != 'dataFixing' && key == status){
                     name.push(key);
                     count.push(value);
                     background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1095,9 +1101,11 @@ $(document).on('change','.chartLabelPersonal',async function(){
                     dataPending.push(value);
                 } else if(key == 'dataReview'){
                     dataReview.push(value);
-                }
+                } else if(key == 'dataFixing'){
+                    dataFixing.push(value);
+                } 
             } else {
-                if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
+                if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key != 'dataFixing'  && key != 'color'){
                     name.push(key);
                     count.push(value);
                     background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1111,7 +1119,9 @@ $(document).on('change','.chartLabelPersonal',async function(){
                     dataPending.push(value);
                 } else if(key == 'dataReview'){
                     dataReview.push(value);
-                }
+                } else if(key == 'dataFixing'){
+                    dataFixing.push(value);
+                } 
             }
         }
     });
@@ -1162,6 +1172,11 @@ $(document).on('change','.chartLabelPersonal',async function(){
                         if(chart.data.labels[i] == 'pending') {
                             dataPending[0].forEach(element => {
                                 window['dataPending'].push(element.name)
+                            });
+                        }
+                        if(chart.data.labels[i] == 'fixing') {
+                            dataFixing[0].forEach(element => {
+                                window['dataFixing'].push(element.name)
                             });
                         }
 
@@ -1245,6 +1260,10 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
             status: 'done',
             color: 'limegreen'
         },
+        {
+            status: 'fixing',
+            color: 'sienna'
+        },
     ]
     
     if($('select.chartTaskEmployee option:selected').text() == 'all'){
@@ -1267,13 +1286,13 @@ $(document).on('change','.chartTaskEmployee, .chartLabelName, .chartType',async 
         data.forEach(element => {
             for (let [key, value] of Object.entries(element)) {
                 if(status != 'all'){
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key != 'dataFixing' && key == status){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
                     }
                 } else {
-                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
+                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key != 'dataFixing'  && key != 'color'){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1335,12 +1354,14 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
     let dataStuck = [];
     let dataPending = [];
     let dataReview = [];
+    let dataFixing = [];
     window['personalData'] = data;
     window['dataDone'] = [];
     window['dataWorking'] = [];
     window['dataStuck'] = [];
     window['dataPending'] = [];
     window['dataReview'] = [];
+    window['dataFixing'] = [];
     if(category == 'personal'){
         let colorStatus = [
             {
@@ -1367,6 +1388,10 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
                 status: 'done',
                 color: 'limegreen'
             },
+            {
+                status: 'fixing',
+                color: 'sienna'
+            },
         ]
 
         let status = $('select.chartLabelPersonal option:selected').text();
@@ -1374,7 +1399,7 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
         data.forEach(element => {
             for (let [key, value] of Object.entries(element)) {
                 if(status != 'all'){
-                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key == status){
+                    if(key != 'id' && key != 'name' && key != 'total'  && key != 'color' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataFixing' && key != 'dataWorking' && key == status){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1388,9 +1413,11 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
                         dataPending.push(value);
                     } else if(key == 'dataReview'){
                         dataReview.push(value);
+                    } else if(key == 'dataFixing'){
+                        dataFixing.push(value);
                     }
                 } else {
-                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking'  && key != 'color'){
+                    if(key != 'id' && key != 'name' && key != 'total' && key != 'dataDone' && key != 'dataPending' && key != 'dataReview' && key != 'dataStuck' && key != 'dataWorking' && key != 'dataFixing'  && key != 'color'){
                         name.push(key);
                         count.push(value);
                         background.push(colorStatus.filter((e) => {return e.status == key})[0].color)
@@ -1404,6 +1431,8 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
                         dataPending.push(value);
                     } else if(key == 'dataReview'){
                         dataReview.push(value);
+                    } else if(key == 'dataFixing'){
+                        dataFixing.push(value);
                     }
                 }
             }
@@ -1454,6 +1483,11 @@ async function processTaskCanvas(data,idCanvas,category = 'team'){
                         if(chart.data.labels[i] == 'pending') {
                             dataPending[0].forEach(element => {
                                 window['dataPending'].push(element.name)
+                            });
+                        } 
+                        if(chart.data.labels[i] == 'fixing') {
+                            dataFixing[0].forEach(element => {
+                                window['dataFixing'].push(element.name)
                             });
                         }
 

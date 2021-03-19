@@ -256,6 +256,7 @@ async function domTaskTable(data, id, result, boardMember) {
         else if (haveStatus == 'Stuck') statusClass = 'highPrio'
         else if (haveStatus == 'Waiting for review') statusClass = 'reviewStat'
         else if (haveStatus == 'Pending') statusClass = 'pendingPrio'
+        else if (haveStatus == 'Need to fix') statusClass = 'fixPrio'
         else statusClass = 'lowPrio';
 
         let dataPic = 0;
@@ -436,6 +437,7 @@ async function processProgressBar(data, idGroup) {
   let totalWaiting = 0;
   let totalNoStatus = 0;
   let totalPending = 0;
+  let totalFixing = 0;
   data.forEach(element => {
     if (!element.status) {
       totalNoStatus += 1;
@@ -450,6 +452,8 @@ async function processProgressBar(data, idGroup) {
         totalWaiting += 1;
       } else if (element.status == 'Pending') {
         totalPending += 1;
+      } else if (element.status == 'Need to fix') {
+        totalFixing += 1;
       } 
     } 
   });
@@ -460,6 +464,7 @@ async function processProgressBar(data, idGroup) {
   let waitingWidth = (totalWaiting / countTotal) * 100;
   let pendingWidth = (totalPending / countTotal) * 100;
   let noStatusWidth = (totalNoStatus / countTotal) * 100;
+  let fixWidth = (totalFixing / countTotal) * 100;
 
   let htmlProgress = '<div class="row"><div class="col-md-2 col-lg-1" style="align-self:center;">Status </div><div class="col-md-10 col-lg-11"><div class="progress" data-id=' + idGroup + ' style="height: 15px;">' +
     '<div data-identity="Done" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Done ' + totalDone + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated lowLabel" role="progressbar" style="width: ' + doneWidth + '%" aria-valuenow=' + totalDone + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + doneWidth.toFixed(1) + '%</div>' +
@@ -467,6 +472,7 @@ async function processProgressBar(data, idGroup) {
     '<div data-identity="Stuck" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Stuck ' + totalStuck + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated highLabel" role="progressbar" style="width: ' + stuckWidth + '%" aria-valuenow=' + totalStuck + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + stuckWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Waiting for review" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Waiting for review ' + totalWaiting + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated reviewLabel" role="progressbar" style="width: ' + waitingWidth + '%" aria-valuenow=' + totalWaiting + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + waitingWidth.toFixed(1) + '%</div>' +
     '<div data-identity="Pending" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Pending ' + totalPending + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated pendingLabel" role="progressbar" style="width: ' + pendingWidth + '%" aria-valuenow=' + totalPending + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + pendingWidth.toFixed(1) + '%</div>' +
+    '<div data-identity="Fixing" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="Fixing ' + totalFixing + '/' + countTotal + '" class="progress-bar progressStatus progress-bar-striped progress-bar-animated fixLabel" role="progressbar" style="width: ' + fixWidth + '%" aria-valuenow=' + totalFixing + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + fixWidth.toFixed(1) + '%</div>' +
     '<div data-identity="No Status" data-id=' + idGroup + ' data-toggle="tooltip" data-placement="bottom" title="No Status ' + totalNoStatus + '/' + countTotal + '" class="progress-bar progressStatus bg-light" role="progressbar" style="width: ' + noStatusWidth + '%" aria-valuenow=' + totalNoStatus + ' aria-valuemin="0" aria-valuemax=' + countTotal + '>' + noStatusWidth.toFixed(1) + '%</div>' +
     '</div></div></div>';
   return htmlProgress;

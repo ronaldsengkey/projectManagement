@@ -643,11 +643,14 @@ $(document).on('click','.savingCanvas',async function(){
     console.log('current page',parseInt($('.currPage').html()),window['signatureMultiple']);
     window['signatureMultiple'].forEach(element => {
       if(element.id == parseInt($('.currPage').html())){
-        element.image = window['signaturePad'].toDataURL('image/jpeg')
+        element.image = window['signaturePad'].toDataURL('image/png')
+      } else {
+        element.image = element.imageBackup
       }
     });
     window['signatureMultiple'].forEach(element => {
       delete element.id;
+      delete element.imageBackup
     })
     console.log('awal',window['signatureMultiple'],pdf,multiple);
     await exportCanvas(idFile,idTask,groupId,window['signatureMultiple'],pdf,multiple);
@@ -658,10 +661,14 @@ $(document).on('click','.savingCanvas',async function(){
 
 $(document).on('click','.enablingCanvas',function(){
   enableCanvas()
-  $('.clearingCanvas').removeClass('d-none');
   $('.savingCanvas').removeClass('d-none');
-  $('.disableSignature').removeClass('d-none');
   $('.enablingCanvas').addClass('d-none');
+  $('.clearingCanvas').removeClass('d-none');
+  if($(this).data('pdf') != true && $(this).data('multiple') != true){
+    $('.disableSignature').removeClass('d-none');
+  } else {
+    $('.clearingCanvas').attr('data-number',1);
+  }
 })
 
 $(document).on('click','.disableSignature',function(){
@@ -702,27 +709,27 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
       content: contentData
     };
     console.log('conte',docDefinition);
-    // pdfMake.createPdf(docDefinition).download();
-    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-    let fileDataPdf;
-    pdfDocGenerator.getDataUrl(async (dataUrl) => {
-      fileDataPdf = dataUrl;
-      let formAttachmentFile = new FormData();
-      let dataFile = JSON.stringify({
-          "fileId": fileId,
-          "file": fileDataPdf
-      })
-      formAttachmentFile.append('file', dataFile);
-      formAttachmentFile.append('id',idTask);
-      loadingActivated();
-      let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
-      loadingDeactivated();
-      if(attachFile == '200'){
-        disableCanvas();
-        refreshTableData(groupId);
-        $('#modalAttachmentFile').modal('toggle')
-      }
-    });
+    pdfMake.createPdf(docDefinition).download();
+    // const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    // let fileDataPdf;
+    // pdfDocGenerator.getDataUrl(async (dataUrl) => {
+    //   fileDataPdf = dataUrl;
+    //   let formAttachmentFile = new FormData();
+    //   let dataFile = JSON.stringify({
+    //       "fileId": fileId,
+    //       "file": fileDataPdf
+    //   })
+    //   formAttachmentFile.append('file', dataFile);
+    //   formAttachmentFile.append('id',idTask);
+    //   loadingActivated();
+    //   let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+    //   loadingDeactivated();
+    //   if(attachFile == '200'){
+    //     disableCanvas();
+    //     refreshTableData(groupId);
+    //     $('#modalAttachmentFile').modal('toggle')
+    //   }
+    // });
   } else {
     let formAttachmentFile = new FormData();
     let dataFile = JSON.stringify({
@@ -800,6 +807,7 @@ function onPrevPage() {
     return;
   }
   pageNum--;
+  $('.clearingCanvas').attr('data-number',pageNum);
   queueRenderPage(pageNum);
 }
 
@@ -808,6 +816,7 @@ function onNextPage() {
     return;
   }
   pageNum++;
+  $('.clearingCanvas').attr('data-number',pageNum);
   queueRenderPage(pageNum);
 }
 
@@ -846,26 +855,30 @@ $(document).on('click','.showAttachment',async function(){
         pdfDoc = pdf;
         
         if(numPages > 1){
-          $('.savingCanvas').data('pdf',true);
-          $('.savingCanvas').data('multiple',true);
+          $('.savingCanvas').attr('data-pdf',true);
+          $('.savingCanvas').attr('data-multiple',true);
+          $('.enablingCanvas').attr('data-pdf',true);
+          $('.enablingCanvas').attr('data-multiple',true);
           pageNum = 1;
           pageNumMultiple = 1;
           window['signatureMultiple'] = [];
           pdf.getPage(pageNumber).then(handlePages)
           // $('#canvasPlace').addClass('d-none');
           if($('.legendData').length == 0){
-            let legend = '<div class="legendData"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
+            let legend = '<div class="legendData d-flex align-items-center"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
             $(legend).insertAfter($('#canvasPlace'));
             document.getElementById('prev').addEventListener('click', onPrevPage);
             document.getElementById('next').addEventListener('click', onNextPage);
-            $('<span style="float:right;">Page : <span class="currPage"></span> / '+numPages+'</span>').appendTo($('.legendData'));
+            $('<span style="margin-left:auto;">Page : <span class="currPage"></span> / '+numPages+'</span>').appendTo($('.legendData'));
           }
           
           renderPage(pageNum);
           await activateCanvas(attachShow.data.source,true);
         } else {
-          $('.savingCanvas').data('pdf',true);
-          $('.savingCanvas').data('multiple',false);
+          $('.savingCanvas').attr('data-pdf',true);
+          $('.savingCanvas').attr('data-multiple',false);
+          $('.enablingCanvas').attr('data-pdf',true);
+          $('.enablingCanvas').attr('data-multiple',false);
           $('.legendData').remove();
           pdf.getPage(pageNumber).then(function(page) {
             var scale = 1.2;
@@ -924,7 +937,6 @@ function handlePages(page)
     let paged = page.render({canvasContext: context, viewport: viewport});
 
     paged.promise.then(function() {
-      console.log('promisee');
       document.getElementById('newPlaces').appendChild( canvas );
       activateCanvasMultiple(pageNumMultiple)
 
@@ -941,6 +953,11 @@ function handlePages(page)
 
 async function activateCanvasMultiple(id){
   let canvasMultiple = document.querySelector("#canvasMultiple"+id);
+  var image = new Image();
+  image.id = 'img'+id
+  image.src = canvasMultiple.toDataURL();
+  // document.getElementById('image_for_crop').appendChild(image);
+  $(image).insertAfter("#canvasMultiple"+id)
   let signaturePadMultiple = new SignaturePad(canvasMultiple);
 
   signaturePadMultiple.on();
@@ -955,7 +972,9 @@ async function activateCanvasMultiple(id){
     {
       // in browser is supported loading images via url from reference by name in images
       id: id,
-      image: signaturePadMultiple.toDataURL('image/png'),
+      // image: signaturePadMultiple.toDataURL('image/png'),
+      imageBackup: $('#img'+id).attr('src'),
+      image: canvasMultiple.toDataURL(),
       width: 700,
       height: 1000
     }
@@ -1511,8 +1530,6 @@ $(document).on('mouseenter', '.name', function () {
       if (newValue == '') {
         $('.name[data-id=' + id + ']').html(name);
       } else {
-        console.log('ww', newValue);
-
         let updateName = {
           '_id': id,
           'group_id': groupid,
@@ -1520,14 +1537,8 @@ $(document).on('mouseenter', '.name', function () {
           'user_update': ct.name
         }
         globalUpdateTask('name', updateName);
-        $('td.name[data-id=' + id + ']').data('name', newValue);
-        $('.name[data-id=' + id + ']').mouseleave();
+        refreshTableData(groupid);
       }
-      setTimeout(() => {
-        if (newValue == '') newValue = name;
-        $('.name[data-id=' + id + ']').mouseleave();
-        $('.name[data-id=' + id + ']').html(newValue);
-      }, 200);
     }
   });
 })
@@ -1560,7 +1571,7 @@ $(document).on('mouseenter', '.statusChild', function () {
     console.log('err',error); 
   }
   if(pic == ct.id_employee || gtPic == ct.id_employee){
-    menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
+    menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div> <div class="row p-2"><div class="col-lg-12 rowStat fixStat text-white">Need to Fix</div></div>';
   }
   $(this).popover({
     trigger: 'focus',
@@ -1578,6 +1589,7 @@ $(document).on('mouseenter', '.statusChild', function () {
     $('.highPrio').attr('data-status', 'Stuck');
     $('.lowPrio').attr('data-status', 'Done');
     $('.reviewStat').attr('data-status', 'Waiting for review');
+    $('.fixStat').attr('data-status', 'Need to fix');
   })
   
 })
@@ -1613,6 +1625,10 @@ $(document).on('click', '.rowStat', async function () {
     $('.statusChild[data-id=' + id + ']').removeClass('pendingPrio');
   }
 
+  if ($('.statusChild[data-id=' + id + ']').hasClass('fixPrio')) {
+    $('.statusChild[data-id=' + id + ']').removeClass('fixPrio');
+  }
+
   switch (stat) {
     case 'Waiting for review':
       $('.statusChild[data-id=' + id + ']').addClass('reviewStat text-white');
@@ -1629,9 +1645,10 @@ $(document).on('click', '.rowStat', async function () {
     case 'Pending':
       $('.statusChild[data-id=' + id + ']').addClass('pendingPrio text-white');
       break;
+    case 'Need to fix':
+      $('.statusChild[data-id=' + id + ']').addClass('fixPrio text-white');
+      break;
   }
-
-
 
   let dataStat = {
     '_id': id,
