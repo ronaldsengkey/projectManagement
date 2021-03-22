@@ -107,8 +107,8 @@ function checkGroupTaskRedirect(boardDataStatus,boardId = '',groupTaskId = '',ta
 
                 if(commentId != undefined && commentId != ''){
                     let intervComment = setInterval(() => {
-                        if ($('.commentTask[data-groupid=' + groupTaskAidi + ']').length > 0) {
-                            $('.commentTask[data-groupid=' + groupTaskAidi + ']').click();
+                        if ($('.commentTask[data-id=' + taskId + ']').length > 0) {
+                            $('.commentTask[data-id=' + taskId + ']').click();
                             resolve(clearInterval(intervComment));
                         }
                     }, 1500);
