@@ -1665,6 +1665,7 @@ fastify.post("/commentUpdate", async function (request, reply) {
       };
       data.task_id = cryptography.encryptMessage(data.task_id);
       data.comment = cryptography.encryptMessage(data.comment);
+      data.url = cryptography.encryptMessage(data.url);
       data.comment_file = data.comment_file;
       data.user_create = cryptography.encryptMessage(data.user_create);
       dataSend.settings.formData = data;
