@@ -277,6 +277,12 @@ $(document).on('click', '.menuRename', async function () {
         text: result.responseMessage
       };
       callNotif(param);
+      let newProjects = JSON.parse(localStorage.getItem('favList')).map(p =>
+        p.id === renameId
+          ? { ...p, name: newName }
+          : p
+      );
+      localStorage.setItem('favList',JSON.stringify(newProjects))
       $('#modalOptions').modal('toggle');
       $('a[data-id='+renameBoardId+']').click();
       $('#chartSection').addClass('d-none');
@@ -320,6 +326,8 @@ $(document).on('click', '.menuDelete', function () {
             text: result.responseMessage
           };
           callNotif(param);
+          let filters = JSON.parse(localStorage.getItem('favList')).filter(function(el) { return el.id != deleteId }); 
+          localStorage.setItem('favList',JSON.stringify(filters))
           $('#modalOptions').modal('toggle');
           $('a[data-id='+deleteBoardId+']').click();
           $('#chartSection').addClass('d-none');
