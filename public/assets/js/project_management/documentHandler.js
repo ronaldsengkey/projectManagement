@@ -862,6 +862,8 @@ $(document).on('click','.showAttachment',async function(){
     $('[data-original-title]').popover('hide');
     
     if(attachShow.data.path.includes('pdf')){
+      $('#canvasDoc').attr('src','').addClass('d-none');
+      $('#canvasPlace').removeClass('d-none');
       activeModalAttachmentFile();
       $('.clearingCanvas').addClass('d-none');
       $('.savingCanvas').addClass('d-none');
@@ -940,10 +942,21 @@ $(document).on('click','.showAttachment',async function(){
       });
       $('#canvasPlace').css('max-width','735px');
     } else if(attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')){
-      $('#canvasDoc').attr('src',attachShow.data.source)
-      toastrNotifFull('please check downloaded file');
-    } else {
       activeModalAttachmentFile();
+      $('.clearingCanvas').addClass('d-none');
+      $('.savingCanvas').addClass('d-none');
+      $('.enablingCanvas').addClass('d-none');
+      $('#backupCanvas').attr("src",'');
+      $('.legendData').remove();
+
+      $('#canvasDoc').attr('src','https://view.officeapps.live.com/op/embed.aspx?src='+attachShow.data.path).removeClass('d-none');
+      $('#canvasPlace').addClass('d-none');
+      toastrNotifFull('view only document','warning');
+    } else {
+      $('#canvasDoc').attr('src','').addClass('d-none');
+      $('#canvasPlace').removeClass('d-none');
+      activeModalAttachmentFile();
+      
       $('.clearingCanvas').addClass('d-none');
       $('.savingCanvas').addClass('d-none');
       $('.enablingCanvas').removeClass('d-none');
