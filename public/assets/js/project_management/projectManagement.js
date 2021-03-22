@@ -59,12 +59,13 @@ $(async function () {
 
 })
 
-function checkGroupTaskRedirect(boardDataStatus,boardId = '',groupTaskId = '',taskIdUrl = '') {
+function checkGroupTaskRedirect(boardDataStatus,boardId = '',groupTaskId = '',taskIdUrl = '',commentIdUrl = '') {
     return new Promise(async function(resolve,reject){
         let getUrl = window.location.search;
         let boardAidi = boardId == '' ? new URLSearchParams(getUrl).get('boardId') : boardId;
         let groupTaskAidi = groupTaskId == '' ? new URLSearchParams(getUrl).get('groupTaskId') : groupTaskId;
         let taskId = taskIdUrl == '' ? new URLSearchParams(getUrl).get('taskId') : taskIdUrl;
+        let commentId = commentIdUrl == '' ? new URLSearchParams(getUrl).get('commentId') : commentIdUrl;
         if (boardAidi != undefined && boardAidi != '') {
             if (boardDataStatus == '200') {
                 $('.boardList[data-id=' + boardAidi + ']').click();
@@ -100,6 +101,15 @@ function checkGroupTaskRedirect(boardDataStatus,boardId = '',groupTaskId = '',ta
                                 }
                             );
                             resolve(clearInterval(intervTask));
+                        }
+                    }, 1500);
+                }
+
+                if(commentId != undefined && commentId != ''){
+                    let intervComment = setInterval(() => {
+                        if ($('.commentTask[data-groupid=' + groupTaskAidi + ']').length > 0) {
+                            $('.commentTask[data-groupid=' + groupTaskAidi + ']').click();
+                            resolve(clearInterval(intervComment));
                         }
                     }, 1500);
                 }
