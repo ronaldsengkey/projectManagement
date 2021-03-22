@@ -91,6 +91,7 @@ function onMaintenance(text) {
 function logout() {
     localStorage.removeItem('accountProfile');
     localStorage.removeItem('accountLogin');
+    localStorage.removeItem('favList');
     sessionStorage.clear();
     window.location = "login";
 }

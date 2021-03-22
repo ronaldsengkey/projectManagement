@@ -74,6 +74,21 @@ async function domBoardContent() {
   let boardType = $('#addGroupTask').data('boardtype');
   let boardMember = window['groupTask' + id + ''];
   if(boardType == 'Private') await appendLegend(id);
+  try {
+    JSON.parse(localStorage.getItem('favList')).forEach(element => {
+      window['groupTask' + id + ''].some((item, idx) => 
+        item._id == element.id  && 
+        window['groupTask' + id + ''].unshift( 
+          // remove the found item, in-place (by index with splice), 
+          // returns an array of a single item removed
+          window['groupTask' + id + ''].splice(idx,1)[0] 
+        ) 
+      )
+    });
+  } catch (error) {
+  }
+  
+
   window['groupTask' + id + ''].forEach(element => {
     try{
       if(boardType == 'Private'){
@@ -108,7 +123,7 @@ async function domBoardContent() {
       '</h2>' +
       '</div>'+
       '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
-      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a></div></div>'+
+      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-name="' + element.name + '" data-id=' + element._id + '><i class="far fa-star fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
       
       '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -117,6 +132,17 @@ async function domBoardContent() {
     '</div>'
     '</div>';
     $('.accordionBoard').append(htmlAccordion);
+
+    try {
+      JSON.parse(localStorage.getItem('favList')).forEach(elements => {
+        if(elements.id == element._id){
+          $('.favGT[data-id='+element._id+']').css('color','orange');
+        }
+      });
+    } catch (error) {
+      
+    }
+    
     
 
     $('.collapse[data-id="' + element._id + '"]').on('show.bs.collapse', async function () {
@@ -127,36 +153,6 @@ async function domBoardContent() {
     });
   });
 }
-
-$(document).on('click','.btnMenu',function(){
-  let owner = $(this).data('owner');
-  let pic = $(this).data('pic');
-  if(ct.name == owner || ct.id_employee == pic){
-    $('.placeBody').empty();
-    let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
-    $('.placeBody').append(renameText);
-    let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
-    $('.placeBody').append(menuTemplate);
-    $('.menuRename').attr('data-id', $(this).data('id'));
-    $('.menuRename').attr('data-boardid', $(this).data('boardid'));
-    $('.menuRename').attr('data-name', $(this).data('name'));
-    $('.menuRename').attr('data-boardname', $(this).data('boardname'));
-    $('.menuRename').attr('data-camelized', $(this).data('camelized'));
-    $('.menuRename').attr('data-boardtype', $(this).data('boardtype'));
-
-    $('.menuDelete').attr('data-id', $(this).data('id'));
-    $('.menuDelete').attr('data-name', $(this).data('name'));
-    $('.menuDelete').attr('data-boardid', $(this).data('boardid'));
-    $('.menuDelete').attr('data-boardname', $(this).data('boardname'));
-    $('.menuDelete').attr('data-camelized', $(this).data('camelized'));
-    $('.menuDelete').attr('data-boardtype', $(this).data('boardtype'));
-
-    activeModalGroupTask();
-  } else {
-    toastrNotifFull('You do not have access','error')
-  }
-
-})
 
 $('#modalOptions').on('hidden.bs.modal', function (e) {
   $('#modalOptions').removeClass('d-flex')
@@ -334,31 +330,53 @@ async function domTaskTable(data, id, result, boardMember) {
         $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
         // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
         $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-          if($(element).attr('class') != 'status'){
+          if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
             $('td.'+$(element).attr('class')).addClass('disableInputInside')
           }
         })
       } 
 
       //only if login user is part of member that is allowed to see his/her own task
-      if(haveTeam && JSON.parse(element.pic)[0].account_name != ct.name && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name && $('#table'+id).attr('data-type') != 'Main'){
-        let member = element.member;
-        member.forEach(elements => {
-          if(elements.account_id == ct.id_employee){
-            result.condition = true;
-            $('#table' + id + ' > .dataTask').prepend(htmlTask);
-            $('.priority[data-id='+element._id+']').addClass('disableInputInside')
-            $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
-            // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
-            $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-              if($(element).attr('class') != 'status'){
-                $('td.'+$(element).attr('class')).addClass('disableInputInside')
-              }
-              
-            })
-          }
-        });
+      if(havePic){
+        if(haveTeam && JSON.parse(element.pic)[0].account_name != ct.name && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name && $('#table'+id).attr('data-type') != 'Main'){
+          let member = element.member;
+          member.forEach(elements => {
+            if(elements.account_id == ct.id_employee){
+              result.condition = true;
+              $('#table' + id + ' > .dataTask').prepend(htmlTask);
+              $('.priority[data-id='+element._id+']').addClass('disableInputInside')
+              $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
+              // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
+              $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
+                if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                  $('td.'+$(element).attr('class')).addClass('disableInputInside')
+                }
+                
+              })
+            }
+          });
+        }
+      } else {
+        if(haveTeam && JSON.parse(result.pic)[0].account_id != ct.id_employee && result.user_create != ct.name && $('#table'+id).attr('data-type') != 'Main'){
+          let member = element.member;
+          member.forEach(elements => {
+            if(elements.account_id == ct.id_employee){
+              result.condition = true;
+              $('#table' + id + ' > .dataTask').prepend(htmlTask);
+              $('.priority[data-id='+element._id+']').addClass('disableInputInside')
+              $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
+              // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
+              $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
+                if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                  $('td.'+$(element).attr('class')).addClass('disableInputInside')
+                }
+                
+              })
+            }
+          });
+        }
       }
+      
       
     });
 

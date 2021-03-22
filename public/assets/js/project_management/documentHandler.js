@@ -89,6 +89,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
+        formUpdateComment.append('url',localUrl + ':' + projectManagementLocalPort + '/employee')
         $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
         $(this).val('');
         $(this).blur();
@@ -1061,6 +1062,71 @@ async function triggerPopoverFileAttachment(id,groupid,name){
     });
   }
 }
+
+$(document).on('click','.btnMenu',function(e){
+  let owner = $(this).data('owner');
+  let pic = $(this).data('pic');
+  if(ct.name == owner || ct.id_employee == pic){
+    $('.placeBody').empty();
+    let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
+    $('.placeBody').append(renameText);
+    let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
+    $('.placeBody').append(menuTemplate);
+    $('.menuRename').attr('data-id', $(this).data('id'));
+    $('.menuRename').attr('data-boardid', $(this).data('boardid'));
+    $('.menuRename').attr('data-name', $(this).data('name'));
+    $('.menuRename').attr('data-boardname', $(this).data('boardname'));
+    $('.menuRename').attr('data-camelized', $(this).data('camelized'));
+    $('.menuRename').attr('data-boardtype', $(this).data('boardtype'));
+
+    $('.menuDelete').attr('data-id', $(this).data('id'));
+    $('.menuDelete').attr('data-name', $(this).data('name'));
+    $('.menuDelete').attr('data-boardid', $(this).data('boardid'));
+    $('.menuDelete').attr('data-boardname', $(this).data('boardname'));
+    $('.menuDelete').attr('data-camelized', $(this).data('camelized'));
+    $('.menuDelete').attr('data-boardtype', $(this).data('boardtype'));
+
+    activeModalGroupTask();
+  } else {
+    e.preventDefault();
+    toastrNotifFull('You do not have access','error')
+  }
+})
+
+window['favList'] = [];
+$(document).on('click','.btnFavorites',function(){
+  let idFav = $(this).data('id');
+  let nameFav = $(this).data('name');
+  let dataFav = {
+    id: idFav,
+    name: nameFav
+  }
+  let parsed;
+  let alreadyFav = false;
+  if(localStorage.getItem('favList')){
+    parsed = JSON.parse(localStorage.getItem('favList'));
+    parsed.forEach(element => {
+      if(element.id == idFav){
+        alreadyFav = true;
+        return;
+      }
+    });
+  }
+
+  if(!alreadyFav){
+    window['favList'].push(dataFav);
+    localStorage.setItem('favList',JSON.stringify(window['favList']));
+    toastrNotifFull('success add '+nameFav+' to favorites');
+    $('.favGT[data-id='+idFav+']').css('color','orange');
+    $('#cardGT'+idFav+'').prependTo($('.accordionBoard'))
+  } else {
+    window['favList'] = window['favList'].filter(function(el) { return el.id != idFav }); 
+    localStorage.setItem('favList',JSON.stringify(window['favList']));
+    toastrNotifFull('success remove '+nameFav+' from favorites');
+    $('.favGT[data-id='+idFav+']').css('color','initial');
+    $('#cardGT'+idFav+'').appendTo($('.accordionBoard'))
+  }
+})
 
 $(document).on('mouseenter','.personalDetail',function(){
   let forType = $(this).data('for');
