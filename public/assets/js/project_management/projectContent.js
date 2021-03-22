@@ -123,7 +123,7 @@ async function domBoardContent() {
       '</h2>' +
       '</div>'+
       '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
-      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-name="' + element.name + '" data-id=' + element._id + '><i class="far fa-star fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
+      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
       
       '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +

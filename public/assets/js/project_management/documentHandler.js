@@ -634,7 +634,6 @@ function clearCanvas(){
     renderPage(currentPage)
   }
   else {
-    currentPage = 1;
     let backUpCanvas = $('#backupCanvas').attr('src');
     window['signaturePad'].clear();
     window['signaturePad'].fromDataURL(backUpCanvas);
@@ -677,14 +676,6 @@ $(document).on('click','.enablingCanvas',function(){
   } else {
     $('.clearingCanvas').attr('data-number',1);
   }
-})
-
-$(document).on('click','.disableSignature',function(){
-  disableCanvas();
-  $('.clearingCanvas').addClass('d-none');
-  $('.savingCanvas').addClass('d-none');
-  $('.disableSignature').addClass('d-none');
-  $('.enablingCanvas').removeClass('d-none');
 })
 
 $(document).on('click','.clearingCanvas',function(){
@@ -869,20 +860,17 @@ $(document).on('click','.showAttachment',async function(){
   loadingDeactivated();
   if(attachShow.responseCode == '200'){
     $('[data-original-title]').popover('hide');
-    activeModalAttachmentFile();
-    $('.clearingCanvas').addClass('d-none');
-    $('.savingCanvas').addClass('d-none');
-    $('.disableSignature').addClass('d-none');
-    $('.enablingCanvas').removeClass('d-none');
-
-    $('.savingCanvas').data('id',fileId);
-    $('.savingCanvas').data('idTask',idTask);
-    $('.savingCanvas').data('groupid',groupId);
-    $('#backupCanvas').attr("src",'');
     
     if(attachShow.data.path.includes('pdf')){
-      // $('#pdfViewer').removeClass('d-none');
-      // $('#pdfViewer').attr('src',attachShow.data.source);
+      activeModalAttachmentFile();
+      $('.clearingCanvas').addClass('d-none');
+      $('.savingCanvas').addClass('d-none');
+      $('.enablingCanvas').removeClass('d-none');
+
+      $('.savingCanvas').data('id',fileId);
+      $('.savingCanvas').data('idTask',idTask);
+      $('.savingCanvas').data('groupid',groupId);
+      $('#backupCanvas').attr("src",'');
       pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
       let url = attachShow.data.source;
       var pdfData = atob(url.split('data:application/pdf;base64,')[1]);
@@ -951,9 +939,22 @@ $(document).on('click','.showAttachment',async function(){
         console.error(reason);
       });
       $('#canvasPlace').css('max-width','735px');
+    } else if(attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')){
+      $('#canvasDoc').attr('src',attachShow.data.source)
+      toastrNotifFull('please check downloaded file');
     } else {
+      activeModalAttachmentFile();
+      $('.clearingCanvas').addClass('d-none');
+      $('.savingCanvas').addClass('d-none');
+      $('.enablingCanvas').removeClass('d-none');
+
+      $('.savingCanvas').data('id',fileId);
+      $('.savingCanvas').data('idTask',idTask);
+      $('.savingCanvas').data('groupid',groupId);
+      $('#backupCanvas').attr("src",'');
       $('.savingCanvas').data('pdf',false);
       $('.savingCanvas').data('multiple',false);
+      $('.legendData').remove();
       await activateCanvas(attachShow.data.source);
     }
     
@@ -1047,7 +1048,7 @@ async function triggerPopoverFileAttachment(id,groupid,name){
   if($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined){
     let htmlMember = '';
     window['fileAttachment'+id].forEach(element => {
-      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg showAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span><span style="float:right;cursor:pointer;"><i class="far fa-trash-alt fa-lg deleteAttachment ml-3" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
+      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span class="d-flex justify-content-between col-lg-5"><i class="far fa-eye fa-lg showAttachment ml-3" style="cursor:pointer;" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i><i class="far fa-trash-alt fa-lg deleteAttachment ml-3" style="cursor:pointer;" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
     });
     let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
 
@@ -1116,13 +1117,13 @@ $(document).on('click','.btnFavorites',function(){
   if(!alreadyFav){
     window['favList'].push(dataFav);
     localStorage.setItem('favList',JSON.stringify(window['favList']));
-    toastrNotifFull('success add '+nameFav+' to favorites');
+    toastrNotifFull('success pin group task : '+nameFav+'');
     $('.favGT[data-id='+idFav+']').css('color','orange');
     $('#cardGT'+idFav+'').prependTo($('.accordionBoard'))
   } else {
     window['favList'] = window['favList'].filter(function(el) { return el.id != idFav }); 
     localStorage.setItem('favList',JSON.stringify(window['favList']));
-    toastrNotifFull('success remove '+nameFav+' from favorites');
+    toastrNotifFull('success unpin group task : '+nameFav+'');
     $('.favGT[data-id='+idFav+']').css('color','initial');
     $('#cardGT'+idFav+'').appendTo($('.accordionBoard'))
   }
