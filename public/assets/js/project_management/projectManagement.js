@@ -10,6 +10,15 @@ $(async function () {
     feather.replace();
     $('.beefup').beefup();
     $('#chartSection').prev().addClass('d-none');
+    window['favList'] = [];
+    let parsed;
+    if(localStorage.getItem('favList')){
+        parsed = JSON.parse(localStorage.getItem('favList'));
+        parsed.forEach(element => {
+            window['favList'].push(element);
+        });
+    }
+
     let getUrl = window.location.search;
     let boardAidi = new URLSearchParams(getUrl).get('boardId');
     if (boardAidi != undefined && boardAidi != '') {

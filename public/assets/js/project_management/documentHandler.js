@@ -1115,7 +1115,6 @@ $(document).on('click','.btnMenu',function(e){
   }
 })
 
-window['favList'] = [];
 $(document).on('click','.btnFavorites',function(){
   let idFav = $(this).data('id');
   let nameFav = $(this).data('name');
