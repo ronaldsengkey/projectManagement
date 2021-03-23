@@ -312,7 +312,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
-      if($('#table'+id).attr('data-type') == 'Main' && JSON.parse(result.pic)[0].account_name != ct.name){
+      if($('#table'+id).attr('data-type') == 'Main'){
         $('#table' + id + ' > .dataTask').prepend(htmlTask);
       }
       
