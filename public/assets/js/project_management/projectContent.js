@@ -1,11 +1,5 @@
 'use strict'
 
-$(async function () {
-  $('#chartSection').prev().removeClass('d-none');
-  $('#chartSection').addClass('d-none');
-  await domBoardContent();
-})
-
 $(document).on('mousewheel','#legendOnly',scrollHorizontally)
 
 function scrollHorizontally(e) {
@@ -124,7 +118,7 @@ async function domBoardContent() {
       '</h2>' +
       '</div>'+
       '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
-      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
+      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
       
       '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
       '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -227,7 +221,7 @@ async function domTaskTable(data, id, result, boardMember) {
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
       htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
-
+      
       if (havePic) {
         window['picTask' + element._id + ''] = element.pic;
         try {
@@ -245,6 +239,7 @@ async function domTaskTable(data, id, result, boardMember) {
       } else {
         htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user far fa-user fa-lg" data-id="' + element._id + '"></i></td>';
       }
+
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id]);
@@ -308,12 +303,12 @@ async function domTaskTable(data, id, result, boardMember) {
         window['dataComment' + element._id + ''] = "[]";
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><label class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;color:orange;" class="commentTask far fa-lg fa-comment mr-2" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;color:orange;" class="commentTask far fa-lg fa-comment mr-2" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><label class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;" class="commentTask far fa-lg fa-comment mr-2" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;" class="commentTask far fa-lg fa-comment mr-2" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
@@ -337,7 +332,10 @@ async function domTaskTable(data, id, result, boardMember) {
         $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
         // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
         $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-          if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+          if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+            $('td.'+$(element).attr('class')).addClass('disableInputClick')
+          }
+          else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
             $('td.'+$(element).attr('class')).addClass('disableInputInside')
           }
         })
@@ -355,7 +353,10 @@ async function domTaskTable(data, id, result, boardMember) {
               $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
               // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
               $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-                if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+                  $('td.'+$(element).attr('class')).addClass('disableInputClick')
+                }
+                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
                   $('td.'+$(element).attr('class')).addClass('disableInputInside')
                 }
                 
@@ -374,7 +375,10 @@ async function domTaskTable(data, id, result, boardMember) {
               $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
               // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
               $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-                if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+                  $('td.'+$(element).attr('class')).addClass('disableInputClick')
+                }
+                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
                   $('td.'+$(element).attr('class')).addClass('disableInputInside')
                 }
                 

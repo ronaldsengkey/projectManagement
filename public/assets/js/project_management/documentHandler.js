@@ -1118,9 +1118,12 @@ $(document).on('click','.btnMenu',function(e){
 $(document).on('click','.btnFavorites',function(){
   let idFav = $(this).data('id');
   let nameFav = $(this).data('name');
+  let dataAll = $(this).data('all');
+  let from = $(this).data('from');
   let dataFav = {
     id: idFav,
-    name: nameFav
+    name: nameFav,
+    data: dataAll
   }
   let parsed;
   let alreadyFav = false;
@@ -1140,11 +1143,25 @@ $(document).on('click','.btnFavorites',function(){
     toastrNotifFull('success pin group task : '+nameFav+'');
     $('.favGT[data-id='+idFav+']').css('color','orange');
     $('#cardGT'+idFav+'').prependTo($('.accordionBoard'))
+    if($('.pinLength').length > 0){
+      $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
+    } else {
+      let pinTag = '<div class="pinnedLabel mt-2 px-2 mb-4" style="font-size: x-large;cursor:pointer;padding:.75rem 1.25rem">Pinned<span class="float-right pinLength">' + window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i></span></div>';
+      $(pinTag).insertAfter($('.sidebar-heading'));
+    }
   } else {
     window['favList'] = window['favList'].filter(function(el) { return el.id != idFav }); 
     localStorage.setItem('favList',JSON.stringify(window['favList']));
     toastrNotifFull('success unpin group task : '+nameFav+'');
     $('.favGT[data-id='+idFav+']').css('color','initial');
+    if(from == 'pinned') {
+      $('#cardGT'+idFav+'').remove();
+      if(window['favList'].length != 0)
+      $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
+      else 
+      $('.pinnedLabel').remove();
+    }
+    else
     $('#cardGT'+idFav+'').appendTo($('.accordionBoard'))
   }
 })
@@ -1187,17 +1204,20 @@ async function triggerPopoverChartLegend(type,capitalType){
 }
 
 $(document).on('mouseenter', '.pic', function () {
-  let id = $(this).data('id');
-  let groupid = $(this).data('groupid');
-  let name = $(this).data('name');
+  if(!$(this).hasClass('disableInputClick')){
+    let id = $(this).data('id');
+    let groupid = $(this).data('groupid');
+    let name = $(this).data('name');
 
-  if($('.popover').length > 0){
-    $(".popover").each(function () {
-        $(this).popover("dispose");
-    });
+    if($('.popover').length > 0){
+      $(".popover").each(function () {
+          $(this).popover("dispose");
+      });
+    }
+
+    triggerPopoverPIC(id,groupid,name);
   }
-
-  triggerPopoverPIC(id,groupid,name);
+  
 })
 
 $(document).on('change', '.emploPic', function () {
@@ -1323,29 +1343,30 @@ $(document).on('mouseleave', '.team', function () {
   }
 })
 
-$(document).on('mouseenter', '.team', function () {
-  let id = $(this).data("id");
-  let groupid = $(this).data('groupid');
-  let name = $(this).data('name');
-  let haveTeam = $(this).data('team');
-  window['dataTeam' + id + ''] = [];
-  if (!$('.team[data-id=' + id + ']').children().hasClass('addTeamIcon')) {
-    if (haveTeam) {
-      $('.addTeamIcon[data-id=' + id + ']').removeClass('d-none');
-    } else {
-      if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user-plus')){
-        $('.icon_team[data-id=' + id + ']').removeClass('far fa-user fa-lg');
-        $('.icon_team[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
+$(document).on('mouseenter', '.team', function (e) {
+  if(!$(this).hasClass('disableInputClick')){
+    let id = $(this).data("id");
+    let groupid = $(this).data('groupid');
+    let name = $(this).data('name');
+    let haveTeam = $(this).data('team');
+    window['dataTeam' + id + ''] = [];
+    if (!$('.team[data-id=' + id + ']').children().hasClass('addTeamIcon')) {
+      if (haveTeam) {
+        $('.addTeamIcon[data-id=' + id + ']').removeClass('d-none');
+      } else {
+        if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user-plus')){
+          $('.icon_team[data-id=' + id + ']').removeClass('far fa-user fa-lg');
+          $('.icon_team[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
+        }
       }
     }
+
+    if($('[data-original-title]').length > 0){
+      $('[data-original-title]').popover('hide')
+    }
+
+    triggerPopoverTeam(id,haveTeam,groupid,name);
   }
-
-  if($('[data-original-title]').length > 0){
-    $('[data-original-title]').popover('hide')
-  }
-
-  triggerPopoverTeam(id,haveTeam,groupid,name);
-
 })
 let popoverTeam = false;
 async function triggerPopoverTeam(id,haveTeam,groupid,name){
