@@ -112,10 +112,23 @@ $(document).on('click', '.pinnedLabel', async function () {
                     return e.data != undefined || e.data != null
                 }))
             })
+            let publicCount = 0;
+            let privateCount = 0;
+            window['favList'].forEach(element => {
+                let board = JSON.parse(window.atob(element.data)).boardType
+                if(board == 'Private'){
+                    privateCount += 1;
+                } else {
+                    publicCount += 1;
+                }
+            });
             $('.boardContentData').html(result);
             let tools = '<div class="row p-3 ml-1 mr-1">' +
-                '<div class="col-lg-12" style="align-self: center;">' +
+                '<div class="col-lg-8" style="align-self: center;">' +
                 '<h2 class="boardPlaceHeader"><span class="name">Pinned Group Task</span></h2>' +
+                '</div>' +
+                '<div class="col-lg-4" style="text-align:end;">' +
+                '<h2><span class="stat">'+publicCount+' Public Board, '+privateCount+' Private Board</span></h2>' +
                 '</div>' +
                 '</div>';
             $('.boardHeader').append(tools);
@@ -126,12 +139,18 @@ $(document).on('click', '.pinnedLabel', async function () {
 })
 
 async function domBoardPinned(data) {
-    console.log('bbbbbbbbbbbbb',data);
+    distributeColor(1,true)
+    let picColorPool = window['picColor'];
+    picColorPool.forEach(element => {
+        window['picColor'+element.id] = getRandomColor();
+        let colorCheck = lightOrDark(window['picColor'+element.id]);
+        if (colorCheck == 'light') window['picColorClass' + element.id] = 'text-dark fontWeight400';
+        else window['picColorClass' + element.id] = 'text-white';
+    });
     data.forEach(element => {
         let dataCredent = JSON.parse(window.atob(element.data))
         try {
             if (dataCredent.boardType == 'Private') {
-                distributeColor(1,true)
                 let memberCredent = element.memberColor;
                 memberCredent.forEach(element2 => {
                     window['color' + element2.account_id] = element2.colorData;
@@ -141,11 +160,11 @@ async function domBoardPinned(data) {
                     else window['colorClass' + element2.account_id] = 'text-white';
                 });
             } else {
-                window['color' + JSON.parse(element.pic)[0].account_id] = getRandomColor();
-                window['colorClass' + JSON.parse(element.pic)[0].account_id] = '';
-                let colorCheck = lightOrDark(window['color' + JSON.parse(element.pic)[0].account_id]);
-                if (colorCheck == 'light') window['colorClass' + JSON.parse(element.pic)[0].account_id] = 'text-dark fontWeight400';
-                else window['colorClass' + JSON.parse(element.pic)[0].account_id] = 'text-white';
+                window['color' + JSON.parse(dataCredent.pic)[0].account_id] = getRandomColor();
+                window['colorClass' + JSON.parse(dataCredent.pic)[0].account_id] = '';
+                let colorCheck = lightOrDark(window['color' + JSON.parse(dataCredent.pic)[0].account_id]);
+                if (colorCheck == 'light') window['colorClass' + JSON.parse(dataCredent.pic)[0].account_id] = 'text-dark fontWeight400';
+                else window['colorClass' + JSON.parse(dataCredent.pic)[0].account_id] = 'text-white';
 
             }
         } catch (e) {
@@ -153,16 +172,17 @@ async function domBoardPinned(data) {
         }
 
         let camelizeBoard = camelize(element.name);
+        let boardNaming = dataCredent.boardType == 'Main' ? 'Public' : dataCredent.boardType;
         let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element.id + '"  data-boardAidi=' + dataCredent.board_id + ' data-boardtype=' + dataCredent.boardType + '  data-parent="parent' + element.id + '">' +
             '<div class="card-header" id="' + camelizeBoard + '">' +
             '<div class="row"><div class="col-lg-8">' +
             '<h2 class="mb-0">' +
             '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id=' + element.id + ' type="button" data-toggle="collapse" data-target="#kolap' + element.id + '" aria-expanded="true" aria-controls="kolap' + element.id + '">' +
-            '<span class="picLogo" style="background:' + window['color' + JSON.parse(dataCredent.pic)[0].account_id] + '" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(dataCredent.pic)[0].account_name + '"><span class="' + window['colorClass' + JSON.parse(dataCredent.pic)[0].account_id] + '">' + getInitials(JSON.parse(dataCredent.pic)[0].account_name) + '</span></span>' + element.name +
+            '<span class="picLogo" style="background:' + window['picColor' + JSON.parse(dataCredent.pic)[0].account_id] + '" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(dataCredent.pic)[0].account_name + '"><span class="' + window['picColorClass' + JSON.parse(dataCredent.pic)[0].account_id] + '">' + getInitials(JSON.parse(dataCredent.pic)[0].account_name) + '</span></span>' + element.name + ' (' + boardNaming +')' +
             '</button>' +
             '</h2>' +
             '</div>' +
-            '<div class="col-lg-2 text-right" style="align-self:center;">' + createdByIcon(dataCredent.user_create, dataCredent.board_id, dataCredent.boardType) + '</div>' +
+            '<div class="col-lg-2 text-right" style="align-self:center;">' + createdByIcon(dataCredent.user_create, dataCredent.board_id, dataCredent.boardType,true) + '</div>' +
             '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="' + dataCredent.user_create + '" data-pic=' + JSON.parse(dataCredent.pic)[0].account_id + ' data-boardid=' + dataCredent.board_id + ' data-name="' + element.name + '" data-id=' + element.id + ' data-camelized="' + camelizeBoard + '"><i class="fas fa-bars fa-lg menu" data-board="' + dataCredent.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-all="' + window.btoa(JSON.stringify(dataCredent)) + '" data-from="pinned" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element.id + '><i class="fas fa-thumbtack fa-lg favGT" data-id=' + element.id + '></i></a></div></div>' +
 
             '<div id="kolap' + element.id + '" class="collapse" data-id="' + element.id + '" aria-labelledby="' + camelizeBoard + '">' +
@@ -2055,10 +2075,18 @@ async function distributeColor(id,pinned = false) {
         let filtered = window['favList'].filter(function (e) {
             return e.data != undefined || e.data != null
         })
+        window['picColor'] = [];
         filtered.forEach(element => {
             let dataCredent = JSON.parse(window.atob(element.data))
-            console.log('dc',dataCredent);
-            element['memberColor'] = JSON.parse(dataCredent.member).concat(JSON.parse(dataCredent.pic));
+            picColor.push({
+                id: JSON.parse(dataCredent.pic)[0].account_id,
+                name : JSON.parse(dataCredent.pic)[0].account_name
+            })
+        });
+        window['picColor'] = window['picColor'].filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i)
+        filtered.forEach(element => {
+            let dataCredent = JSON.parse(window.atob(element.data))
+            element['memberColor'] = JSON.parse(dataCredent.member);
         });
         filtered.forEach(element => {
             element.memberColor.forEach(elementss => {

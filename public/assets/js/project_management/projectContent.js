@@ -37,24 +37,35 @@ async function appendLegend(id){
   $(gridTag).appendTo($('.memberAvatar'+id));
 }
 
-function createdByIcon(user,id,boardType){
+function createdByIcon(user,id,boardType,pinned = false){
   if(boardType != 'Private'){
     return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
   } else {
     if(user == ct.name){
-      let html;
-      window['dataBoardMember' + id + ''].forEach(element => {
-        if(element.account_name == ct.name){
-          let checkColor = lightOrDark(element.color);
-          let colorFont;
-          if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
-          else colorFont = 'text-white';
-          html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
-        }
-      });
-      if(html != undefined)
-      return html;
-      else return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+      if(!pinned){
+        let html;
+        window['dataBoardMember' + id + ''].forEach(element => {
+          if(element.account_name == ct.name){
+            let checkColor = lightOrDark(element.color);
+            let colorFont;
+            if(checkColor == 'light') colorFont = 'text-dark fontWeight400';
+            else colorFont = 'text-white';
+            html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + element.account_name + '" class="picLogo '+colorFont+' mr-0" style="width:40px;background:'+element.color+';">'+getInitials(element.account_name)+'</div></div></div>'
+          }
+        });
+        if(html != undefined)
+        return html;
+        else return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
+      } else {
+        let html;
+        if(window['picColor'+ct.id_employee] != undefined)
+        html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + user + '" class="picLogo '+window['picColorClass'+ct.id_employee]+' mr-0" style="width:40px;background:'+window['picColor'+ct.id_employee]+';">'+getInitials(user)+'</div></div></div>'
+        else if(window['color'+ct.id_employee] != undefined)
+        html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + user + '" class="picLogo '+window['colorClass'+ct.id_employee]+' mr-0" style="width:40px;background:'+window['color'+ct.id_employee]+';">'+getInitials(user)+'</div></div></div>'
+        else
+        html = '<div class="row"><div class="col-lg-9 align-self-center">Created By </div><div class="col-lg-3"><div data-toggle="tooltip" data-placement="bottom" title="' + user + '" class="picLogo text-white mr-0" style="width:40px;background:'+getRandomColor()+';">'+getInitials(user)+'</div></div></div>'
+        return html;
+      }
     } else {
       return '<div class="row"><div class="col-lg-12">Created by '+user+'</div></div>';
     }
@@ -73,8 +84,6 @@ async function domBoardContent() {
       window['groupTask' + id + ''].some((item, idx) => 
         item._id == element.id  && 
         window['groupTask' + id + ''].unshift( 
-          // remove the found item, in-place (by index with splice), 
-          // returns an array of a single item removed
           window['groupTask' + id + ''].splice(idx,1)[0] 
         ) 
       )
@@ -105,53 +114,68 @@ async function domBoardContent() {
       console.log('catch color define');
     }
 
-    let camelizeBoard = camelize(element.name);
-    // let joinBoardAndId = camelize(element.name) + element.board_id;
-    let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
-    let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
-      '<div class="card-header" id="' + camelizeBoard + '">' +
-      '<div class="row"><div class="col-lg-8">' +
-      '<h2 class="mb-0">' +
-      '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#kolap' + element._id + '" aria-expanded="true" aria-controls="kolap' + element._id + '">' +
-      '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name +
-      '</button>' +
-      '</h2>' +
-      '</div>'+
-      '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
-      '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
-      
-      '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
-      '<div class="card-body p-4" data-id="' + element._id + '">' +
-      'Loading...' +
-      '</div>'
-    '</div>'
-    '</div>';
-    $('.accordionBoard').append(htmlAccordion);
-    
-
-    try {
-      JSON.parse(localStorage.getItem('favList')).forEach(elements => {
-        if(elements.id == element._id){
-          $('.favGT[data-id='+element._id+']').css('color','orange');
-        }
+    let involved = JSON.parse(element.involved);
+    let pic = JSON.parse(element.pic);
+    let showGroupTask = false;
+    if(involved.length == 0){
+      if(boardType == 'Main') showGroupTask = true;
+      else if(boardType == 'Private' &&  (pic[0].account_id == ct.id_employee || element.user_create == ct.name)) showGroupTask = true;
+    } else {
+      involved.forEach(elements => {
+        if(elements.account_id == ct.id_employee || pic[0].account_id == ct.id_employee || elements.user_create == ct.name || boardType == 'Main') showGroupTask = true;
       });
-      if($('.favGT[data-id='+element._id+']').css('color') == 'rgb(255, 165, 0)' || $('.favGT[data-id='+element._id+']').css('color') == 'orange'){
-        $('.btnFavorites[data-id='+element._id+']').attr('title','Unpin ' + element.name)
-      } else {
-        $('.btnFavorites[data-id='+element._id+']').attr('title','Pin ' + element.name)
-      } 
-    } catch (error) {
-      
     }
     
-    
 
-    $('.collapse[data-id="' + element._id + '"]').on('show.bs.collapse', async function () {
-      let idBoard = $(this).data('id');
-      $('.card-body[data-id="' + idBoard + '"]').empty();
-      $('.card-body[data-id="' + idBoard + '"]').html('Loading...');
-      await getTaskData(idBoard, element, boardMember);
-    });
+    if(showGroupTask){
+      let camelizeBoard = camelize(element.name);
+      // let joinBoardAndId = camelize(element.name) + element.board_id;
+      let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
+      let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
+        '<div class="card-header" id="' + camelizeBoard + '">' +
+        '<div class="row"><div class="col-lg-8">' +
+        '<h2 class="mb-0">' +
+        '<button class="btn btn-link btn-block text-left toCollapse headerGT" data-id='+element._id+' type="button" data-toggle="collapse" data-target="#kolap' + element._id + '" aria-expanded="true" aria-controls="kolap' + element._id + '">' +
+        '<span class="picLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="'+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></span>' + element.name + 
+        '</button>' +
+        '</h2>' +
+        '</div>'+
+        '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
+        '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
+        
+        '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
+        '<div class="card-body p-4" data-id="' + element._id + '">' +
+        'Loading...' +
+        '</div>'
+      '</div>'
+      '</div>';
+      $('.accordionBoard').append(htmlAccordion);
+      
+
+      try {
+        JSON.parse(localStorage.getItem('favList')).forEach(elements => {
+          if(elements.id == element._id){
+            $('.favGT[data-id='+element._id+']').css('color','orange');
+          }
+        });
+        if($('.favGT[data-id='+element._id+']').css('color') == 'rgb(255, 165, 0)' || $('.favGT[data-id='+element._id+']').css('color') == 'orange'){
+          $('.btnFavorites[data-id='+element._id+']').attr('title','Unpin ' + element.name)
+        } else {
+          $('.btnFavorites[data-id='+element._id+']').attr('title','Pin ' + element.name)
+        } 
+      } catch (error) {
+        
+      }
+      
+      
+
+      $('.collapse[data-id="' + element._id + '"]').on('show.bs.collapse', async function () {
+        let idBoard = $(this).data('id');
+        $('.card-body[data-id="' + idBoard + '"]').empty();
+        $('.card-body[data-id="' + idBoard + '"]').html('Loading...');
+        await getTaskData(idBoard, element, boardMember);
+      });
+    }
   });
 }
 
