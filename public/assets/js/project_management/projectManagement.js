@@ -15,7 +15,7 @@ $(async function () {
     if (localStorage.getItem('favList')) {
         parsed = JSON.parse(localStorage.getItem('favList'));
         parsed.forEach(element => {
-            window['favList'].push(element);
+            if(element.domain == window.location.hostname) window['favList'].push(element);
         });
     }
 

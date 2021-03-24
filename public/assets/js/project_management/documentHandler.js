@@ -1120,10 +1120,12 @@ $(document).on('click','.btnFavorites',function(){
   let nameFav = $(this).data('name');
   let dataAll = $(this).data('all');
   let from = $(this).data('from');
+  let domain = window.location.hostname;
   let dataFav = {
     id: idFav,
     name: nameFav,
-    data: dataAll
+    data: dataAll,
+    domain: domain
   }
   let parsed;
   let alreadyFav = false;
