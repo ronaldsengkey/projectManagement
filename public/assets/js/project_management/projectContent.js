@@ -122,7 +122,7 @@ async function domBoardContent() {
       else if(boardType == 'Private' &&  (pic[0].account_id == ct.id_employee || element.user_create == ct.name)) showGroupTask = true;
     } else {
       involved.forEach(elements => {
-        if(elements.account_id == ct.id_employee || pic[0].account_id == ct.id_employee || elements.user_create == ct.name || boardType == 'Main') showGroupTask = true;
+        if(elements.account_id == ct.id_employee || pic[0].account_id == ct.id_employee || element.user_create == ct.name || boardType == 'Main') showGroupTask = true;
       });
     }
     
