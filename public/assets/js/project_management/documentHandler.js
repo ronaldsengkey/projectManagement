@@ -65,56 +65,6 @@ $(document).on('change','.editReplyFile',function(){
   $(this).parent().append(checkTag);
 })
 
-$(document).on('keydown', '.commentInputArea', async function (ev) {
-  
-  if (ev.key === 'Enter') {
-    let id = $(this).data('id');
-    let newCommentValue = $(this).val();
-    let groupId = $(this).data('groupid');
-    let commentFile;
-    let base64CommentFile;
-    if(newCommentValue.trim() != ''){
-      commentFile = document.querySelector(`#commentFile`).files[0];
-      if(commentFile != undefined){
-          let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
-          base64CommentFile = await toBase64Comment(compressedFile);
-      } else {
-        base64CommentFile = '';
-      }
-
-      if (newCommentValue != '') {
-        let formUpdateComment = new FormData();
-      
-        formUpdateComment.append('task_id', id);
-        formUpdateComment.append('comment', newCommentValue);
-        formUpdateComment.append('comment_file', base64CommentFile);
-        formUpdateComment.append('user_create', ct.name);
-        formUpdateComment.append('url',localUrl + ':' + projectManagementLocalPort + '/employee')
-        $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
-        $(this).val('');
-        $(this).blur();
-        $(this).mouseleave();
-        let addComment = await globalAddComment(formUpdateComment);
-        $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
-        if (addComment != 500) {
-          await refreshComment(id,groupId);
-        } else {
-          toastrNotifFull('failed to comment','error');
-        }
-      }
-      setTimeout(() => {
-        $('.commentInputArea').blur();
-      }, 500);
-
-      setTimeout(() => {
-        $('.commentInputArea').mouseleave();
-      }, 1000);
-    } else {
-      toastrNotifFull('please fill comment','info');
-    }
-  }
-});
-
 async function toCompress(file){
   return new Promise(async function(resolve,reject){
       new Compressor(file, {
@@ -532,9 +482,57 @@ $(document).on('click', '.commentTask', async function () {
   } catch (e) {
 
   }
-
-  $('.commentInputArea').attr('data-id', id);
+  $('.commentInputArea[data-id='+id+']').val('');
 })
+
+$(document).on('keydown', '.commentInputArea', async function (ev) {
+  if (ev.key === 'Enter') {
+    let id = $('.commentInputArea').attr('data-id');
+    let newCommentValue = $(this).val().trim();
+    let groupId = $('.commentInputArea').attr('data-groupid');
+    let commentFile;
+    let base64CommentFile;
+    if(newCommentValue.trim() != ''){
+      commentFile = document.querySelector(`#commentFile`).files[0];
+      if(commentFile != undefined){
+          let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
+          base64CommentFile = await toBase64Comment(compressedFile);
+      } else {
+        base64CommentFile = '';
+      }
+
+      if (newCommentValue != '') {
+        let formUpdateComment = new FormData();
+      
+        formUpdateComment.append('task_id', id);
+        formUpdateComment.append('comment', newCommentValue);
+        formUpdateComment.append('comment_file', base64CommentFile);
+        formUpdateComment.append('user_create', ct.name);
+        formUpdateComment.append('url',localUrl + ':' + projectManagementLocalPort + '/employee')
+        $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
+        $(this).val('');
+        $(this).blur();
+        $(this).mouseleave();
+        let addComment = await globalAddComment(formUpdateComment);
+        $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
+        if (addComment != 500) {
+          await refreshComment(id,groupId);
+        } else {
+          toastrNotifFull('failed to comment','error');
+        }
+      }
+      setTimeout(() => {
+        $('.commentInputArea').blur();
+      }, 500);
+
+      setTimeout(() => {
+        $('.commentInputArea').mouseleave();
+      }, 1000);
+    } else {
+      toastrNotifFull('please fill comment','info');
+    }
+  }
+});
 
 async function triggerPopoverPIC(id,groupid,name){
   if($('.pic[data-id=' + id + ']').data("bs.popover") == undefined){
