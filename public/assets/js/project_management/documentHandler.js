@@ -1420,6 +1420,8 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
           });
           let htmlEmptyData = '<optgroup label="----------"></optgroup><option value="addTeam">+ Add More</option>';
           $('.emploTeam[data-id=' + id + ']').append(htmlEmptyData);
+          let htmlCrossDepartment = '<option value="addMemberDepartment">+ Add Member from Other Department</option>';
+          $('.emploTeam[data-id=' + id + ']').append(htmlCrossDepartment);
           break;
       }
       console.log('current',window['dataCurrentTeam' + id + ''])
@@ -1506,10 +1508,21 @@ $(document).on('change', '.emploTeam', function () {
   let random = Math.floor(Math.random() * 4) + 1;
 
   if(val == 'addTeam'){
-    if($('#addTeam').length > 0)
-    $('#addTeam').click()
+    if($('#addTeam').length > 0){
+      $('#addTeam').attr('data-for','own');
+      $('#addTeam').click()
+    }
     else 
     contactMore()
+    return;
+  }
+
+  if(val == 'addMemberDepartment'){
+    if($('#addTeam').length > 0){
+      $('#addTeam').attr('data-for','department');
+      $('#addTeam').click()
+    }
+    else contactMore()
     return;
   }
 
