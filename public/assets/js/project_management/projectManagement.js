@@ -2913,7 +2913,7 @@ $(document).on('click', '#addGroupTask', function () {
                     break;
                 case 'Private':
                     $('#picGroup').empty();
-                    boardMember = await groupTaskGradeCheck(boardMember);
+                    // boardMember = await groupTaskGradeCheck(boardMember);
                     boardMember.forEach(element => {
                         let htmlPrivate = '<option value=' + element.account_id + '>' + element.account_name + '</option>';
                         $('#picGroup').append(htmlPrivate);
