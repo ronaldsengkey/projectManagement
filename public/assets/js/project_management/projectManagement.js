@@ -2280,7 +2280,7 @@ $(document).on('click', '#addTeam', function () {
                         empDone = !empDone;
                         employee = await boardEmployeeChecking(employee);
                         employee.forEach(element => {
-                            if (parseInt(element.division_id) == ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
+                            if (parseInt(element.division_id) == ct.division_id && parseInt(element.company_id) == ct.company_id  && parseInt(element.grade) >= parseInt(ct.grade))
                                 $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
                         });
                         window['dataBoardMember' + boardId + ''].forEach(element => {
@@ -2345,7 +2345,7 @@ $(document).on('click', '#addTeam', function () {
                         $('#memberGroup').empty()
                         empDone = !empDone;
                         employee.forEach(element => {
-                            if (parseInt(element.division_id) != ct.division_id && parseInt(element.grade) >= parseInt(ct.grade))
+                            if (parseInt(element.division_id) != ct.division_id && parseInt(element.company_id) == ct.company_id && parseInt(element.grade) >= parseInt(ct.grade))
                                 $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
                         });
                         window['dataBoardMember' + boardId + ''].forEach(element => {
@@ -2913,7 +2913,7 @@ $(document).on('click', '#addGroupTask', function () {
                     break;
                 case 'Private':
                     $('#picGroup').empty();
-                    // boardMember = await groupTaskGradeCheck(boardMember);
+                    boardMember = await groupTaskGradeCheck(boardMember);
                     boardMember.forEach(element => {
                         let htmlPrivate = '<option value=' + element.account_id + '>' + element.account_name + '</option>';
                         $('#picGroup').append(htmlPrivate);
