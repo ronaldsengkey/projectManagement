@@ -726,9 +726,9 @@ async function manageSummaryBoardData(data, idCanvas = 'chartTaskForMe', special
         $('#taskForMe').empty();
         let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lblTaskForMe">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
         if (idCanvas == 'chartTaskForMe')
-            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + idCanvas + '" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + idCanvas + '" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
         else
-            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="' + idCanvas + '" src="public/assets/img/emptyProjects.png" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="' + idCanvas + '" src="public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
         $('#taskForMe').html(html);
 
         // if(idCanvas == 'chartTaskForMe'){
@@ -839,7 +839,7 @@ async function manageSummaryBoardData(data, idCanvas = 'chartTaskForMe', special
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
 
         $('#' + names).empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">Chart ' + splitCamel(data.names) + '<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.png" width="300px" height="300px"></img></p></div>';
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">Chart ' + splitCamel(data.names) + '<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.svg" width="300px" height="300px"></img></p></div>';
         $('#' + names).html(html);
     }
 
@@ -940,7 +940,7 @@ async function manageNullBoardData(data) {
     // let html = node.outerHTML;
 
     $('#' + divId).empty();
-    let html = '<div class="row"><div class="col-lg-6 publicBoardLabel text-start mt-2" style="font-size: x-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.png"></img></p></div><div class="col-lg-6 filterPlace"></div></div>';
+    let html = '<div class="row"><div class="col-lg-6 publicBoardLabel text-start mt-2" style="font-size: x-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.svg"></img></p></div><div class="col-lg-6 filterPlace"></div></div>';
     $('#' + divId).html(html);
 
     $(pageFilterr).appendTo($('.filterPlace'))
@@ -1039,7 +1039,7 @@ $(document).on('change', '.chartTaskProject, .chartTypeProject', async function 
     } else if (summaryBoard.responseCode == '404') {
         if (myProjectChart != null) myProjectChart.destroy();
         $('#legendPlaceProject').empty();
-        $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+        $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
         $('#canvasTaskProjectBackup').css('display', 'block').css('width', '772px').css('height', '386px')
         $('#canvasTaskProject').addClass('d-none');
     } else if (summaryBoard.responseCode == '404') {
@@ -1266,7 +1266,7 @@ $(document).on('click', '.analyticList', async function () {
                 } else if (summaryBoard.responseCode == '404') {
                     if (myProjectChart != null) myProjectChart.destroy();
                     $('#legendPlaceProject').empty();
-                    $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.png" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+                    $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
                     $('#canvasTaskProjectBackup').css('display', 'block').css('width', '772px').css('height', '386px')
                     $('#canvasTaskProject').addClass('d-none');
                 } else {
@@ -2182,7 +2182,7 @@ $(document).on('click', '.boardList', async function () {
                     };
                     domBoardTools(pass)
 
-                    let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.png" style="opacity:0.7;"></p></img>';
+                    let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.svg" style="opacity:0.7;"></p></img>';
                     $('.boardContentData').addClass('h-100');
                     $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
                     $('#boardAccordion').css({
