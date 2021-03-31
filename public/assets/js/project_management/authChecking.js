@@ -270,7 +270,7 @@ async function globalGradeChecking(concern,data,type = ''){
             // Supervisor
             else if(ct.grade == '4') {
                 processedData = data.filter(function(e){
-                    return (parseInt(e.account_grade) > (parseInt(ct.grade))) || e.account_id == ct.id_employee
+                    return (parseInt(e.account_grade) >= (parseInt(ct.grade))) || e.account_id == ct.id_employee
                 })
                 return processedData;
             }

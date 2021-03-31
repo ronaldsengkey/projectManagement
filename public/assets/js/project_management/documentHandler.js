@@ -1578,6 +1578,9 @@ $(document).on('change', '.emploTeam', function () {
     if($('#addTeam').length > 0){
       $('#addTeam').attr('data-for','department');
       $('#addTeam').click()
+      setTimeout(() => {
+        $('#addTeam').attr('data-for','own');
+      }, 100);
     }
     else contactMore()
     return;

@@ -2262,140 +2262,78 @@ $(document).on('click', '#addTeam', function () {
     let boardId = $(this).data('id');
     let boardName = $(this).data('boardname');
     let boardType = $(this).data('boardtype');
-    let forWhat = $(this).data('for');
-    if(forWhat == 'own'){
-        Swal.fire({
-            title: 'Please select team',
-            html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input" style="height:auto;"></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" data-id=' + boardId + ' class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
-            onOpen: async () => {
-                Swal.showLoading();
-                let employee;
-                let empDone = false;
-                try {
-                    employee = await getEmployee();
-                    if (employee != 500) {
-                        console.log('data awal', window['dataBoardMember' + boardId + '']);
-                        $('#emptyMember').remove();
-                        $('#memberGroup').empty()
-                        empDone = !empDone;
-                        employee = await boardEmployeeChecking(employee);
-                        employee.forEach(element => {
+    let concern = $(this).attr('data-for');
+    Swal.fire({
+        title: 'Please select team',
+        html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input" style="height:auto;"></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" data-id=' + boardId + ' class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
+        onOpen: async () => {
+            Swal.showLoading();
+            let employee;
+            let empDone = false;
+            try {
+                employee = await getEmployee();
+                if (employee != 500) {
+                    console.log('data awal', window['dataBoardMember' + boardId + '']);
+                    $('#emptyMember').remove();
+                    $('#memberGroup').empty()
+                    empDone = !empDone;
+                    if(concern != 'department') employee = await boardEmployeeChecking(employee);
+                    employee.forEach(element => {
+                        if(concern != 'department'){
                             if (parseInt(element.division_id) == ct.division_id && parseInt(element.company_id) == ct.company_id  && parseInt(element.grade) >= parseInt(ct.grade))
-                                $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
-                        });
-                        window['dataBoardMember' + boardId + ''].forEach(element => {
-                            $('option[value=' + element.account_id + ']').remove();
-                        });
-                        addTemAccordion(window['dataBoardMember' + boardId + ''], boardId);
-                    }
-                    if (empDone) {
-                        $('#employeeId').prop('disabled', false);
-                    }
-                    Swal.hideLoading()
-                } catch (error) {
-                    toastrNotifFull('failed to get data', 'error');
-                    Swal.hideLoading();
-                }
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Submit',
-            showLoaderOnConfirm: true,
-            preConfirm: async () => {
-                if (window['dataBoardMember' + boardId + ''].length == 0) {
-                    toastrNotifFull('please add team member', 'error');
-                    return false;
-                } else {
-                    let oldMember = window['dataBoardMember' + boardId + ''];
-                    oldMember.forEach(element => {
-                        delete element.departmen_id;
-                        delete element.departmen_name;
-                        delete element.color;
+                            $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
+                        } else {
+                            if (parseInt(element.company_id) == ct.company_id  && parseInt(element.grade) == parseInt(ct.grade))
+                            $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
+                        }
                     });
-                    // let allMember = boardTeamMember.concat(oldMember);
-                    let param = {
-                        '_id': boardId,
-                        'name': boardName,
-                        'type': capitalize(boardType),
-                        'member': JSON.stringify(oldMember)
-                    };
-                    await editBoard(param);
-                }
-            },
-            allowOutsideClick: () => !Swal.isLoading()
-        }).then(function (result) {
-            if (result.value) {
-    
-            } else if (result.dismiss == 'cancel') {
-                boardTeamMember = [];
-            }
-    
-        });
-    } else {
-        Swal.fire({
-            title: 'Please select team',
-            html: '<div class="row rowEmp"><div class="col-lg-9"><select id="memberGroup" multiple class="swal2-input" style="height:auto;"></select></div><div class="col-lg-3" style="align-self:center;"><button type="button" data-id=' + boardId + ' class="btn btn-primary addTeamMember">Add</button></div></div><div class="accordionPlace"></div>',
-            onOpen: async () => {
-                Swal.showLoading();
-                let employee;
-                let empDone = false;
-                try {
-                    employee = await getEmployee();
-                    if (employee != 500) {
-                        $('#emptyMember').remove();
-                        $('#memberGroup').empty()
-                        empDone = !empDone;
-                        employee.forEach(element => {
-                            if (parseInt(element.division_id) != ct.division_id && parseInt(element.company_id) == ct.company_id && parseInt(element.grade) >= parseInt(ct.grade))
-                                $('#memberGroup').append('<option data-grade=' + element.grade + ' data-name="'+element.employee_name+'" value=' + element.employee_id + '>' + element.employee_name + '</option>')
-                        });
-                        window['dataBoardMember' + boardId + ''].forEach(element => {
-                            $('option[value=' + element.account_id + ']').remove();
-                        });
-                        addTemAccordion(window['dataBoardMember' + boardId + ''], boardId);
-                    }
-                    if (empDone) {
-                        $('#employeeId').prop('disabled', false);
-                    }
-                    Swal.hideLoading()
-                } catch (error) {
-                    toastrNotifFull('failed to get data', 'error');
-                    Swal.hideLoading();
-                }
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Submit',
-            showLoaderOnConfirm: true,
-            preConfirm: async () => {
-                if (window['dataBoardMember' + boardId + ''].length == 0) {
-                    toastrNotifFull('please add team member department', 'error');
-                    return false;
-                } else {
-                    let oldMember = window['dataBoardMember' + boardId + ''];
-                    oldMember.forEach(element => {
-                        delete element.departmen_id;
-                        delete element.departmen_name;
-                        delete element.color;
+                    window['dataBoardMember' + boardId + ''].forEach(element => {
+                        $('option[value=' + element.account_id + ']').remove();
                     });
-                    // let allMember = boardTeamMember.concat(oldMember);
-                    let param = {
-                        '_id': boardId,
-                        'name': boardName,
-                        'type': capitalize(boardType),
-                        'member': JSON.stringify(oldMember)
-                    };
-                    await editBoard(param);
+                    addTemAccordion(window['dataBoardMember' + boardId + ''], boardId);
                 }
-            },
-            allowOutsideClick: () => !Swal.isLoading()
-        }).then(function (result) {
-            if (result.value) {
-    
-            } else if (result.dismiss == 'cancel') {
-                boardTeamMember = [];
+                if (empDone) {
+                    $('#employeeId').prop('disabled', false);
+                }
+                Swal.hideLoading()
+            } catch (error) {
+                toastrNotifFull('failed to get data', 'error');
+                Swal.hideLoading();
             }
-    
-        });
-    }
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Submit',
+        showLoaderOnConfirm: true,
+        preConfirm: async () => {
+            if (window['dataBoardMember' + boardId + ''].length == 0) {
+                toastrNotifFull('please add team member', 'error');
+                return false;
+            } else {
+                let oldMember = window['dataBoardMember' + boardId + ''];
+                oldMember.forEach(element => {
+                    delete element.departmen_id;
+                    delete element.departmen_name;
+                    delete element.color;
+                });
+                // let allMember = boardTeamMember.concat(oldMember);
+                let param = {
+                    '_id': boardId,
+                    'name': boardName,
+                    'type': capitalize(boardType),
+                    'member': JSON.stringify(oldMember)
+                };
+                await editBoard(param);
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then(function (result) {
+        if (result.value) {
+
+        } else if (result.dismiss == 'cancel') {
+            boardTeamMember = [];
+        }
+
+    });
 })
 
 let boardMemberJoin = [];
