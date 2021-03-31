@@ -672,6 +672,62 @@ $(document).on('click','.savingCanvas',async function(){
   }
 })
 
+function download() {
+  var a = $("<a>")
+      .attr("href", $('#backupCanvas').attr('src'))
+      .attr("download", "img.png")
+      .appendTo("body");
+
+  a[0].click();
+
+  a.remove();
+}
+
+$(document).on('click','.downloadCanvas',function(){
+    let pdfFile = $('.enablingCanvas').data('pdf')
+    let multiples = $('.enablingCanvas').data('multiple');
+
+    let pageWidth = 700;
+    let pageHeight = 1000;
+    if(pdfFile && multiples){
+      let dataRawPDF = window['signatureMultiple']
+      dataRawPDF.forEach(element => {
+        if(element.id == parseInt($('.currPage').html())){
+          element.image = window['signaturePad'].toDataURL('image/png')
+        } else {
+          element.image = element.imageBackup
+        }
+      });
+
+      let docDefinitionRaw = {
+        pageSize: {
+            width: pageWidth,
+            height: pageHeight
+        },
+        pageMargins: [1, 1, 1, 1],
+        content: dataRawPDF
+      };
+      pdfMake.createPdf(docDefinitionRaw).download();
+    } else if(pdfFile && !multiples){
+      let contentData = [
+        {
+          // in browser is supported loading images via url from reference by name in images
+          image: window['signaturePad'].toDataURL('image/jpeg'),
+          width: pageWidth,
+          height: pageHeight
+        },
+      ]
+
+      let docDefinitionRaw = {
+        content: contentData
+      };
+      pdfMake.createPdf(docDefinitionRaw).download();
+      
+    } else if(!pdfFile && !multiples){
+      download()
+    }
+})
+
 $(document).on('click','.enablingCanvas',function(){
   enableCanvas()
   $('.savingCanvas').removeClass('d-none');
@@ -957,22 +1013,23 @@ $(document).on('click','.showAttachment',async function(){
 
       $('#canvasDoc').attr('src','https://view.officeapps.live.com/op/embed.aspx?src='+attachShow.data.path).removeClass('d-none');
       $('#canvasPlace').addClass('d-none');
+      $('.downloadCanvas').remove()
       toastrNotifFull('view only document','warning');
     } else {
       $('#canvasDoc').attr('src','').addClass('d-none');
       $('#canvasPlace').removeClass('d-none');
       activeModalAttachmentFile();
-      
+
       $('.clearingCanvas').addClass('d-none');
       $('.savingCanvas').addClass('d-none');
       $('.enablingCanvas').removeClass('d-none');
 
-      $('.savingCanvas').data('id',fileId);
-      $('.savingCanvas').data('idTask',idTask);
-      $('.savingCanvas').data('groupid',groupId);
+      $('.savingCanvas').attr('data-id',fileId);
+      $('.savingCanvas').attr('data-idTask',idTask);
+      $('.savingCanvas').attr('data-groupid',groupId);
       $('#backupCanvas').attr("src",'');
-      $('.savingCanvas').data('pdf',false);
-      $('.savingCanvas').data('multiple',false);
+      $('.savingCanvas').attr('data-pdf',false);
+      $('.savingCanvas').attr('data-multiple',false);
       $('.legendData').remove();
       await activateCanvas(attachShow.data.source);
     }
