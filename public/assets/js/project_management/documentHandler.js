@@ -1705,7 +1705,6 @@ $(document).on('click', '.timeline', function () {
 
   $('input[name="datesPicker"][data-id="' + $(this).data('id') + '"]').daterangepicker({
     opens: 'center',
-    minDate: new Date(),
     autoUpdateInput: false,
     ranges: {
         'Next 7 Days': [moment().add(6, 'days'), moment()],
