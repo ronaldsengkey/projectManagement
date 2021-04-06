@@ -171,6 +171,15 @@ async function domBoardPinned(data) {
             console.log('catch color define',e);
         }
 
+        let doneGT;
+        if(element.user_create == ct.name ||  JSON.parse(dataCredent.pic)[0].account_id == ct.id_employee ) doneGT = true;
+        else doneGT = false;
+
+        let colorDone;
+
+        if(dataCredent.status == false) colorDone = 'black'
+        else colorDone = 'green'
+
         let camelizeBoard = camelize(element.name);
         let boardNaming = dataCredent.boardType == 'Main' ? 'Public' : dataCredent.boardType;
         let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element.id + '"  data-boardAidi=' + dataCredent.board_id + ' data-boardtype=' + dataCredent.boardType + '  data-parent="parent' + element.id + '">' +
@@ -183,7 +192,7 @@ async function domBoardPinned(data) {
             '</h2>' +
             '</div>' +
             '<div class="col-lg-2 text-right" style="align-self:center;">' + createdByIcon(dataCredent.user_create, dataCredent.board_id, dataCredent.boardType,true) + '</div>' +
-            '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="' + dataCredent.user_create + '" data-pic=' + JSON.parse(dataCredent.pic)[0].account_id + ' data-boardid=' + dataCredent.board_id + ' data-name="' + element.name + '" data-id=' + element.id + ' data-camelized="' + camelizeBoard + '"><i class="fas fa-bars fa-lg menu" data-board="' + dataCredent.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-all="' + window.btoa(JSON.stringify(dataCredent)) + '" data-from="pinned" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element.id + '><i class="fas fa-thumbtack fa-lg favGT" data-id=' + element.id + '></i></a></div></div>' +
+            '<div class="col-lg-2 text-center placeTools" data-id='+element.id+' style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="' + dataCredent.user_create + '" data-pic=' + JSON.parse(dataCredent.pic)[0].account_id + ' data-boardid=' + dataCredent.board_id + ' data-name="' + element.name + '" data-id=' + element.id + ' data-camelized="' + camelizeBoard + '"><i class="fas fa-bars fa-lg menu" data-board="' + dataCredent.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-all="' + window.btoa(JSON.stringify(dataCredent)) + '" data-from="pinned" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element.id + '><i class="fas fa-thumbtack fa-lg favGT" data-id=' + element.id + '></i></a></div></div>' +
 
             '<div id="kolap' + element.id + '" class="collapse" data-id="' + element.id + '" aria-labelledby="' + camelizeBoard + '">' +
             '<div class="card-body p-4" data-id="' + element.id + '">' +
@@ -204,6 +213,12 @@ async function domBoardPinned(data) {
                 $('.btnFavorites[data-id=' + element.id + ']').attr('title', 'Unpin ' + element.name)
             } else {
                 $('.btnFavorites[data-id=' + element.id + ']').attr('title', 'Pin ' + element.name)
+            }
+            
+            if(doneGT){
+                $('.placeTools[data-id='+element.id+']').prepend('<a tabindex="0" data-boardid=' + dataCredent.board_id + ' class="btnDoneGT mr-4" data-status='+dataCredent.status+' data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element.id + '><i class="fas fa-check fa-lg doneGT" style="color:'+colorDone+'"" data-id='+element.id+'></i></a>')
+                if(!dataCredent.status) $('.btnDoneGT[data-id='+element.id+']').attr('title','Done ' + element.name)
+                else $('.btnDoneGT[data-id='+element.id+']').attr('title','Undone ' + element.name)
             }
         } catch (error) {
 

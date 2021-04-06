@@ -2,56 +2,63 @@
 
 function lightOrDark(color) {
   let brightness = tinycolor(color).getBrightness();
-  if(brightness >= 140) return 'light';
+  if (brightness >= 140) return 'light';
   else return 'dark;'
 }
 
-$(document).on('change','.fileAttachData',async function(){
+$(document).on('change', '.fileAttachData', async function () {
   let valid = true;
   let aidi = $(this).data('id');
-  let attachmentFile = document.querySelector(`#fileAttachData`+aidi).files;
+  let attachmentFile = document.querySelector(`#fileAttachData` + aidi).files;
   let arrFile = [];
   let groupId = $(this).data('groupid');
   const forLoopFile = async _ => {
-    for(var i=0;i<attachmentFile.length;i++){
-      arrFile.push({file:await toBase64Comment(attachmentFile[i]),name:attachmentFile[i].name,type:attachmentFile[i].type})
+    for (var i = 0; i < attachmentFile.length; i++) {
+      arrFile.push({
+        file: await toBase64Comment(attachmentFile[i]),
+        name: attachmentFile[i].name,
+        type: attachmentFile[i].type
+      })
     }
   }
 
   await forLoopFile()
-  
+
   arrFile.forEach(element => {
-      if(!element.type.includes('msword') && !element.type.includes('png') && !element.type.includes('sheet') && !element.type.includes('jpeg') && !element.type.includes('jpg') && !element.type.includes('pdf')){
-        valid = false;
-        return callNotif({type:'error',text: element.type + ' file is not supported'})
-      }
+    if (!element.type.includes('msword') && !element.type.includes('png') && !element.type.includes('sheet') && !element.type.includes('jpeg') && !element.type.includes('jpg') && !element.type.includes('pdf')) {
+      valid = false;
+      return callNotif({
+        type: 'error',
+        text: element.type + ' file is not supported'
+      })
+    }
   });
- 
-  if(valid){
+
+  if (valid) {
     arrFile.forEach(element => {
       delete element.type;
     });
     let formAttachmentFile = new FormData();
     formAttachmentFile.append('file', JSON.stringify(arrFile));
-    formAttachmentFile.append('id',aidi);
+    formAttachmentFile.append('id', aidi);
     loadingActivated();
-    let attachFile =  await globalAttachFile(formAttachmentFile);
-    document.getElementById('fileAttachData'+aidi).value= null;
+    let attachFile = await globalAttachFile(formAttachmentFile);
+    document.getElementById('fileAttachData' + aidi).value = null;
     loadingDeactivated();
-    if(attachFile == '200'){
+    if (attachFile == '200') {
       refreshTableData(groupId);
     }
   }
 })
 
-$(document).on('change','#commentFile',function(e){
-    // let filename = e.target.files[0].name;
-    // $('.commentFileName').html(filename);
-    let checkTag = '<i class="fa fa-check position-absolute" style="color:green;""></i>';
-    $(this).parent().append(checkTag);
+$(document).on('change', '#commentFile', function (e) {
+  // let filename = e.target.files[0].name;
+  // $('.commentFileName').html(filename);
+  let checkTag = '<i class="fa fa-check position-absolute" style="color:green;""></i>';
+  $(this).parent().append(checkTag);
 })
 
-$(document).on('change','.commentPictEach',function(e){
+$(document).on('change', '.commentPictEach', function (e) {
   // let filename = e.target.files[0].name;
   // let id = $(this).data('id');
   // $('.commentFileName'+id+'').html(filename);
@@ -60,22 +67,22 @@ $(document).on('change','.commentPictEach',function(e){
   $(this).parent().append(checkTag);
 })
 
-$(document).on('change','.editReplyFile',function(){
+$(document).on('change', '.editReplyFile', function () {
   let checkTag = '<i class="fa fa-check position-absolute" style="color:green; top:95px; left:20px;"></i>';
   $(this).parent().append(checkTag);
 })
 
-async function toCompress(file){
-  return new Promise(async function(resolve,reject){
-      new Compressor(file, {
-          quality: 0.6,
-          success(result) {
-              resolve(result);
-          },
-          error(err) {
-              resolve(500);
-          },
-        });
+async function toCompress(file) {
+  return new Promise(async function (resolve, reject) {
+    new Compressor(file, {
+      quality: 0.6,
+      success(result) {
+        resolve(result);
+      },
+      error(err) {
+        resolve(500);
+      },
+    });
   })
 }
 
@@ -92,19 +99,19 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
     let aidi = $(this).data('aidi');
     let replyId = $(this).data('replyid');
     if (replyEditComment.trim() == '') {
-      toastrNotifFull('please fill comment reply','info');
+      toastrNotifFull('please fill comment reply', 'info');
     } else {
 
       let commentFile;
       let base64CommentFile;
-      commentFile = document.querySelector(`#editReplyFile`+aidi).files[0];
-      if(commentFile){
-          let compressedFile = await toCompress(document.querySelector(`#editReplyFile`+aidi).files[0])
-          base64CommentFile = await toBase64Comment(compressedFile);
+      commentFile = document.querySelector(`#editReplyFile` + aidi).files[0];
+      if (commentFile) {
+        let compressedFile = await toCompress(document.querySelector(`#editReplyFile` + aidi).files[0])
+        base64CommentFile = await toBase64Comment(compressedFile);
       }
 
       let formPutComment = new FormData();
-    
+
       formPutComment.append('_id', aidi);
       formPutComment.append('comment_id', replyId);
       formPutComment.append('comment_file', base64CommentFile);
@@ -124,34 +131,34 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
   }
 })
 
-$(document).on('click','.filePrev',async function(){
+$(document).on('click', '.filePrev', async function () {
   let imageData = $(this).data('image');
-  $.fancybox.open('<img src="'+imageData+'"/>');
+  $.fancybox.open('<img src="' + imageData + '"/>');
 })
 
-async function refreshTableData(groupId){
-  containerOnLoad('cardGT'+groupId+'')
-  $('.headerGT[data-id='+groupId+']').click()
+async function refreshTableData(groupId) {
+  containerOnLoad('cardGT' + groupId + '')
+  $('.headerGT[data-id=' + groupId + ']').click()
   setTimeout(() => {
-      $('.headerGT[data-id='+groupId+']').click()
+    $('.headerGT[data-id=' + groupId + ']').click()
   }, 500);
   let intervalData = setInterval(() => {
-      if($('#table'+groupId).length > 0){
-          clearInterval(intervalData)
-          containerDone('cardGT'+groupId+'')
-      }
+    if ($('#table' + groupId).length > 0) {
+      clearInterval(intervalData)
+      containerDone('cardGT' + groupId + '')
+    }
   }, 1000);
 }
 
-async function refreshComment(commentId,groupId = ''){
+async function refreshComment(commentId, groupId = '') {
   $('.commentContent[data-id=' + commentId + ']').empty();
-  $(".commentContent[data-id="+commentId+"]").append('Getting comment data...');
+  $(".commentContent[data-id=" + commentId + "]").append('Getting comment data...');
   try {
     let commentData = await getComment(commentId);
     if (commentData != 500) {
       if (commentData.length > 0) {
         await domComment(commentData, commentId);
-        if($('.commentTask[data-id='+commentId+']').data('available') == false && groupId != ''){
+        if ($('.commentTask[data-id=' + commentId + ']').data('available') == false && groupId != '') {
           refreshTableData(groupId);
         }
       } else {
@@ -159,7 +166,7 @@ async function refreshComment(commentId,groupId = ''){
       }
     }
   } catch (error) {
-    
+
   }
 }
 
@@ -168,19 +175,19 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
     let replyComment = $(this).val();
     let groupid = $(this).data('groupid');
     if (replyComment.trim() == '') {
-      toastrNotifFull('please fill comment reply','info');
+      toastrNotifFull('please fill comment reply', 'info');
     } else {
 
       let commentFile;
       let base64CommentFile;
       commentFile = document.querySelector(`.commentPictEach`).files[0];
-      if(commentFile){
-          let compressedFile = await toCompress(document.querySelector(`.commentPictEach`).files[0])
-          base64CommentFile = await toBase64Comment(compressedFile);
+      if (commentFile) {
+        let compressedFile = await toCompress(document.querySelector(`.commentPictEach`).files[0])
+        base64CommentFile = await toBase64Comment(compressedFile);
       }
 
       let formUpdateComment = new FormData();
-    
+
       formUpdateComment.append('comment_id', $(this).data('replyid'));
       formUpdateComment.append('comment', replyComment);
       formUpdateComment.append('comment_file', base64CommentFile);
@@ -188,12 +195,12 @@ $(document).on('keydown', '.txtAreaReply', async function (ev) {
 
       let replyId = $(this).data('replyid');
       let commentId = $(this).data('commentid');
-      
+
       $(this).attr('readonly', true);
       let res = await globalUpdateReplyComment('POST', formUpdateComment);
       $(this).removeAttr('readonly');
       if (res != 500) {
-        await refreshComment(commentId,groupid);
+        await refreshComment(commentId, groupid);
       }
     }
 
@@ -228,17 +235,20 @@ $(document).on('click', '.menuRename', async function () {
       };
       callNotif(param);
       let newProjects = JSON.parse(localStorage.getItem('favList')).map(p =>
-        p.id === renameId
-          ? { ...p, name: newName }
-          : p
+        p.id === renameId ?
+        {
+          ...p,
+          name: newName
+        } :
+        p
       );
-      localStorage.setItem('favList',JSON.stringify(newProjects))
+      localStorage.setItem('favList', JSON.stringify(newProjects))
       $('#modalOptions').modal('toggle');
-      $('a[data-id='+renameBoardId+']').click();
+      $('a[data-id=' + renameBoardId + ']').click();
       $('#chartSection').addClass('d-none');
-     } else if (result.responseCode == '401') {
+    } else if (result.responseCode == '401') {
       logoutNotif();
-  } else {
+    } else {
       param = {
         type: 'error',
         text: result.responseMessage
@@ -276,14 +286,16 @@ $(document).on('click', '.menuDelete', function () {
             text: result.responseMessage
           };
           callNotif(param);
-          let filters = JSON.parse(localStorage.getItem('favList')).filter(function(el) { return el.id != deleteId }); 
-          localStorage.setItem('favList',JSON.stringify(filters))
+          let filters = JSON.parse(localStorage.getItem('favList')).filter(function (el) {
+            return el.id != deleteId
+          });
+          localStorage.setItem('favList', JSON.stringify(filters))
           $('#modalOptions').modal('toggle');
-          $('a[data-id='+deleteBoardId+']').click();
+          $('a[data-id=' + deleteBoardId + ']').click();
           $('#chartSection').addClass('d-none');
         } else if (result.responseCode == '401') {
           logoutNotif();
-      } else {
+        } else {
           param = {
             type: 'error',
             text: result.responseMessage
@@ -364,7 +376,7 @@ $(document).on('click', '.deleteComment', function () {
     'comment': commentNow,
     'user_create': ct.name
   }
-  notifDeleteComment(deletedComment,groupId);
+  notifDeleteComment(deletedComment, groupId);
 })
 
 $(document).on('click', '.deleteReply', async function () {
@@ -395,8 +407,8 @@ $(document).on('click', '.deleteReply', async function () {
       }
 
       let delReply = await globalUpdateReplyComment('DELETE', deletingComment);
-      if(delReply != 500){
-        await refreshComment(taskid,groupId);
+      if (delReply != 500) {
+        await refreshComment(taskid, groupId);
       }
       $('.rowDelete[data-index=' + indexDelete + ']').remove();
     },
@@ -408,13 +420,13 @@ $(document).on('click', '.commentTask', async function () {
   let taskName = $(this).data('name');
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
-  let available = $('.commentTask[data-id='+id+']').data('available');
+  let available = $('.commentTask[data-id=' + id + ']').data('available');
   $('.commentContent').attr('data-id', id);
-  $('.commentInputArea').attr('data-id',id);
-  $('.commentInputArea').attr('data-groupid',groupid);
+  $('.commentInputArea').attr('data-id', id);
+  $('.commentInputArea').attr('data-groupid', groupid);
   $('.commentTaskName').html(taskName);
-  $(".commentContent[data-id="+id+"]").empty();
-  $(".commentContent[data-id="+id+"]").append('Getting comment data...');
+  $(".commentContent[data-id=" + id + "]").empty();
+  $(".commentContent[data-id=" + id + "]").append('Getting comment data...');
 
   if (available == true || available == 'true') {
     let commentData = await getComment(id);
@@ -426,7 +438,7 @@ $(document).on('click', '.commentTask', async function () {
       }
     }
 
-    
+
   } else {
     $('.commentContent[data-id=' + id + ']').empty();
     try {
@@ -439,50 +451,50 @@ $(document).on('click', '.commentTask', async function () {
         }
       }
     } catch (error) {
-      
+
     }
   }
 
   let intervalComment = setInterval(async () => {
-    if(!$(".txtAreaReply").is(":focus") && !$(".txtAreaEdit").is(":focus")){
-      $('.commentContent[data-id='+id+']').empty();
-      $('.commentContent[data-id='+id+']').append('Getting comment data...');
+    if (!$(".txtAreaReply").is(":focus") && !$(".txtAreaEdit").is(":focus")) {
+      $('.commentContent[data-id=' + id + ']').empty();
+      $('.commentContent[data-id=' + id + ']').append('Getting comment data...');
       let commentData = await getComment(id);
       if (commentData != 500) {
         if (commentData.length > 0) {
-          $('.commentContent[data-id='+id+']').empty('');
+          $('.commentContent[data-id=' + id + ']').empty('');
           await domComment(commentData, id);
         } else {
-          $('.commentContent[data-id='+id+']').empty();
+          $('.commentContent[data-id=' + id + ']').empty();
         }
       }
     }
-    
+
   }, 20000);
 
   $('#commentModal').on('hidden.bs.modal', function (e) {
     clearInterval(intervalComment);
   })
 
-  
+
   try {
     window['dataCommentTeam' + groupid + ''].forEach(element => {
       let choose;
-      if(window['color'+element.account_id] == undefined) choose = getRandomColor();
-      else choose = window['color'+element.account_id];
+      if (window['color' + element.account_id] == undefined) choose = getRandomColor();
+      else choose = window['color' + element.account_id];
 
       try {
         let colorCheck = lightOrDark(choose);
-        if(colorCheck == 'light') window['colorClass'+element.user_create] = 'text-dark fontWeight400';
-        else window['colorClass'+element.user_create] = 'text-white';
+        if (colorCheck == 'light') window['colorClass' + element.user_create] = 'text-dark fontWeight400';
+        else window['colorClass' + element.user_create] = 'text-white';
       } catch (error) {
-        window['colorClass'+element.user_create] = 'text-white';
+        window['colorClass' + element.user_create] = 'text-white';
       }
     });
   } catch (e) {
 
   }
-  $('.commentInputArea[data-id='+id+']').val('');
+  $('.commentInputArea[data-id=' + id + ']').val('');
 })
 
 $(document).on('keydown', '.commentInputArea', async function (ev) {
@@ -492,23 +504,23 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
     let groupId = $('.commentInputArea').attr('data-groupid');
     let commentFile;
     let base64CommentFile;
-    if(newCommentValue.trim() != ''){
+    if (newCommentValue.trim() != '') {
       commentFile = document.querySelector(`#commentFile`).files[0];
-      if(commentFile != undefined){
-          let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
-          base64CommentFile = await toBase64Comment(compressedFile);
+      if (commentFile != undefined) {
+        let compressedFile = await toCompress(document.querySelector(`#commentFile`).files[0])
+        base64CommentFile = await toBase64Comment(compressedFile);
       } else {
         base64CommentFile = '';
       }
 
       if (newCommentValue != '') {
         let formUpdateComment = new FormData();
-      
+
         formUpdateComment.append('task_id', id);
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
-        formUpdateComment.append('url',localUrl + ':' + projectManagementLocalPort + '/employee')
+        formUpdateComment.append('url', localUrl + ':' + projectManagementLocalPort + '/employee')
         $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
         $(this).val('');
         $(this).blur();
@@ -516,9 +528,9 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         let addComment = await globalAddComment(formUpdateComment);
         $('.commentInputArea[data-id=' + id + ']').removeAttr('disabled');
         if (addComment != 500) {
-          await refreshComment(id,groupId);
+          await refreshComment(id, groupId);
         } else {
-          toastrNotifFull('failed to comment','error');
+          toastrNotifFull('failed to comment', 'error');
         }
       }
       setTimeout(() => {
@@ -529,13 +541,13 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         $('.commentInputArea').mouseleave();
       }, 1000);
     } else {
-      toastrNotifFull('please fill comment','info');
+      toastrNotifFull('please fill comment', 'info');
     }
   }
 });
 
-async function triggerPopoverPIC(id,groupid,name){
-  if($('.pic[data-id=' + id + ']').data("bs.popover") == undefined){
+async function triggerPopoverPIC(id, groupid, name) {
+  if ($('.pic[data-id=' + id + ']').data("bs.popover") == undefined) {
 
     let empHtml = '<div class="row p-2 mb-2"><div class="col-lg-12"><select id="employeePic" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploPic"></div></div>';
     let joinHtml = empHtml;
@@ -597,11 +609,11 @@ async function triggerPopoverPIC(id,groupid,name){
   }
 }
 
-async function activateCanvas(url,pdf = false){
+async function activateCanvas(url, pdf = false) {
   var canvas = document.querySelector("#canvasPlace");
   var signaturePad = new SignaturePad(canvas);
 
-  $('#backupCanvas').attr('src',url);
+  $('#backupCanvas').attr('src', url);
   // Returns signature image as data URL (see https://mdn.io/todataurl for the list of possible parameters)
   // signaturePad.toDataURL(); // save image as PNG
   // signaturePad.toDataURL("image/jpeg"); // save image as JPEG
@@ -609,8 +621,8 @@ async function activateCanvas(url,pdf = false){
 
   // Draws signature image from data URL.
   // NOTE: This method does not populate internal data structure that represents drawn signature. Thus, after using #fromDataURL, #toData won't work properly.
-  if(!pdf)
-  signaturePad.fromDataURL(url);
+  if (!pdf)
+    signaturePad.fromDataURL(url);
   // Returns signature image as an array of point groups
   const data = signaturePad.toData();
 
@@ -622,40 +634,39 @@ async function activateCanvas(url,pdf = false){
 
   signaturePad.off();
 
-  window['signaturePad']=signaturePad;
+  window['signaturePad'] = signaturePad;
 }
 
-function enableCanvas(){
+function enableCanvas() {
   window['signaturePad'].on();
 }
 
-function disableCanvas(){
+function disableCanvas() {
   window['signaturePad'].off();
   clearCanvas()
 }
 
-function clearCanvas(){
-  if($('.currPage').length > 0) {
+function clearCanvas() {
+  if ($('.currPage').length > 0) {
     let currentPage = parseInt($('.currPage').html());
     renderPage(currentPage)
-  }
-  else {
+  } else {
     let backUpCanvas = $('#backupCanvas').attr('src');
     window['signaturePad'].clear();
     window['signaturePad'].fromDataURL(backUpCanvas);
   }
 }
 
-$(document).on('click','.savingCanvas',async function(){
+$(document).on('click', '.savingCanvas', async function () {
   let idFile = $(this).data("id");
   let idTask = $(this).data("idTask");
   let groupId = $(this).data('groupid');
   let pdf = $(this).data('pdf');
   let multiple = $(this).data('multiple')
-  if(pdf && multiple){
-    console.log('current page',parseInt($('.currPage').html()),window['signatureMultiple']);
+  if (pdf && multiple) {
+    console.log('current page', parseInt($('.currPage').html()), window['signatureMultiple']);
     window['signatureMultiple'].forEach(element => {
-      if(element.id == parseInt($('.currPage').html())){
+      if (element.id == parseInt($('.currPage').html())) {
         element.image = window['signaturePad'].toDataURL('image/png')
       } else {
         element.image = element.imageBackup
@@ -665,111 +676,107 @@ $(document).on('click','.savingCanvas',async function(){
       delete element.id;
       delete element.imageBackup
     })
-    console.log('awal',window['signatureMultiple'],pdf,multiple);
-    await exportCanvas(idFile,idTask,groupId,window['signatureMultiple'],pdf,multiple);
+    console.log('awal', window['signatureMultiple'], pdf, multiple);
+    await exportCanvas(idFile, idTask, groupId, window['signatureMultiple'], pdf, multiple);
   } else {
-    await exportCanvas(idFile,idTask,groupId,window['signaturePad'].toDataURL('image/jpeg'),pdf,multiple);
+    await exportCanvas(idFile, idTask, groupId, window['signaturePad'].toDataURL('image/jpeg'), pdf, multiple);
   }
 })
 
 function download() {
   var a = $("<a>")
-      .attr("href", $('#backupCanvas').attr('src'))
-      .attr("download", "img.png")
-      .appendTo("body");
+    .attr("href", $('#backupCanvas').attr('src'))
+    .attr("download", "img.png")
+    .appendTo("body");
 
   a[0].click();
 
   a.remove();
 }
 
-$(document).on('click','.downloadCanvas',function(){
-    let pdfFile = $('.enablingCanvas').data('pdf')
-    let multiples = $('.enablingCanvas').data('multiple');
+$(document).on('click', '.downloadCanvas', function () {
+  let pdfFile = $('.enablingCanvas').data('pdf')
+  let multiples = $('.enablingCanvas').data('multiple');
 
-    let pageWidth = 700;
-    let pageHeight = 1000;
-    if(pdfFile && multiples){
-      let dataRawPDF = window['signatureMultiple']
-      dataRawPDF.forEach(element => {
-        if(element.id == parseInt($('.currPage').html())){
-          element.image = window['signaturePad'].toDataURL('image/png')
-        } else {
-          element.image = element.imageBackup
-        }
-      });
+  let pageWidth = 700;
+  let pageHeight = 1000;
+  if (pdfFile && multiples) {
+    let dataRawPDF = window['signatureMultiple']
+    dataRawPDF.forEach(element => {
+      if (element.id == parseInt($('.currPage').html())) {
+        element.image = window['signaturePad'].toDataURL('image/png')
+      } else {
+        element.image = element.imageBackup
+      }
+    });
 
-      let docDefinitionRaw = {
-        pageSize: {
-            width: pageWidth,
-            height: pageHeight
-        },
-        pageMargins: [1, 1, 1, 1],
-        content: dataRawPDF
-      };
-      pdfMake.createPdf(docDefinitionRaw).download();
-    } else if(pdfFile && !multiples){
-      let contentData = [
-        {
-          // in browser is supported loading images via url from reference by name in images
-          image: window['signaturePad'].toDataURL('image/jpeg'),
-          width: pageWidth,
-          height: pageHeight
-        },
-      ]
+    let docDefinitionRaw = {
+      pageSize: {
+        width: pageWidth,
+        height: pageHeight
+      },
+      pageMargins: [1, 1, 1, 1],
+      content: dataRawPDF
+    };
+    pdfMake.createPdf(docDefinitionRaw).download();
+  } else if (pdfFile && !multiples) {
+    let contentData = [{
+      // in browser is supported loading images via url from reference by name in images
+      image: window['signaturePad'].toDataURL('image/jpeg'),
+      width: pageWidth,
+      height: pageHeight
+    }, ]
 
-      let docDefinitionRaw = {
-        content: contentData
-      };
-      pdfMake.createPdf(docDefinitionRaw).download();
-      
-    } else if(!pdfFile && !multiples){
-      download()
-    }
+    let docDefinitionRaw = {
+      content: contentData
+    };
+    pdfMake.createPdf(docDefinitionRaw).download();
+
+  } else if (!pdfFile && !multiples) {
+    download()
+  }
 })
 
-$(document).on('click','.enablingCanvas',function(){
+$(document).on('click', '.enablingCanvas', function () {
   enableCanvas()
   $('.savingCanvas').removeClass('d-none');
   $('.enablingCanvas').addClass('d-none');
   $('.clearingCanvas').removeClass('d-none');
-  if($(this).data('pdf') != true && $(this).data('multiple') != true){
+  if ($(this).data('pdf') != true && $(this).data('multiple') != true) {
     $('.disableSignature').removeClass('d-none');
   } else {
-    $('.clearingCanvas').attr('data-number',1);
+    $('.clearingCanvas').attr('data-number', 1);
   }
 })
 
-$(document).on('click','.clearingCanvas',function(){
+$(document).on('click', '.clearingCanvas', function () {
   clearCanvas()
 })
 
-async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].toDataURL('image/jpeg'),pdf = false,multiple = false) {
+async function exportCanvas(fileId, idTask, groupId, file = window['signaturePad'].toDataURL('image/jpeg'), pdf = false, multiple = false) {
   var pageWidth = 700;
   var pageHeight = 1000;
   let contentData;
-  if(pdf){
-    if(!multiple){
-      contentData = [
-        {
-          // in browser is supported loading images via url from reference by name in images
-          image: file,
-          width: pageWidth,
-          height: pageHeight
-        },
-      ]
+  if (pdf) {
+    if (!multiple) {
+      contentData = [{
+        // in browser is supported loading images via url from reference by name in images
+        image: file,
+        width: pageWidth,
+        height: pageHeight
+      }, ]
     } else {
       contentData = file;
     }
     var docDefinition = {
       pageSize: {
-          width: pageWidth,
-          height: pageHeight
+        width: pageWidth,
+        height: pageHeight
       },
       pageMargins: [1, 1, 1, 1],
       content: contentData
     };
-    console.log('conte',docDefinition);
+    console.log('conte', docDefinition);
     // pdfMake.createPdf(docDefinition).download();
     const pdfDocGenerator = pdfMake.createPdf(docDefinition);
     let fileDataPdf;
@@ -777,15 +784,15 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
       fileDataPdf = dataUrl;
       let formAttachmentFile = new FormData();
       let dataFile = JSON.stringify({
-          "fileId": fileId,
-          "file": fileDataPdf
+        "fileId": fileId,
+        "file": fileDataPdf
       })
       formAttachmentFile.append('file', dataFile);
-      formAttachmentFile.append('id',idTask);
+      formAttachmentFile.append('id', idTask);
       loadingActivated();
-      let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+      let attachFile = await globalAttachFile(formAttachmentFile, 'PUT');
       loadingDeactivated();
-      if(attachFile == '200'){
+      if (attachFile == '200') {
         disableCanvas();
         refreshTableData(groupId);
         $('#modalAttachmentFile').modal('toggle')
@@ -794,39 +801,41 @@ async function exportCanvas(fileId,idTask,groupId,file = window['signaturePad'].
   } else {
     let formAttachmentFile = new FormData();
     let dataFile = JSON.stringify({
-        "fileId": fileId,
-        "file": file
+      "fileId": fileId,
+      "file": file
     })
     formAttachmentFile.append('file', dataFile);
-    formAttachmentFile.append('id',idTask);
+    formAttachmentFile.append('id', idTask);
     loadingActivated();
-    let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
+    let attachFile = await globalAttachFile(formAttachmentFile, 'PUT');
     loadingDeactivated();
-    if(attachFile == '200'){
+    if (attachFile == '200') {
       disableCanvas();
       refreshTableData(groupId);
       $('#modalAttachmentFile').modal('toggle')
     }
   }
-  
+
 }
 
 var numPages = 0;
 
 var pdfDoc = null,
-    pageNum = 1,
-    pageNumMultiple = 1,
-    pageRendering = false,
-    pageNumPending = null,
-    scale = 1.2,
-    canvas = document.getElementById('canvasPlace'),
-    ctx = canvas.getContext('2d');
+  pageNum = 1,
+  pageNumMultiple = 1,
+  pageRendering = false,
+  pageNumPending = null,
+  scale = 1.2,
+  canvas = document.getElementById('canvasPlace'),
+  ctx = canvas.getContext('2d');
 
 function renderPage(num) {
   pageRendering = true;
   // Using promise to fetch the page
-  pdfDoc.getPage(num).then(function(page) {
-    var viewport = page.getViewport({scale: scale});
+  pdfDoc.getPage(num).then(function (page) {
+    var viewport = page.getViewport({
+      scale: scale
+    });
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
@@ -838,7 +847,7 @@ function renderPage(num) {
     var renderTask = page.render(renderContext);
 
     // Wait for rendering to finish
-    renderTask.promise.then(function() {
+    renderTask.promise.then(function () {
       pageRendering = false;
       if (pageNumPending !== null) {
         // New page rendering is pending
@@ -868,7 +877,7 @@ function onPrevPage() {
     return;
   }
   pageNum--;
-  $('.clearingCanvas').attr('data-number',pageNum);
+  $('.clearingCanvas').attr('data-number', pageNum);
   queueRenderPage(pageNum);
 }
 
@@ -877,146 +886,154 @@ function onNextPage() {
     return;
   }
   pageNum++;
-  $('.clearingCanvas').attr('data-number',pageNum);
+  $('.clearingCanvas').attr('data-number', pageNum);
   queueRenderPage(pageNum);
 }
 
-$(document).on('click','.deleteAttachment',async function(){
+$(document).on('click', '.deleteAttachment', async function () {
   let fileId = $(this).data('id');
   let idTask = $(this).data('idtask');
   let groupId = $(this).data('groupid');
 
   Swal.fire({
-      title: 'Are you sure to delete this attachment?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Delete it!',
-      showLoaderOnConfirm: true,
-      preConfirm: async () => {
-          let formAttachmentFile = new FormData();
-          let dataFile = JSON.stringify({
-              "fileId": fileId,
-          })
-          formAttachmentFile.append('file', dataFile);
-          formAttachmentFile.append('id',idTask);
-          loadingActivated();
-          let attachFile =  await globalAttachFile(formAttachmentFile,'PUT');
-          loadingDeactivated();
-          if(attachFile == '200'){
-            callNotif({type:'success',text:attachFile.responseMessage})
-            refreshTableData(groupId);
-          }
-      },
-      allowOutsideClick: () => !Swal.isLoading()
+    title: 'Are you sure to delete this attachment?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Delete it!',
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      let formAttachmentFile = new FormData();
+      let dataFile = JSON.stringify({
+        "fileId": fileId,
+      })
+      formAttachmentFile.append('file', dataFile);
+      formAttachmentFile.append('id', idTask);
+      loadingActivated();
+      let attachFile = await globalAttachFile(formAttachmentFile, 'PUT');
+      loadingDeactivated();
+      if (attachFile == '200') {
+        callNotif({
+          type: 'success',
+          text: attachFile.responseMessage
+        })
+        refreshTableData(groupId);
+      }
+    },
+    allowOutsideClick: () => !Swal.isLoading()
   })
 
-  
+
 })
 
-$(document).on('click','.showAttachment',async function(){
+$(document).on('click', '.showAttachment', async function () {
   let fileId = $(this).data('id');
   let idTask = $(this).data('idtask');
   let groupId = $(this).data('groupid');
   loadingActivated();
   let attachShow = await showAttachmentDetails(fileId);
   loadingDeactivated();
-  if(attachShow.responseCode == '200'){
+  if (attachShow.responseCode == '200') {
     $('[data-original-title]').popover('hide');
-    
-    if(attachShow.data.path.includes('pdf')){
-      $('#canvasDoc').attr('src','').addClass('d-none');
+
+    if (attachShow.data.path.includes('pdf')) {
+      $('#canvasDoc').attr('src', '').addClass('d-none');
       $('#canvasPlace').removeClass('d-none');
       activeModalAttachmentFile();
       $('.clearingCanvas').addClass('d-none');
       $('.savingCanvas').addClass('d-none');
       $('.enablingCanvas').removeClass('d-none');
 
-      $('.savingCanvas').data('id',fileId);
-      $('.savingCanvas').data('idTask',idTask);
-      $('.savingCanvas').data('groupid',groupId);
-      $('#backupCanvas').attr("src",'');
+      $('.savingCanvas').data('id', fileId);
+      $('.savingCanvas').data('idTask', idTask);
+      $('.savingCanvas').data('groupid', groupId);
+      $('#backupCanvas').attr("src", '');
       pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
       let url = attachShow.data.source;
       var pdfData = atob(url.split('data:application/pdf;base64,')[1]);
-      var loadingTask = pdfjsLib.getDocument({data: pdfData});
-      loadingTask.promise.then(async function(pdf) {
-        // Fetch the first page
-        var pageNumber = 1;
-        //How many pages it has
-        numPages = pdf.numPages;
-        pdfDoc = pdf;
-        
-        if(numPages > 1){
-          $('.savingCanvas').attr('data-pdf',true);
-          $('.savingCanvas').attr('data-multiple',true);
-          $('.enablingCanvas').attr('data-pdf',true);
-          $('.enablingCanvas').attr('data-multiple',true);
-          pageNum = 1;
-          pageNumMultiple = 1;
-          window['signatureMultiple'] = [];
-          pdf.getPage(pageNumber).then(handlePages)
-          // $('#canvasPlace').addClass('d-none');
-          if($('.legendData').length == 0){
-            let legend = '<div class="legendData d-flex align-items-center"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
-            $(legend).insertAfter($('#canvasPlace'));
-            document.getElementById('prev').addEventListener('click', onPrevPage);
-            document.getElementById('next').addEventListener('click', onNextPage);
-            $('<span style="margin-left:auto;">Page : <span class="currPage"></span> / '+numPages+'</span>').appendTo($('.legendData'));
-          }
-          
-          renderPage(pageNum);
-          await activateCanvas(attachShow.data.source,true);
-        } else {
-          $('.savingCanvas').attr('data-pdf',true);
-          $('.savingCanvas').attr('data-multiple',false);
-          $('.enablingCanvas').attr('data-pdf',true);
-          $('.enablingCanvas').attr('data-multiple',false);
-          $('.legendData').remove();
-          pdf.getPage(pageNumber).then(function(page) {
-            var scale = 1.2;
-            var viewport = page.getViewport({scale: scale});
-  
-            // Prepare canvas using PDF page dimensions
-            var canvas = document.getElementById('canvasPlace');
-            var context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-  
-            canvas.toBlob(function(blob) {
-              console.log('blobed',blob);
-            },'image/jpeg');
-  
-            // Render PDF page into canvas context
-            var renderContext = {
-              canvasContext: context,
-              viewport: viewport
-            };
-            var renderTask = page.render(renderContext);
-            renderTask.promise.then(function () {
-              console.log('Page rendered');
-            });
-          });
-          await activateCanvas(attachShow.data.source);
-        }
-      }, function (reason) {
-        // PDF loading error
-        console.error(reason);
+      var loadingTask = pdfjsLib.getDocument({
+        data: pdfData
       });
-      $('#canvasPlace').css('max-width','735px');
-    } else if(attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')){
+      loadingTask.promise.then(async function (pdf) {
+          // Fetch the first page
+          var pageNumber = 1;
+          //How many pages it has
+          numPages = pdf.numPages;
+          pdfDoc = pdf;
+
+          if (numPages > 1) {
+            $('.savingCanvas').attr('data-pdf', true);
+            $('.savingCanvas').attr('data-multiple', true);
+            $('.enablingCanvas').attr('data-pdf', true);
+            $('.enablingCanvas').attr('data-multiple', true);
+            pageNum = 1;
+            pageNumMultiple = 1;
+            window['signatureMultiple'] = [];
+            pdf.getPage(pageNumber).then(handlePages)
+            // $('#canvasPlace').addClass('d-none');
+            if ($('.legendData').length == 0) {
+              let legend = '<div class="legendData d-flex align-items-center"><button class="btn btn-warning" id="prev">Previous</button><button class="btn btn-warning" id="next">Next</button></div>'
+              $(legend).insertAfter($('#canvasPlace'));
+              document.getElementById('prev').addEventListener('click', onPrevPage);
+              document.getElementById('next').addEventListener('click', onNextPage);
+              $('<span style="margin-left:auto;">Page : <span class="currPage"></span> / ' + numPages + '</span>').appendTo($('.legendData'));
+            }
+
+            renderPage(pageNum);
+            await activateCanvas(attachShow.data.source, true);
+          } else {
+            $('.savingCanvas').attr('data-pdf', true);
+            $('.savingCanvas').attr('data-multiple', false);
+            $('.enablingCanvas').attr('data-pdf', true);
+            $('.enablingCanvas').attr('data-multiple', false);
+            $('.legendData').remove();
+            pdf.getPage(pageNumber).then(function (page) {
+              var scale = 1.2;
+              var viewport = page.getViewport({
+                scale: scale
+              });
+
+              // Prepare canvas using PDF page dimensions
+              var canvas = document.getElementById('canvasPlace');
+              var context = canvas.getContext('2d');
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+
+              canvas.toBlob(function (blob) {
+                console.log('blobed', blob);
+              }, 'image/jpeg');
+
+              // Render PDF page into canvas context
+              var renderContext = {
+                canvasContext: context,
+                viewport: viewport
+              };
+              var renderTask = page.render(renderContext);
+              renderTask.promise.then(function () {
+                console.log('Page rendered');
+              });
+            });
+            await activateCanvas(attachShow.data.source);
+          }
+        },
+        function (reason) {
+          // PDF loading error
+          console.error(reason);
+        });
+      $('#canvasPlace').css('max-width', '735px');
+    } else if (attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')) {
       activeModalAttachmentFile();
       $('.clearingCanvas').addClass('d-none');
       $('.savingCanvas').addClass('d-none');
       $('.enablingCanvas').addClass('d-none');
-      $('#backupCanvas').attr("src",'');
+      $('#backupCanvas').attr("src", '');
       $('.legendData').remove();
 
-      $('#canvasDoc').attr('src','https://view.officeapps.live.com/op/embed.aspx?src='+attachShow.data.path).removeClass('d-none');
+      $('#canvasDoc').attr('src', 'https://view.officeapps.live.com/op/embed.aspx?src=' + attachShow.data.path).removeClass('d-none');
       $('#canvasPlace').addClass('d-none');
       $('.downloadCanvas').remove()
-      toastrNotifFull('view only document','warning');
+      toastrNotifFull('view only document', 'warning');
     } else {
-      $('#canvasDoc').attr('src','').addClass('d-none');
+      $('#canvasDoc').attr('src', '').addClass('d-none');
       $('#canvasPlace').removeClass('d-none');
       activeModalAttachmentFile();
 
@@ -1024,57 +1041,60 @@ $(document).on('click','.showAttachment',async function(){
       $('.savingCanvas').addClass('d-none');
       $('.enablingCanvas').removeClass('d-none');
 
-      $('.savingCanvas').attr('data-id',fileId);
-      $('.savingCanvas').attr('data-idTask',idTask);
-      $('.savingCanvas').attr('data-groupid',groupId);
-      $('#backupCanvas').attr("src",'');
-      $('.savingCanvas').attr('data-pdf',false);
-      $('.savingCanvas').attr('data-multiple',false);
+      $('.savingCanvas').attr('data-id', fileId);
+      $('.savingCanvas').attr('data-idTask', idTask);
+      $('.savingCanvas').attr('data-groupid', groupId);
+      $('#backupCanvas').attr("src", '');
+      $('.savingCanvas').attr('data-pdf', false);
+      $('.savingCanvas').attr('data-multiple', false);
       $('.legendData').remove();
       await activateCanvas(attachShow.data.source);
     }
-    
+
   }
 })
 
-function handlePages(page)
-{
-    //This gives us the page's dimensions at full scale
-    var scale = 1.2;
-    var viewport = page.getViewport({scale: scale});
+function handlePages(page) {
+  //This gives us the page's dimensions at full scale
+  var scale = 1.2;
+  var viewport = page.getViewport({
+    scale: scale
+  });
 
-    //We'll create a canvas for each page to draw it on
-    var canvas = document.createElement( "canvas" );
-    canvas.setAttribute('id','canvasMultiple'+pageNumMultiple)
-    var context = canvas.getContext('2d');
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+  //We'll create a canvas for each page to draw it on
+  var canvas = document.createElement("canvas");
+  canvas.setAttribute('id', 'canvasMultiple' + pageNumMultiple)
+  var context = canvas.getContext('2d');
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
 
-    //Draw it on the canvas
-    let paged = page.render({canvasContext: context, viewport: viewport});
+  //Draw it on the canvas
+  let paged = page.render({
+    canvasContext: context,
+    viewport: viewport
+  });
 
-    paged.promise.then(function() {
-      document.getElementById('newPlaces').appendChild( canvas );
-      activateCanvasMultiple(pageNumMultiple)
+  paged.promise.then(function () {
+    document.getElementById('newPlaces').appendChild(canvas);
+    activateCanvasMultiple(pageNumMultiple)
 
-        //Move to next page
-      
-      pageNumMultiple++;
-      if ( pdfDoc !== null && pageNumMultiple <= numPages )
-      {
-          pdfDoc.getPage( pageNumMultiple ).then( handlePages );
-      }
-    });
-    
+    //Move to next page
+
+    pageNumMultiple++;
+    if (pdfDoc !== null && pageNumMultiple <= numPages) {
+      pdfDoc.getPage(pageNumMultiple).then(handlePages);
+    }
+  });
+
 }
 
-async function activateCanvasMultiple(id){
-  let canvasMultiple = document.querySelector("#canvasMultiple"+id);
+async function activateCanvasMultiple(id) {
+  let canvasMultiple = document.querySelector("#canvasMultiple" + id);
   var image = new Image();
-  image.id = 'img'+id
+  image.id = 'img' + id
   image.src = canvasMultiple.toDataURL();
   // document.getElementById('image_for_crop').appendChild(image);
-  $(image).insertAfter("#canvasMultiple"+id)
+  $(image).insertAfter("#canvasMultiple" + id)
   let signaturePadMultiple = new SignaturePad(canvasMultiple);
 
   signaturePadMultiple.on();
@@ -1085,17 +1105,15 @@ async function activateCanvasMultiple(id){
   // Draws signature image from an array of point groups
   signaturePadMultiple.fromData(data);
 
-  window['signatureMultiple'].push(
-    {
-      // in browser is supported loading images via url from reference by name in images
-      id: id,
-      // image: signaturePadMultiple.toDataURL('image/png'),
-      imageBackup: $('#img'+id).attr('src'),
-      image: canvasMultiple.toDataURL(),
-      width: 700,
-      height: 1000
-    }
-  );
+  window['signatureMultiple'].push({
+    // in browser is supported loading images via url from reference by name in images
+    id: id,
+    // image: signaturePadMultiple.toDataURL('image/png'),
+    imageBackup: $('#img' + id).attr('src'),
+    image: canvasMultiple.toDataURL(),
+    width: 700,
+    height: 1000
+  });
 }
 
 $(document).on('mouseenter', '.fileAttach', function () {
@@ -1103,30 +1121,30 @@ $(document).on('mouseenter', '.fileAttach', function () {
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
 
-  if($('.popover').length > 0){
+  if ($('.popover').length > 0) {
     $(".popover").each(function () {
-        $(this).popover("dispose");
+      $(this).popover("dispose");
     });
   }
-  triggerPopoverFileAttachment(id,groupid,name);
+  triggerPopoverFileAttachment(id, groupid, name);
 })
 
 function activeModalAttachmentFile() {
   $('#modalAttachmentFile').modal({
-      show: true,
+    show: true,
   });
   $('#modalAttachmentFile').on('hidden.bs.modal', function () {
     window['signaturePad'].off()
   });
 }
 
-async function triggerPopoverFileAttachment(id,groupid,name){
-  if($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined){
+async function triggerPopoverFileAttachment(id, groupid, name) {
+  if ($('.fileAttach[data-id=' + id + ']').data("bs.popover") == undefined) {
     let htmlMember = '';
-    window['fileAttachment'+id].forEach(element => {
-      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">'+element.name+'<span class="d-flex justify-content-between col-lg-5"><i class="far fa-eye fa-lg showAttachment ml-3" style="cursor:pointer;" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i><i class="far fa-trash-alt fa-lg deleteAttachment ml-3" style="cursor:pointer;" data-groupid='+groupid+' data-idtask='+id+' data-id='+element.fileId+'></i></span></li> '
+    window['fileAttachment' + id].forEach(element => {
+      htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center">' + element.name + '<span class="d-flex justify-content-between col-lg-5"><i class="far fa-eye fa-lg showAttachment ml-3" style="cursor:pointer;" data-groupid=' + groupid + ' data-idtask=' + id + ' data-id=' + element.fileId + '></i><i class="far fa-trash-alt fa-lg deleteAttachment ml-3" style="cursor:pointer;" data-groupid=' + groupid + ' data-idtask=' + id + ' data-id=' + element.fileId + '></i></span></li> '
     });
-    let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
+    let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlMember + '</ul></div></div>';
 
     $('.fileAttach[data-id=' + id + ']').attr('tabindex', '0');
     $('.fileAttach[data-id=' + id + ']').attr('data-toggle', 'popover');
@@ -1140,12 +1158,12 @@ async function triggerPopoverFileAttachment(id,groupid,name){
   }
 }
 
-$(document).on('click','.btnMenu',function(e){
+$(document).on('click', '.btnMenu', function (e) {
   let owner = $(this).data('owner');
   let pic = $(this).data('pic');
-  if(ct.name == owner || ct.id_employee == pic){
+  if (ct.name == owner || ct.id_employee == pic) {
     $('.placeBody').empty();
-    let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="'+$(this).data('name')+'" />'
+    let renameText = '<input type="text" class="form-control mb-3 renameInput" placeholder="' + $(this).data('name') + '" />'
     $('.placeBody').append(renameText);
     let menuTemplate = '<div class="row"><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-warning menuRename">Rename</button></div><div class="col-lg-6" style="text-align:center;"><button class="text-white rounded-pill btn btn-danger menuDelete">Delete</button></div></div></div>';
     $('.placeBody').append(menuTemplate);
@@ -1166,11 +1184,57 @@ $(document).on('click','.btnMenu',function(e){
     activeModalGroupTask();
   } else {
     e.preventDefault();
-    toastrNotifFull('You do not have access','error')
+    toastrNotifFull('You do not have access', 'error')
   }
 })
 
-$(document).on('click','.btnFavorites',function(){
+$(document).on('click', '.btnDoneGT', async function () {
+  let idDone = $(this).data('id');
+  let renameBoardId = $(this).data('boardid');
+  let statusGT = $(this).data('status')
+  let bodyGroup = {
+    '_id': idDone,
+    'board_id': renameBoardId,
+    'status': statusGT == false ? '1' : '0'
+  }
+  loadingActivated();
+  return await editGroupTask(bodyGroup).then(async function (result) {
+    loadingDeactivated();
+    let param;
+    if (result.responseCode == '200') {
+      param = {
+        type: 'success',
+        text: result.responseMessage
+      };
+      callNotif(param);
+      if (localStorage.getItem('favList')) {
+        let parsed = JSON.parse(localStorage.getItem('favList'));
+        parsed.forEach(element => {
+          if (element.id == idDone) {
+            let parss = JSON.parse(window.atob(element.data))
+            parss.status = !statusGT
+            element.data = window.btoa(JSON.stringify(parss))
+            return;
+          }
+        });
+        window['favList'] = parsed;
+        localStorage.setItem('favList', JSON.stringify(parsed));
+      }
+      $('.boardList[data-id='+renameBoardId+']').click()
+    } else if (result.responseCode == '401') {
+      logoutNotif();
+    } else {
+      param = {
+        type: 'error',
+        text: result.responseMessage
+      };
+      callNotif(param);
+      return false;
+    }
+  });
+})
+
+$(document).on('click', '.btnFavorites', function () {
   let idFav = $(this).data('id');
   let nameFav = $(this).data('name');
   let dataAll = $(this).data('all');
@@ -1184,74 +1248,77 @@ $(document).on('click','.btnFavorites',function(){
   }
   let parsed;
   let alreadyFav = false;
-  if(localStorage.getItem('favList')){
+  if (localStorage.getItem('favList')) {
     parsed = JSON.parse(localStorage.getItem('favList'));
     parsed.forEach(element => {
-      if(element.id == idFav){
+      if (element.id == idFav) {
         alreadyFav = true;
         return;
       }
     });
   }
 
-  if(!alreadyFav){
+  if (!alreadyFav) {
     window['favList'].push(dataFav);
-    localStorage.setItem('favList',JSON.stringify(window['favList']));
-    toastrNotifFull('success pin group task : '+nameFav+'');
-    $('.favGT[data-id='+idFav+']').css('color','orange');
-    $('#cardGT'+idFav+'').prependTo($('.accordionBoard'))
-    if($('.pinLength').length > 0){
+    localStorage.setItem('favList', JSON.stringify(window['favList']));
+    toastrNotifFull('success pin group task : ' + nameFav + '');
+    $('.favGT[data-id=' + idFav + ']').css('color', 'orange');
+    $('#cardGT' + idFav + '').prependTo($('.accordionBoard'))
+    if ($('.pinLength').length > 0) {
       $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
     } else {
       let pinTag = '<div class="pinnedLabel mt-2 px-2 mb-4" style="font-size: x-large;cursor:pointer;padding:.75rem 1.25rem">Pinned<span class="float-right pinLength">' + window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i></span></div>';
       $(pinTag).insertAfter($('.sidebar-heading'));
     }
   } else {
-    window['favList'] = window['favList'].filter(function(el) { return el.id != idFav }); 
-    localStorage.setItem('favList',JSON.stringify(window['favList']));
-    toastrNotifFull('success unpin group task : '+nameFav+'');
-    $('.favGT[data-id='+idFav+']').css('color','initial');
-    if(from == 'pinned') {
-      $('#cardGT'+idFav+'').remove();
-      if(window['favList'].length != 0)
-      $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
-      else 
-      $('.pinnedLabel').remove();
-    }
-    else
-    $('#cardGT'+idFav+'').appendTo($('.accordionBoard'))
+    window['favList'] = window['favList'].filter(function (el) {
+      return el.id != idFav
+    });
+    localStorage.setItem('favList', JSON.stringify(window['favList']));
+    toastrNotifFull('success unpin group task : ' + nameFav + '');
+    $('.favGT[data-id=' + idFav + ']').css('color', 'initial');
+    if (from == 'pinned') {
+      $('#cardGT' + idFav + '').remove();
+      if (window['favList'].length != 0)
+        $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
+      else
+        $('.pinnedLabel').remove();
+    } else
+      $('#cardGT' + idFav + '').appendTo($('.accordionBoard'))
   }
 })
 
-$(document).on('mouseenter','.personalDetail',function(){
+$(document).on('mouseenter', '.personalDetail', function () {
   let forType = $(this).data('for');
-  triggerPopoverChartLegend(forType,capitalize(forType));
+  triggerPopoverChartLegend(forType, capitalize(forType));
 })
 
-$(document).on('click','.openTask',async function(){
-  let idData = window['personalData'][0]['data'+$(this).data('for')][$(this).data('index')];
+$(document).on('click', '.openTask', async function () {
+  let idData = window['personalData'][0]['data' + $(this).data('for')][$(this).data('index')];
   loadingActivated();
-  let idBoard = await getBoard({group_id:idData.group_id},'boardId');
+  let idBoard = await getBoard({
+    group_id: idData.group_id
+  }, 'boardId');
   let boardid = idBoard[0]._id;
-  if(boardid != undefined && boardid != null){
-    await checkGroupTaskRedirect('200',boardid,idData.group_id,idData._id);
+  if (boardid != undefined && boardid != null) {
+    await checkGroupTaskRedirect('200', boardid, idData.group_id, idData._id);
     loadingDeactivated();
   } else loadingDeactivated();
-  
+
 })
 
-async function triggerPopoverChartLegend(type,capitalType){
-  if($('.personalDetail[data-for='+type+']').data("bs.popover") == undefined){
+async function triggerPopoverChartLegend(type, capitalType) {
+  if ($('.personalDetail[data-for=' + type + ']').data("bs.popover") == undefined) {
     let htmlLegendChart = '';
-    for(let i=0;i<window['data'+capitalType].length;i++){
-      htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">'+window['data'+capitalType][i]+'<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTask" data-for="'+capitalType+'" data-index='+i+'></i></span></li> '
+    for (let i = 0; i < window['data' + capitalType].length; i++) {
+      htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + window['data' + capitalType][i] + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTask" data-for="' + capitalType + '" data-index=' + i + '></i></span></li> '
     }
-    let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlLegendChart+'</ul></div></div>';
+    let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlLegendChart + '</ul></div></div>';
 
-    $('.personalDetail[data-for='+type+']').attr('tabindex', '0');
-    $('.personalDetail[data-for='+type+']').attr('data-toggle', 'popover');
+    $('.personalDetail[data-for=' + type + ']').attr('tabindex', '0');
+    $('.personalDetail[data-for=' + type + ']').attr('data-toggle', 'popover');
 
-    $('.personalDetail[data-for='+type+']').popover({
+    $('.personalDetail[data-for=' + type + ']').popover({
       content: legendHTML,
       placement: "right",
       html: true,
@@ -1261,20 +1328,20 @@ async function triggerPopoverChartLegend(type,capitalType){
 }
 
 $(document).on('mouseenter', '.pic', function () {
-  if(!$(this).hasClass('disableInputClick')){
+  if (!$(this).hasClass('disableInputClick')) {
     let id = $(this).data('id');
     let groupid = $(this).data('groupid');
     let name = $(this).data('name');
 
-    if($('.popover').length > 0){
+    if ($('.popover').length > 0) {
       $(".popover").each(function () {
-          $(this).popover("dispose");
+        $(this).popover("dispose");
       });
     }
 
-    triggerPopoverPIC(id,groupid,name);
+    triggerPopoverPIC(id, groupid, name);
   }
-  
+
 })
 
 $(document).on('change', '.emploPic', function () {
@@ -1293,10 +1360,10 @@ $(document).on('change', '.emploPic', function () {
       'account_id': val,
       'account_name': valName
     }]),
-    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
-  $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
+  $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:' + window['color' + val] + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
   globalUpdateTask('pic', updatePic);
 
 })
@@ -1304,11 +1371,11 @@ $(document).on('change', '.emploPic', function () {
 $(document).on('mouseenter', '.pic', function () {
   let id = $(this).data("id");
   if (!$('.pic[data-id=' + id + ']').children().hasClass('picVal')) {
-    if(!$('.icon_user[data-id=' + id + ']').hasClass('fa-user-plus')){
+    if (!$('.icon_user[data-id=' + id + ']').hasClass('fa-user-plus')) {
       $('.icon_user[data-id=' + id + ']').removeClass('far fa-user fa-lg');
       $('.icon_user[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
     }
-    
+
   }
 
 })
@@ -1316,16 +1383,16 @@ $(document).on('mouseenter', '.pic', function () {
 $(document).on('mouseleave', '.pic', function () {
   let id = $(this).data("id");
   if (!$('.pic[data-id=' + id + ']').children().hasClass('picVal')) {
-    if(!$('.icon_user[data-id=' + id + ']').hasClass('fa-user')){
+    if (!$('.icon_user[data-id=' + id + ']').hasClass('fa-user')) {
       $('.icon_user[data-id=' + id + ']').removeClass('fas fa-user-plus fa-lg');
       $('.icon_user[data-id=' + id + ']').addClass('far fa-user fa-lg');
     }
-    
+
   }
 })
 
 /// for dismiss popover on click outside
-$('html').on('click', function(e) {
+$('html').on('click', function (e) {
   var l = $(e.target);
   if (~l[0].className.indexOf("fa-ellipsis-h") || ~l[0].className.indexOf("card-text") || ~l[0].className.indexOf("card-header") || ~l[0].className.indexOf("card-body") || ~l[0].className.indexOf("moreMember") || ~l[0].className.indexOf("list-group-item") || ~l[0].className.indexOf("bodyColor") || ~l[0].className.indexOf("teamBlock") || ~l[0].className.indexOf("popover") || ~l[0].className.indexOf("select2") || ~l[0].className.indexOf("removeAllTeam") || ~l[0].className.indexOf("emploPic") || ~l[0].className.indexOf("initialPic") || ~l[0].className.indexOf('memberLogo') || ~l[0].className.indexOf('modalOptions')) {
     return;
@@ -1336,17 +1403,17 @@ $('html').on('click', function(e) {
 let popoverLegend = false;
 $(document).on('mouseenter', '.moreLegend', function () {
   let id = $(this).data("id");
-  if(!popoverLegend)
-  triggerPopoverLegend(id);
+  if (!popoverLegend)
+    triggerPopoverLegend(id);
 })
 
-async function triggerPopoverLegend(id){
+async function triggerPopoverLegend(id) {
   let htmlLegend = '';
-  window['legendLeft'+id].forEach(element => {
-    htmlLegend += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+element.color+'"><span class="text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
+  window['legendLeft' + id].forEach(element => {
+    htmlLegend += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:' + element.color + '"><span class="text-white">' + getInitials(element.account_name) + '</span></div>' + element.account_name + '</li> '
   });
-  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlLegend+'</ul></div></div>';
-  if($('.moreLegend[data-id=' + id + ']').data("bs.popover") == undefined){
+  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlLegend + '</ul></div></div>';
+  if ($('.moreLegend[data-id=' + id + ']').data("bs.popover") == undefined) {
     $('.moreLegend[data-id=' + id + ']').attr('tabindex', '0');
     $('.moreLegend[data-id=' + id + ']').attr('data-toggle', 'popover');
 
@@ -1361,19 +1428,19 @@ async function triggerPopoverLegend(id){
 
 $(document).on('mouseenter', '.moreMember', function () {
   let id = $(this).data("id");
-  if(!popoverTeam)
-  triggerPopoverMemberList(id);
+  if (!popoverTeam)
+    triggerPopoverMemberList(id);
 })
 
-async function triggerPopoverMemberList(id){
+async function triggerPopoverMemberList(id) {
   let htmlMember = '';
-  window['dataSpliceLeft'+id].forEach(element => {
-    htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:'+window['color'+element.account_id]+'"><span class="initialPic'+window['colorClass'+element.account_id]+' text-white">' + getInitials(element.account_name) + '</span></div>'+element.account_name+'</li> '
+  window['dataSpliceLeft' + id].forEach(element => {
+    htmlMember += '<li class="list-group-item d-flex justify-content-between align-items-center"><div class="memberLogo mr-3" style="background:' + window['color' + element.account_id] + '"><span class="initialPic' + window['colorClass' + element.account_id] + ' text-white">' + getInitials(element.account_name) + '</span></div>' + element.account_name + '</li> '
   });
-  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">'+htmlMember+'</ul></div></div>';
-  let joinHtmlTeam =  empHtmlTeam;
+  let empHtmlTeam = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlMember + '</ul></div></div>';
+  let joinHtmlTeam = empHtmlTeam;
   $('.team[data-id=' + id + ']').popover('dispose');
-  if($('.moreMember[data-id=' + id + ']').data("bs.popover") == undefined){
+  if ($('.moreMember[data-id=' + id + ']').data("bs.popover") == undefined) {
     $('.moreMember[data-id=' + id + ']').attr('tabindex', '0');
     $('.moreMember[data-id=' + id + ']').attr('data-toggle', 'popover');
 
@@ -1389,7 +1456,7 @@ async function triggerPopoverMemberList(id){
 $(document).on('mouseleave', '.team', function () {
   let id = $(this).data("id");
   if (!$('.team[data-id=' + id + ']').children().hasClass('picVal')) {
-    if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user')){
+    if (!$('.icon_team[data-id=' + id + ']').hasClass('fa-user')) {
       $('.icon_team[data-id=' + id + ']').removeClass('fas fa-user-plus fa-lg');
       $('.icon_team[data-id=' + id + ']').addClass('far fa-user fa-lg');
     }
@@ -1401,7 +1468,7 @@ $(document).on('mouseleave', '.team', function () {
 })
 
 $(document).on('mouseenter', '.team', function (e) {
-  if(!$(this).hasClass('disableInputClick')){
+  if (!$(this).hasClass('disableInputClick')) {
     let id = $(this).data("id");
     let groupid = $(this).data('groupid');
     let name = $(this).data('name');
@@ -1411,28 +1478,28 @@ $(document).on('mouseenter', '.team', function (e) {
       if (haveTeam) {
         $('.addTeamIcon[data-id=' + id + ']').removeClass('d-none');
       } else {
-        if(!$('.icon_team[data-id=' + id + ']').hasClass('fa-user-plus')){
+        if (!$('.icon_team[data-id=' + id + ']').hasClass('fa-user-plus')) {
           $('.icon_team[data-id=' + id + ']').removeClass('far fa-user fa-lg');
           $('.icon_team[data-id=' + id + ']').addClass('fas fa-user-plus fa-lg');
         }
       }
     }
 
-    if($('[data-original-title]').length > 0){
+    if ($('[data-original-title]').length > 0) {
       $('[data-original-title]').popover('hide')
     }
 
-    triggerPopoverTeam(id,haveTeam,groupid,name);
+    triggerPopoverTeam(id, haveTeam, groupid, name);
   }
 })
 let popoverTeam = false;
-async function triggerPopoverTeam(id,haveTeam,groupid,name){
+async function triggerPopoverTeam(id, haveTeam, groupid, name) {
   let empHtmlTeam = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><select id="employeeTeam" data-team=' + haveTeam + ' data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' class="form-control emploTeam"></select></div></div>';
   let removeAll = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><button type="button" class="btn btn-danger removeAllTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Remove All</button></div></div>';
   let submitTeam = '<div class="row teamBlock p-2 mb-2"><div class="col-lg-12 teamBlock"><button type="button" class="btn btn-success submitTeam" data-groupid="' + groupid + '" data-name="' + name + '" data-id=' + id + ' style="width:100%">Done</button></div></div>';
-  let joinHtmlTeam =  empHtmlTeam + removeAll + submitTeam;
+  let joinHtmlTeam = empHtmlTeam + removeAll + submitTeam;
 
-  if($('.team[data-id=' + id + ']').data("bs.popover") == undefined){
+  if ($('.team[data-id=' + id + ']').data("bs.popover") == undefined) {
     $('.team[data-id=' + id + ']').attr('tabindex', '0');
     $('.team[data-id=' + id + ']').attr('data-toggle', 'popover');
 
@@ -1481,10 +1548,10 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
           $('.emploTeam[data-id=' + id + ']').append(htmlCrossDepartment);
           break;
       }
-      console.log('current',window['dataCurrentTeam' + id + ''])
+      console.log('current', window['dataCurrentTeam' + id + ''])
       if (window['dataCurrentTeam' + id + ''].length != 0) {
         let thisTeamMember = window['dataCurrentTeam' + id + ''];
-        console.log('dalam',thisTeamMember);
+        console.log('dalam', thisTeamMember);
         try {
           thisTeamMember.member.forEach(element => {
             $('.opsi').each(function () {
@@ -1503,14 +1570,14 @@ async function triggerPopoverTeam(id,haveTeam,groupid,name){
             })
           });
         }
-  
+
       }
-  
+
       $('#employeeTeam[data-id=' + id + ']').select2({
-          theme: "bootstrap",
-          width: '100%'
+        theme: "bootstrap",
+        width: '100%'
       });
-  
+
     })
 
     $('.team[data-id=' + id + ']').on('hidden.bs.popover', async function () {
@@ -1535,10 +1602,10 @@ $(document).on('click', '.removeAllTeam', function () {
   });
   let htmlEmptyAdditional = '<optgroup label="----------"></optgroup><option value="addTeam">+ Add More</option>';
   $('.emploTeam[data-id=' + id + ']').append(htmlEmptyAdditional);
-  
-  $('.emploTeam[data-groupid=' + groupid + ']').data('team',false)
+
+  $('.emploTeam[data-groupid=' + groupid + ']').data('team', false)
   window['dataTeam' + id + ''] = [];
-  window['dataCurrentTeam'+id] = [];
+  window['dataCurrentTeam' + id] = [];
   let updateTeam = {
     '_id': id,
     'group_id': groupid,
@@ -1546,10 +1613,10 @@ $(document).on('click', '.removeAllTeam', function () {
     'user_update': ct.name,
     'member': JSON.stringify([])
   }
-  
+
   let htmlRemove = '<div class="colTeam" data-id=' + id + '><i class="far fa-user fa-lg icon_team" data-id="' + id + '"></i></div>';
   $('.team[data-id=' + id + ']').html(htmlRemove);
-  $('.team[data-id=' + id + ']').data('team',false)
+  $('.team[data-id=' + id + ']').data('team', false)
   globalUpdateTask('team', updateTeam);
 })
 
@@ -1564,36 +1631,34 @@ $(document).on('change', '.emploTeam', function () {
   let valName = $('select#employeeTeam[data-id=' + id + '] :selected').text();
   let random = Math.floor(Math.random() * 4) + 1;
 
-  if(val == 'addTeam'){
-    if($('#addTeam').length > 0){
-      $('#addTeam').attr('data-for','own');
+  if (val == 'addTeam') {
+    if ($('#addTeam').length > 0) {
+      $('#addTeam').attr('data-for', 'own');
       $('#addTeam').click()
-    }
-    else 
-    contactMore()
+    } else
+      contactMore()
     return;
   }
 
-  if(val == 'addMemberDepartment'){
-    if($('#addTeam').length > 0){
-      $('#addTeam').attr('data-for','department');
+  if (val == 'addMemberDepartment') {
+    if ($('#addTeam').length > 0) {
+      $('#addTeam').attr('data-for', 'department');
       $('#addTeam').click()
       setTimeout(() => {
-        $('#addTeam').attr('data-for','own');
+        $('#addTeam').attr('data-for', 'own');
       }, 100);
-    }
-    else contactMore()
+    } else contactMore()
     return;
   }
 
-  if(window['color'+val] == undefined){
-    window['color'+val] = getRandomColor();
+  if (window['color' + val] == undefined) {
+    window['color' + val] = getRandomColor();
   }
-  
+
   if (haveTeam) {
-    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').append('<div class="memberLogo" style="background:' + window['color' + val] + '" data-id="' + id + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
   } else {
-    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:'+window['color'+val]+'" data-id="' + id + '"><span class="initialPic '+window['colorClass'+val]+'">' + getInitials(valName) + '</span></div>');
+    $('.colTeam[data-id=' + id + ']').html('<div class="memberLogo" style="background:' + window['color' + val] + '" data-id="' + id + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
     $(this).data('team', true);
     $('.colTeam[data-id=' + id + ']').css('display', 'flex');
     $('.colTeam[data-id=' + id + ']').addClass('justify-content-center');
@@ -1641,7 +1706,7 @@ $(document).on('click', '.submitTeam', function () {
     'name': name,
     'user_update': ct.name,
     'member': memberData,
-    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
   refreshTableData(groupid);
@@ -1707,9 +1772,9 @@ $(document).on('click', '.timeline', function () {
     opens: 'center',
     autoUpdateInput: false,
     ranges: {
-        'Next 7 Days': [moment().add(6, 'days'), moment()],
-        'Next 30 Days': [moment().add(29, 'days'), moment()],
-        'Rest of this month': [moment(), moment().endOf('month')],
+      'Next 7 Days': [moment().add(6, 'days'), moment()],
+      'Next 30 Days': [moment().add(29, 'days'), moment()],
+      'Rest of this month': [moment(), moment().endOf('month')],
     },
     locale: {
       cancelLabel: 'Clear'
@@ -1736,8 +1801,8 @@ $(document).on('mouseenter', '.name', function () {
   let name = $(this).data('name')
   let valuenya = $(this).html();
   let html;
-  if(valuenya.length > 14){
-    html = '<textarea class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '">'+name+'</textarea>'
+  if (valuenya.length > 14) {
+    html = '<textarea class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '">' + name + '</textarea>'
   } else {
     html = '<input type="text" class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '" value="' + name + '">';
   }
@@ -1778,18 +1843,18 @@ $(document).on('mouseenter', '.statusChild', function () {
   $(this).attr('data-trigger', 'focus');
   let menuTemplate;
   try {
-    if(typeof window['dataCurrentTeam' + id+ ''] == "object" && window['dataCurrentTeam' + id+ '']._id && gtPic != ct.id_employee){
-      let member = window['dataCurrentTeam' + id+ ''].member;
+    if (typeof window['dataCurrentTeam' + id + ''] == "object" && window['dataCurrentTeam' + id + '']._id && gtPic != ct.id_employee) {
+      let member = window['dataCurrentTeam' + id + ''].member;
       member.forEach(elements => {
-        if(elements.account_id == ct.id_employee){
+        if (elements.account_id == ct.id_employee) {
           menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div><div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div>';
         }
       });
     }
   } catch (error) {
-    console.log('err',error); 
+    console.log('err', error);
   }
-  if(pic == ct.id_employee || gtPic == ct.id_employee){
+  if (pic == ct.id_employee || gtPic == ct.id_employee) {
     menuTemplate = '<div class="row p-2"><div class="col-lg-12 rowStat pendingPrio text-white">Pending</div></div> <div class="row p-2"><div class="col-lg-12 rowStat mediumPrio text-white">Working on it</div></div> <div class="row p-2"><div class="col-lg-12 rowStat highPrio text-white">Stuck</div></div> <div class="row p-2"><div class="col-lg-12 rowStat lowPrio text-white">Done</div></div> <div class="row p-2"><div class="col-lg-12 rowStat reviewStat text-white">Waiting for review</div></div> <div class="row p-2"><div class="col-lg-12 rowStat fixStat text-white">Need to Fix</div></div>';
   }
   $(this).popover({
@@ -1798,7 +1863,7 @@ $(document).on('mouseenter', '.statusChild', function () {
     placement: "right",
     html: true
   });
-  
+
 
   $(this).on('shown.bs.popover', function () {
     $('.rowStat').attr('data-id', id);
@@ -1810,7 +1875,7 @@ $(document).on('mouseenter', '.statusChild', function () {
     $('.reviewStat').attr('data-status', 'Waiting for review');
     $('.fixStat').attr('data-status', 'Need to fix');
   })
-  
+
 })
 
 $(document).on('click', '.rowStat', async function () {
@@ -1823,7 +1888,7 @@ $(document).on('click', '.rowStat', async function () {
   $('[data-original-title]').popover('dispose');
 
   $('.statusChild[data-id=' + id + ']').html(stat);
-  
+
   if ($('.statusChild[data-id=' + id + ']').hasClass('reviewStat')) {
     $('.statusChild[data-id=' + id + ']').removeClass('reviewStat');
   }
@@ -1875,7 +1940,7 @@ $(document).on('click', '.rowStat', async function () {
     'status': stat,
     'name': name,
     'user_update': ct.name,
-    'url' : localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);
@@ -1980,7 +2045,7 @@ $(document).on('click', '.delTask', async function () {
 $(document).on('click', '.newTask', function () {
   let groupId = $(this).data('id');
   let groupName = $(this).data('name');
-  if($('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == undefined || $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == ''){
+  if ($('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == undefined || $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').val() == '') {
     let inputHtml = '<input type="text" class="form-control taskTitle' + groupId + '" data-name="' + groupName + '" placeholder="+ Add Task">';
     $(this).html(inputHtml);
     $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').focus();
@@ -1988,7 +2053,7 @@ $(document).on('click', '.newTask', function () {
     $(document).on('focusout', '.taskTitle' + groupId + '[data-name="' + groupName + '"]', async function () {
       $('td.newTask[data-id=' + groupId + ']').html('+ Add Task');
     })
-  
+
     $('.taskTitle' + groupId + '[data-name="' + groupName + '"]').keypress(async function (e) {
       var key = e.which;
       if (key == 13) // the enter key code

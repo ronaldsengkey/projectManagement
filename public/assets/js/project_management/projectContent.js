@@ -125,7 +125,15 @@ async function domBoardContent() {
         if(elements.account_id == ct.id_employee || pic[0].account_id == ct.id_employee || element.user_create == ct.name || boardType == 'Main') showGroupTask = true;
       });
     }
-    
+
+    let doneGT;
+    if(element.user_create == ct.name ||  pic[0].account_id == ct.id_employee ) doneGT = true;
+    else doneGT = false;
+
+    let colorDone;
+
+    if(element.status == false) colorDone = 'black'
+    else colorDone = 'green'
 
     if(showGroupTask){
       let camelizeBoard = camelize(element.name);
@@ -141,7 +149,7 @@ async function domBoardContent() {
         '</h2>' +
         '</div>'+
         '<div class="col-lg-2 text-right" style="align-self:center;">'+createdByIcon(element.user_create,id,boardType)+'</div>'+
-        '<div class="col-lg-2 text-center" style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
+        '<div class="col-lg-2 text-center placeTools" data-id='+element._id+' style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
         
         '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
         '<div class="card-body p-4" data-id="' + element._id + '">' +
@@ -166,8 +174,12 @@ async function domBoardContent() {
       } catch (error) {
         
       }
-      
-      
+
+      if(doneGT){
+        $('.placeTools[data-id='+element._id+']').prepend('<a tabindex="0" data-boardid=' + element.board_id + ' class="btnDoneGT mr-4" data-status='+element.status+' data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-check fa-lg doneGT" style="color:'+colorDone+'"" data-id='+element._id+'></i></a>')
+        if(!element.status) $('.btnDoneGT[data-id='+element._id+']').attr('title','Done ' + element.name)
+        else $('.btnDoneGT[data-id='+element._id+']').attr('title','Undone ' + element.name)
+      }
 
       $('.collapse[data-id="' + element._id + '"]').on('show.bs.collapse', async function () {
         let idBoard = $(this).data('id');
@@ -1004,7 +1016,6 @@ async function notifDeleteTask(bodyDelete, name, bodyProgress) {
           $('.headerGT[data-id='+bodyProgress.group_id+']').click()
           setTimeout(() => {
               $('.headerGT[data-id='+bodyProgress.group_id+']').click()
-              
           }, 500);
           let intervalData = setInterval(() => {
               if($('#table'+bodyProgress.group_id).length > 0){
