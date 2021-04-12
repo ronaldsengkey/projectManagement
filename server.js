@@ -181,6 +181,61 @@ async function getSource(requestTo) {
   });
 }
 
+fastify.get("/checkTokenUltipay",async function(req,reply){
+  let paramToken = {
+    version: 1,
+    request: localhostIP,
+    signature: signatureBackendNew,
+    flowEntry: flowEntryDashboard,
+    Authorization : 'ultimate '+req.headers.authorization
+  };
+  let identify = await identifier(paramToken,req.headers.token);
+  console.log('last',identify);
+  reply.send(identify);
+})
+
+function identifier(param,withToken = '') {
+  let headers;
+  let finalUrl;
+    headers = {
+      Accept: "*/*",
+      "Cache-Control": "no-cache",
+      'Authorization': param.Authorization,
+      'signature': param.signature,
+      "content-type": "application/json",
+      connection: "keep-alive",
+      'token': withToken
+    }
+    finalUrl = hostIP + ':' + authPort +
+    "/identifier?v=" +
+    param.version + 
+    '&flowEntry=' + param.flowEntry +
+    "&continue=" +
+    encodeURIComponent(param.request)
+  
+  console.log('head',headers,finalUrl);
+  return new Promise(async (resolve, reject) => {
+    request.get({
+        async: true,
+        crossDomain: true,
+        headers: headers,
+        url: finalUrl,
+        rejectUnauthorized:false
+      },
+      async function (err, response, body) {
+        if (err) {
+          resolve(err)
+        } else {
+          try{
+            resolve(JSON.parse(body));
+          }catch(e){
+            resolve(body);
+          }
+        }
+      });
+  });
+}
+
 fastify.get("/login", async function (req, reply) {
   // reply.sendFile("layouts/login.html");
   let rq = {
