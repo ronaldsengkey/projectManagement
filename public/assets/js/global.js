@@ -41,48 +41,6 @@ function getInitials(string) {
     });
 }
 
-function disableDevTools(){
-    // disable right click
-    $(document).bind("contextmenu",function(e){
-        return false;
-    });
-
-    disablePrintScreenAndPrint();
-    
-    // disable f12 etc
-    $(document).keydown(function (event) {
-        if (event.keyCode == 123) { // Prevent F12
-            return false;
-        } else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I        
-            return false;
-        } else if(event.ctrlKey && event.shiftKey && event.keyCode == 'I'.charCodeAt(0)) {
-            return false;
-         }
-         if(event.ctrlKey && event.shiftKey && event.keyCode == 'C'.charCodeAt(0)) {
-            return false;
-         }
-         if(event.ctrlKey && event.shiftKey && event.keyCode == 'J'.charCodeAt(0)) {
-            return false;
-         }
-         if(event.ctrlKey && event.keyCode == 'U'.charCodeAt(0)) {
-            return false;
-         }
-    });
-
-    // disable devTools
-    var element = new Image;
-    var devtoolsOpen = false;
-    setInterval(function() {
-        console.log('xx',element);
-        element.__defineGetter__("id", function() {
-            devtoolsOpen = true;
-        });
-        if(devtoolsOpen){
-            window.location = 'prohibited';
-        }
-    }, 3000);
-}
-
 function onMaintenance(text) {
     let param = { type: "error", text: text  + ' on maintenance, please try again later' }
     callNotif(param);

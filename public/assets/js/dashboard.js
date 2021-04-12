@@ -53,7 +53,6 @@ $(document).on('click', '.profilePict', function () {
 })
 $(async function () {
     loadingActivated();
-    disableDevTools();
     await getEnvData();
     getChatContainer();
     try {
@@ -474,10 +473,36 @@ $(document).on('click', '.breadcrumb-item', function () {
 })
 
 function logout() {
-    localStorage.removeItem('accountProfile');
-    localStorage.removeItem('accountLogin');
-    sessionStorage.clear();
-    window.location = "login";
+    // localStorage.removeItem('accountProfile');
+    // localStorage.removeItem('accountLogin');
+    // sessionStorage.clear();
+    // window.location = "login";
+    return new Promise(async function(resolve){
+        let ct = JSON.parse(localStorage.getItem('accountProfile'))
+        let _headers = {
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "secretKey": ct.secretKey,
+            "signature": ct.signature,
+            "token": ct.token,
+            version:1,
+            flowEntry:'ultipayDashboard',
+            continue:localUrl
+        };
+
+        $.ajax({
+            url: 'logoutNew',
+            crossDomain: true,
+            method: "POST",
+            headers: _headers,
+            success: function (callback) {
+                localStorage.clear();
+                sessionStorage.clear();
+                resolve(true);
+                window.location = "login";
+            }
+        })
+    })
 };
 $(document).on('click', '#logout', function () {
     logout();

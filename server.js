@@ -14,8 +14,14 @@ let employeeLocalPort;
 let mainLocalPort;
 let csLocalPort;
 let extToken;
+let pmDashboardPort;
 let localhostIP;
+let cdnPort;
+let authPort;
 let serverDomain;
+let flowEntryDashboard;
+let keyIdUltipay;
+let keySecretUltipay;
 
 // Require the framework and instantiate it
 const fastify = require("fastify")({
@@ -44,6 +50,7 @@ fastify.register(require('fastify-static'), {
 // var Monitor = require('monitor');
 let signatureLogin = require("./signature.js");
 let mainDBKey = efs.readFileSync('./mainDB.key', 'utf8');
+const signatureBackendNew = efs.readFileSync("./signatureBackend.key", 'utf-8');
 const fs = require('fs');
 let redisKey = [];
 let returnedConfig = {};
@@ -147,8 +154,42 @@ fastify.get("/:origin", async function (req, reply) {
   }
 });
 
-fastify.get("/login", function (req, reply) {
-  reply.sendFile("layouts/login.html");
+async function getSource(requestTo) {
+  return new Promise(async (resolve, reject) => {
+    let link = hostIP + ':' + cdnPort + "/source/page/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
+    r.get({
+        async: true,
+        crossDomain: true,
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-type": "plain/text"
+        },
+        url: link,
+        rejectUnauthorized: false
+      },
+      function (error, response, body) {
+        if (error) {
+          console.log('gagal',requestTo.source,link);
+          resolve(error);
+        } else {
+          console.log('diterima',requestTo.source,link);
+          resolve(body);
+        }
+      }
+    );
+  });
+}
+
+fastify.get("/login", async function (req, reply) {
+  // reply.sendFile("layouts/login.html");
+  let rq = {
+    source: "loginBackend",
+    continue: localUrl,
+    flow: flowEntryDashboard
+  };
+  let encoded = Buffer.from(pmDashboardPort).toString('base64')
+  reply.type("text/html").send(await getSource(rq)+'<input type="hidden" value='+encoded+' id="flow" />'+'<script src="'+hostIP+':'+cdnPort+'/source/js/loginJS?v=1&continue='+localUrl+'&flowEntry=ultipayDashboard"></script>');
 });
 fastify.get("/home", function (req, reply) {
   reply.sendFile("layouts/home.html");
@@ -157,19 +198,20 @@ fastify.get("/displayOnTable", async function (req, reply) {
   reply.sendFile("layouts/displayOnTable.html");
 });
 
-function actionGet(data) {
+function actionGet(data,concern = '') {
   return new Promise(async (resolve, reject) => {
     try {
-      data.settings.headers.aes = cryptography.rsaEncrypt(
-        cryptography.keyAESClient + ":" + cryptography.ivAESClient
-      );
-      data.settings.headers.clientKey = cryptography.aesEncrypt(
-        cryptography.pub
-      );
+      let settings;
+      if(concern != 'login'){
+        data.settings.headers.aes = cryptography.rsaEncrypt(
+          cryptography.keyAESClient + ":" + cryptography.ivAESClient
+        );
+        data.settings.headers.clientKey = cryptography.aesEncrypt(
+          cryptography.pub
+        );
+        settings = data.settings;
+      } else settings = data;
       console.log("head", data.settings);
-      // if(data.settings.headers.Host) delete data.settings.headers.Host;
-
-      let settings = data.settings;
       r.get(settings, function (error, response, body) {
         if (error) {
           if(error.toString().includes('TIMEDOUT')) reject(999)
@@ -179,10 +221,14 @@ function actionGet(data) {
           let result = "";
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
-            if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
-            else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
-            else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
-            else result.data = cryptography.decryptMessage(result.data);
+            if(concern != 'login'){
+              if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
+              else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
+              else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
+              else result.data = cryptography.decryptMessage(result.data);
+            } else {
+              result.data = iterateObjectDecrypt(result.data);
+            }
           } else {
             try {
               result = JSON.parse(body);
@@ -293,16 +339,20 @@ function encryptPostBody(data) {
   return data.settings.body;
 }
 
-function actionPost(data) {
+function actionPost(data,concern = '') {
   return new Promise(async (resolve, reject) => {
     try {
-      data.settings.headers.aes = cryptography.rsaEncrypt(
-        cryptography.keyAESClient + ":" + cryptography.ivAESClient
-      );
-      data.settings.headers.clientKey = cryptography.aesEncrypt(
-        cryptography.pub
-      );
-      let settings = data.settings;
+      let settings;
+      if(concern != 'login'){
+        data.settings.headers.aes = cryptography.rsaEncrypt(
+          cryptography.keyAESClient + ":" + cryptography.ivAESClient
+        );
+        data.settings.headers.clientKey = cryptography.aesEncrypt(
+          cryptography.pub
+        );
+        settings = data.settings;
+      } else settings = data;
+
       console.log("setting", settings);
       r.post(settings, function (error, response, body) {
         if (error) {
@@ -315,8 +365,16 @@ function actionPost(data) {
           if(json) {
             result = JSON.parse(body);
             console.log("action Post sblm decrypt => ", result);
-            if (data.settings.url.includes("listTicketing") || data.settings.url.includes('login')) {
-              if(result.data) result.data = JSON.parse(cryptography.decryptMessage(result.data));
+            if(concern != 'login'){
+              if (data.settings.url.includes("listTicketing") || data.settings.url.includes('login')) {
+                if(result.data) result.data = JSON.parse(cryptography.decryptMessage(result.data));
+              } else {
+                try {
+                  result.data = iterateObjectDecrypt(result.data);
+                } catch (e) {
+                  result = result;
+                }
+              }
             } else {
               try {
                 result.data = iterateObjectDecrypt(result.data);
@@ -511,26 +569,162 @@ fastify.post("/oneSignalInit", async function (request, reply) {
   }
 });
 
+fastify.get("/profileEmployee", async function (request, reply) {
+  try {
+    let data = request;
+    console.log('dat',request.headers);
+    let b = {
+      settings : {
+        async: true,
+        crossDomain: true,
+        url: hostIP + ':' + accPort + '/profile/employee/detail',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          signature: cryptography.aesEncrypt(request.headers.signature),
+          token: cryptography.aesEncrypt(request.headers.token),
+          secretkey: cryptography.aesEncrypt(request.headers.secretkey),
+          param : cryptography.aesEncrypt(request.headers.param)
+        },
+      }
+    };
+    console.log('aaaa',b);
+    let a = await actionGet(b);
+    console.log('bbbbbb',a);
+    console.log('tes',a);
+    reply.send(a);
+  } catch (err) {
+    reply.send(err);
+  }
+});
+
+fastify.post('/logoutNew',async function(req,reply){
+  req.headers.signature = signatureBackendNew
+  let logouts = await logoutUltipay(req);
+  console.log('aaa',logouts);
+  reply.send(logouts);
+})
+
+async function logoutUltipay(req){
+  return new Promise(async function(resolve,reject){
+    let settings = {
+        async: true,
+        crossDomain: true,
+        url:  hostIP +':' + authPort + '/logout?v='+req.headers.version+'&flowEntry='+req.headers.flowentry+'&continue='+req.headers.continue,
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/json",
+          token : req.headers.token,
+          signature: req.headers.signature,
+        },
+    };
+    console.log('force logout',settings);
+    let pl = await actionPost(settings,'login');
+    console.log('zzzz force logout',pl);
+    if(pl.responseCode == '200') resolve({'responseCode':'300'})
+    else resolve(500)
+  })
+}
+
+fastify.get("/getNewEmployeeDetail",async function(req,reply){
+  try{
+    let settings = {
+        async: true,
+        crossDomain: true,
+        url: hostIP + ':' + authPort + '/getData?v='+req.headers.version+'&flowEntry='+req.headers.flowentry+'&continue='+req.headers.continue,
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/json",
+          signature: signatureBackendNew,
+          token: req.headers.token,
+          clientKey: cryptography.pub,
+          Authorization: 'ultimate ' + keyIdUltipay + ':' + keySecretUltipay
+        },
+    };
+    console.log('emp detail awal',settings);
+    try{
+      let c = await actionGet(settings,'login');
+      console.log('emp detail result',c);
+      if(c == '' || c.responseCode != '200'){
+        req.headers.signature = signatureBackendNew;
+        let logouts = await logoutUltipay(req)
+        reply.send(logouts);
+      } else {
+        reply.send(c);
+      }
+    }catch(e){
+      req.headers.signature = signatureBackendNew;
+      let logouts = await logoutUltipay(req)
+      reply.send(logouts);
+    }
+    
+  }catch(e){
+    req.headers.signature = signatureBackendNew;
+    let logouts = await logoutUltipay(req)
+    reply.send(logouts);
+  }
+})
 
 fastify.post("/postData", async function (request, reply) {
+  // try {
+  //   let data = request.body;
+  //   if (data.settings.target == "login" || data.settings.target == 'login-auth') {
+  //     data.settings.server_url = hostNameServer;
+  //     data.settings.port_url = portAuth;
+  //     data.settings.url = await convertURLRedis(data.settings);
+  //     data.settings.headers.signature = cryptography.aesEncrypt(
+  //       signatureLogin.signatureNew
+  //     );
+  //   }
+
+  //   if(data.settings.target == 'login'){
+  //     data.settings.body = JSON.stringify(iterateObjectDecryptAESLogin(JSON.parse(data.settings.body)));
+  //   }
+  //   data.settings.body = encryptPostBody(data);
+
+  //   let a = await actionPost(data);
+  //   reply.send(a);
+  // } catch (err) {
+  //   reply.send(err);
+  // }
+
   try {
     let data = request.body;
-    if (data.settings.target == "login" || data.settings.target == 'login-auth') {
-      data.settings.server_url = hostNameServer;
-      data.settings.port_url = portAuth;
-      data.settings.url = await convertURLRedis(data.settings);
-      data.settings.headers.signature = cryptography.aesEncrypt(
-        signatureLogin.signatureNew
-      );
-    }
-
-    if(data.settings.target == 'login'){
+    if (data.settings.target == 'login'){
       data.settings.body = JSON.stringify(iterateObjectDecryptAESLogin(JSON.parse(data.settings.body)));
-    }
-    data.settings.body = encryptPostBody(data);
-
-    let a = await actionPost(data);
-    reply.send(a);
+      let settings = {
+        async: true,
+          crossDomain: true,
+          url:  hostIP + ':' + authPort + '/signin?v='+1+'&flowEntry='+flowEntryDashboard+'&continue='+localhostIP,
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Cache-Control": "no-cache",
+            "Content-Type": "application/json",
+            signature: signatureBackendNew,
+          },
+          body: data.settings.body,
+      };
+      console.log('set login',settings);
+      let a = await actionPost(settings,'login');
+      console.log('res login',a);
+      if(a.responseCode == '200') {
+        keyIdUltipay = a.data.keyId; keySecretUltipay = a.data.keySecret;
+        reply.send(a);
+      } else {
+        reply.send(a);
+      }
+    } else {
+        data.settings.body = encryptPostBody(data);
+        let a = await actionPost(data);
+        console.log('CHECK RESULT ===> ', a); 
+        reply.send(a)
+      }
   } catch (err) {
     reply.send(err);
   }
@@ -2591,12 +2785,18 @@ fastify.get('/envConfig', function (req, reply) {
       hostNameServer = data.MAIN_SERVER_KEY;
       hostIPAlt = data.MAIN_IP_DESTINATION;
       accPort = data.ACCOUNT_PORT_SERVICE;
+      authPort = data.AUTHENTICATION_PORT_SERVICE;
       backendPort = data.BACKEND_SERVER_KEY;
       portAcc = data.ACC_SERVER_KEY;
       portAuth = data.AUTH_SERVER_KEY;
       portTrans = data.TRANSACTION_SERVER_KEY;
       employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
+      localhostIP = data.LOCALHOST_IP;
+      serverDomain = data.SERVER;
       csLocalPort = data.CS_DASHBOARD_PORT;
+      cdnPort = data.CDN_PORT;
+      flowEntryDashboard = data.FLOWENTRY
+      pmDashboardPort = data.PM_DASHBOARD_PORT;
       reply.send(JSON.stringify(data));
   });
 });
@@ -2670,6 +2870,7 @@ async function restartEnv(){
         hostNameServer = data.MAIN_SERVER_KEY;
         hostIPAlt = data.MAIN_IP_DESTINATION;
         accPort = data.ACCOUNT_PORT_SERVICE;
+        authPort = data.AUTHENTICATION_PORT_SERVICE;
         backendPort = data.BACKEND_SERVER_KEY;
         portAcc = data.ACC_SERVER_KEY;
         portAuth = data.AUTH_SERVER_KEY;
@@ -2678,6 +2879,9 @@ async function restartEnv(){
         csLocalPort = data.CS_DASHBOARD_PORT;
         localhostIP = data.LOCALHOST_IP;
         serverDomain = data.SERVER;
+        cdnPort = data.CDN_PORT;
+        flowEntryDashboard = data.FLOWENTRY
+        pmDashboardPort = data.PM_DASHBOARD_PORT;
         resolve(data);
     });
   })
