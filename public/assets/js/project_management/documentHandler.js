@@ -612,7 +612,6 @@ async function triggerPopoverPIC(id, groupid, name) {
 async function activateCanvas(url, pdf = false) {
   var canvas = document.querySelector("#canvasPlace");
   var signaturePad = new SignaturePad(canvas);
-
   $('#backupCanvas').attr('src', url);
   // Returns signature image as data URL (see https://mdn.io/todataurl for the list of possible parameters)
   // signaturePad.toDataURL(); // save image as PNG
@@ -968,6 +967,7 @@ $(document).on('click', '.showAttachment', async function () {
             pageNum = 1;
             pageNumMultiple = 1;
             window['signatureMultiple'] = [];
+            $('#newPlaces').empty()
             pdf.getPage(pageNumber).then(handlePages)
             // $('#canvasPlace').addClass('d-none');
             if ($('.legendData').length == 0) {
@@ -1019,7 +1019,7 @@ $(document).on('click', '.showAttachment', async function () {
           // PDF loading error
           console.error(reason);
         });
-      $('#canvasPlace').css('max-width', '735px');
+      
     } else if (attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')) {
       activeModalAttachmentFile();
       $('.clearingCanvas').addClass('d-none');
@@ -1082,6 +1082,7 @@ function handlePages(page) {
 
     pageNumMultiple++;
     if (pdfDoc !== null && pageNumMultiple <= numPages) {
+      $('#newPlaces').empty()
       pdfDoc.getPage(pageNumMultiple).then(handlePages);
     }
   });
