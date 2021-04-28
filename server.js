@@ -17,6 +17,7 @@ let extToken;
 let pmDashboardPort;
 let localhostIP;
 let cdnPort;
+let cdnLink;
 let authPort;
 let serverDomain;
 let flowEntryDashboard;
@@ -156,7 +157,7 @@ fastify.get("/:origin", async function (req, reply) {
 
 async function getSource(requestTo) {
   return new Promise(async (resolve, reject) => {
-    let link = hostIP + ':' + cdnPort + "/source/page/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
+    let link = cdnLink + ':' + cdnPort + "/source/page/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
     r.get({
         async: true,
         crossDomain: true,
@@ -244,7 +245,7 @@ fastify.get("/login", async function (req, reply) {
     flow: flowEntryDashboard
   };
   let encoded = Buffer.from(pmDashboardPort).toString('base64')
-  reply.type("text/html").send(await getSource(rq)+'<input type="hidden" value='+encoded+' id="flow" />'+'<script src="'+hostIP+':'+cdnPort+'/source/js/loginJS?v=1&continue='+localUrl+'&flowEntry=ultipayDashboard"></script>');
+  reply.type("text/html").send(await getSource(rq)+'<input type="hidden" value='+encoded+' id="flow" />'+'<script src="'+cdnLink+':'+cdnPort+'/source/js/loginJS?v=1&continue='+localUrl+'&flowEntry=ultipayDashboard"></script>');
 });
 fastify.get("/home", function (req, reply) {
   reply.sendFile("layouts/home.html");
@@ -2850,6 +2851,7 @@ fastify.get('/envConfig', function (req, reply) {
       serverDomain = data.SERVER;
       csLocalPort = data.CS_DASHBOARD_PORT;
       cdnPort = data.CDN_PORT;
+      cdnLink = data.CDN_LINK;
       flowEntryDashboard = data.FLOWENTRY
       pmDashboardPort = data.PM_DASHBOARD_PORT;
       reply.send(JSON.stringify(data));
@@ -2935,6 +2937,7 @@ async function restartEnv(){
         localhostIP = data.LOCALHOST_IP;
         serverDomain = data.SERVER;
         cdnPort = data.CDN_PORT;
+        cdnLink = data.CDN_LINK;
         flowEntryDashboard = data.FLOWENTRY
         pmDashboardPort = data.PM_DASHBOARD_PORT;
         resolve(data);
