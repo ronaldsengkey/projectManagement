@@ -2102,6 +2102,12 @@ async function convertURLRedis(data) {
         }
         url = redisKey["AWS_SERVER"];
         break;
+      case "AWS_SERVER2":
+        if (redisKey["AWS_SERVER2"] == undefined) {
+          redisKey["AWS_SERVER2"] = await getRedisData("AWS_SERVER2");
+        }
+        url = redisKey["AWS_SERVER2"];
+        break;
       default:
         url = redisKey["SERVER_SYAFRI"];
         break;

@@ -131,6 +131,60 @@ $(document).on('keydown', '.txtAreaEdit', async function (ev) {
   }
 })
 
+$(document).on('click', '.shareLink', async function () {
+  let groupId = $(this).data('groupid')
+  let id = $(this).data('id');
+  let boardId = $(this).data('boardid');
+  let name = $(this).data('name');
+  let linkValue;
+  Swal.fire({
+    title: name + ' task share url',
+    input: 'text',
+    inputValidator: (value) => {
+      linkValue = value;
+    },
+    inputPlaceholder: 'URL',
+    showCancelButton: true,
+    confirmButtonText: 'Copy',
+    showLoaderOnConfirm: true,
+    onOpen: async () => {
+      $('.swal2-input').attr('id', 'urlLink')
+      $('.swal2-input').val(localUrl + ':' + projectManagementLocalPort + '/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
+      $('.swal2-input').prop('disabled', true);
+    },
+    preConfirm: async () => {
+      var copyText = document.getElementById("urlLink");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999)
+      document.execCommand("copy");
+      toastrNotifFull('link has been copied to clipboard');
+    },
+    allowOutsideClick: () => !Swal.isLoading()
+  })
+})
+
+$(document).on('input','.searchGT',function(){
+  let valueSearch = $(this).val();
+  $('.cardGroupTask').each(function(index,data){
+    let nameGT = $(data).data('name');
+    if(nameGT.toUpperCase().indexOf(valueSearch.toUpperCase()) > -1){
+       $(data).animate({
+        opacity: 1,
+        }, 250, function () {
+            $(data).fadeIn('slow');
+        });
+
+    } else {
+      $(data).animate({
+        opacity: 0.25,
+        left: "0"
+        }, 250, function () {
+            $(data).fadeOut('slow');
+        });
+    }
+  })
+})
+
 $(document).on('click', '.filePrev', async function () {
   let imageData = $(this).data('image');
   $.fancybox.open('<img src="' + imageData + '"/>');
@@ -235,8 +289,7 @@ $(document).on('click', '.menuRename', async function () {
       };
       callNotif(param);
       let newProjects = JSON.parse(localStorage.getItem('favList')).map(p =>
-        p.id === renameId ?
-        {
+        p.id === renameId ? {
           ...p,
           name: newName
         } :
@@ -1019,7 +1072,7 @@ $(document).on('click', '.showAttachment', async function () {
           // PDF loading error
           console.error(reason);
         });
-      
+
     } else if (attachShow.data.path.includes('doc') || attachShow.data.path.includes('docx')) {
       activeModalAttachmentFile();
       $('.clearingCanvas').addClass('d-none');
@@ -1221,7 +1274,7 @@ $(document).on('click', '.btnDoneGT', async function () {
         window['favList'] = parsed;
         localStorage.setItem('favList', JSON.stringify(parsed));
       }
-      $('.boardList[data-id='+renameBoardId+']').click()
+      $('.boardList[data-id=' + renameBoardId + ']').click()
     } else if (result.responseCode == '401') {
       logoutNotif();
     } else {

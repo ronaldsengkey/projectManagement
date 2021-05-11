@@ -89,8 +89,8 @@ async function domBoardContent() {
       )
     });
   } catch (error) {
+
   }
-  
 
   window['groupTask' + id + ''].forEach(element => {
     try{
@@ -131,15 +131,19 @@ async function domBoardContent() {
     else doneGT = false;
 
     let colorDone;
+    let backgroundDone;
 
     if(element.status == false) colorDone = 'black'
-    else colorDone = 'green'
+    else {
+      backgroundDone = '#9f5f80'
+      colorDone = 'green'
+    } 
 
     if(showGroupTask){
       let camelizeBoard = camelize(element.name);
       // let joinBoardAndId = camelize(element.name) + element.board_id;
       let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
-      let htmlAccordion = '<div class="card mt-3 mb-3" id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
+      let htmlAccordion = '<div class="card mt-3 mb-3 cardGroupTask" style="background:'+backgroundDone+'" data-name="'+element.name+'"  id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
         '<div class="card-header" id="' + camelizeBoard + '">' +
         '<div class="row"><div class="col-lg-8">' +
         '<h2 class="mb-0">' +
@@ -158,7 +162,6 @@ async function domBoardContent() {
       '</div>'
       '</div>';
       $('.accordionBoard').append(htmlAccordion);
-      
 
       try {
         JSON.parse(localStorage.getItem('favList')).forEach(elements => {
@@ -189,6 +192,18 @@ async function domBoardContent() {
       });
     }
   });
+
+  if($('.accordionBoard').children().length > 0){
+    let searchTask = '<div class="d-block" style="margin: 0 auto; width: 25%;">'+
+      '<div class="md-form input-group mb-5">'+
+        '<input type="text" class="form-control searchGT" placeholder="Search Group Task" />'+
+        '<div class="input-group-prepend">'+
+          '<span class="input-group-text md-addon" id="material-addon1"><i class="fas fa-search" aria-hidden="true"></i></span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+    $(searchTask).prependTo($('.accordionBoard'))
+  }
 }
 
 $('#modalOptions').on('hidden.bs.modal', function (e) {
@@ -339,12 +354,12 @@ async function domTaskTable(data, id, result, boardMember) {
         window['dataComment' + element._id + ''] = "[]";
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;color:orange;" class="commentTask far fa-lg fa-comment mr-2" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-share shareLink mr-2" data-boardid='+result.board_id+' data-name="'+element.name+'" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;color:orange;" class="commentTask far fa-lg fa-comment mr-2" data-available="true" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       } else {
         window['dataComment' + element._id + ''] = [];
         if (haveTeam) window['dataCommentTeam' + element.group_id + ''] = element.member
         else window['dataCommentTeam' + element.group_id + ''] = [];
-        htmlTask += '<td><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;" class="commentTask far fa-lg fa-comment mr-2" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
+        htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-share shareLink mr-2" data-boardid='+result.board_id+' data-name="'+element.name+'" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><label style="cursor:pointer;" class="lblAttach mr-2" data-id='+element._id+' for="fileAttachData'+element._id+'"><i class="fas fa-lg fa-paperclip" data-groupid='+element.group_id+' data-id="' + element._id + '"></i><input accept=".doc,.docx,application/pdf,.xlsx,.xls,image/x-png,image/jpeg" data-id=' + element._id + ' data-groupid='+element.group_id+' id="fileAttachData'+element._id+'" class="d-none fileAttachData" multiple type="file" /></label><i style="cursor:pointer;" class="commentTask far fa-lg fa-comment mr-2" data-available="false" data-groupid=' + element.group_id + ' data-toggle="modal" data-target="#commentModal" data-name="' + element.name + '" data-id=' + element._id + '></i><i style="cursor:pointer;" class="delTask fas fa-trash fa-lg" data-groupid="' + element.group_id + '" data-name="' + element.name + '" data-id=' + element._id + '></i></td></tr>';
       }
 
       // if board type is main and pic of group task is not user logged in then everyone can see tasks
