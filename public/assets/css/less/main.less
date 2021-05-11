@@ -18,6 +18,20 @@ body,
   color: #505050;
 }
 
+@keyframes blink {  
+  0%, 50% { background-color: white !important; }
+  100% { background-color: #ffe082!important; }
+}
+@-webkit-keyframes blink {
+  0%, 50% { background-color: white !important; }
+  100% { background-color: #ffe082!important; }
+}
+.taskRowDueDate {
+  -webkit-animation: blink 1s linear infinite;
+  -moz-animation: blink 1s linear infinite;
+  animation: blink 1s linear infinite;
+} 
+
 .bellIcon {
   &:hover{
     cursor: pointer;

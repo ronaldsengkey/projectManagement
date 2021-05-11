@@ -439,7 +439,12 @@ async function domTaskTable(data, id, result, boardMember) {
         }
       }
       
-      
+      let dueDateTask = moment(element.due_date);
+      let currentDate = moment()
+      let diff = dueDateTask.diff(currentDate,'days')
+      if(diff <= 7){
+        $('.taskRow[data-id=' + element._id + ']').addClass('taskRowDueDate')
+      }
     });
 
     $('.progressBar[data-id=' + id + ']').append(progBar);
