@@ -138,7 +138,7 @@ $(document).on('click', '.shareLink', async function () {
   let name = $(this).data('name');
   let linkValue;
   Swal.fire({
-    title: name + ' task share url',
+    title: name,
     input: 'text',
     inputValidator: (value) => {
       linkValue = value;
@@ -148,6 +148,8 @@ $(document).on('click', '.shareLink', async function () {
     confirmButtonText: 'Copy',
     showLoaderOnConfirm: true,
     onOpen: async () => {
+      $('<label class="mb-2 mt-3" style="font-size:1.25em;font-weight:500;">Share URL</label>').insertBefore($('.swal2-input'))
+      $('.swal2-input').addClass('mt-2');
       $('.swal2-input').attr('id', 'urlLink')
       $('.swal2-input').val(localUrl + ':' + projectManagementLocalPort + '/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
       $('.swal2-input').prop('disabled', true);
@@ -157,7 +159,7 @@ $(document).on('click', '.shareLink', async function () {
       copyText.select();
       copyText.setSelectionRange(0, 99999)
       document.execCommand("copy");
-      toastrNotifFull('link has been copied to clipboard');
+      toastrNotifFull('url has been copied to clipboard');
     },
     allowOutsideClick: () => !Swal.isLoading()
   })
