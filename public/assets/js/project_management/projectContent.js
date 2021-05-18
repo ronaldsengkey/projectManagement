@@ -271,7 +271,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
       let haveComment = element.comment == undefined || element.comment == '0' ? false : element.comment;
 
-      let haveSync = element.sync == undefined ||  element.sync.toString() == 'null' ? false : element.sync;
+      let haveSync = element.isSync == undefined ||  element.isSync.toString() == 'null' ? false : element.isSync;
 
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
@@ -355,8 +355,7 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       if(haveSync){
-        // window['fileAttachment'+element._id] = JSON.parse(element.file);
-        // htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i class="far fa-file-alt fa-lg"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+        htmlTask += '<td><i style="color:green;" class="fas fa-lg fa-check" data-id=' + element._id + '></i></td>';
       } else {
         htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-sync syncGoogle" data-id=' + element._id + '></i></td>';
       }

@@ -1932,31 +1932,31 @@ $(document).on('click', '.timeline', function () {
     }
   );
 
-  $('input[name="datesPicker"][data-id="' + $(this).data('id') + '"]').daterangepicker({
-    opens: 'center',
-    autoUpdateInput: false,
-    ranges: {
-      'Next 7 Days': [moment().add(6, 'days'), moment()],
-      'Next 30 Days': [moment().add(29, 'days'), moment()],
-      'Rest of this month': [moment(), moment().endOf('month')],
-    },
-    locale: {
-      cancelLabel: 'Clear'
-    }
-  }, async function (start, end) {
-    let startDate = start.format('YYYY-MM-DD');
-    let endDate = end.format('YYYY-MM-DD');
-    $('.timeline[data-id=' + id + ']').html(startDate + ' - ' + endDate);
+  const picker = new Litepicker({ 
+    element: document.getElementById('date'),
+    format: 'DD-MMM-YYYY',
+    singleMode :false,
+    numberOfColumns : 2,
+    numberOfMonths: 2,
+    resetButton: true,
+    setup: (picker) => {
+      picker.on('selected', (date1, date2) => {
+        // some action
+        let startDate = moment(date1.dateInstance).format('YYYY-MM-DD');
+        let endDate = moment(date2.dateInstance).format('YYYY-MM-DD');
+        $('.timeline[data-id=' + id + ']').html(startDate + ' - ' + endDate);
 
-    let updateTimeline = {
-      '_id': id,
-      'group_id': groupid,
-      'name': name,
-      'user_update': ct.name,
-      'timeline': JSON.stringify([startDate, endDate])
-    }
-    globalUpdateTask('timeline', updateTimeline);
-  })
+        let updateTimeline = {
+          '_id': id,
+          'group_id': groupid,
+          'name': name,
+          'user_update': ct.name,
+          'timeline': JSON.stringify([startDate, endDate])
+        }
+        globalUpdateTask('timeline', updateTimeline);
+      });
+    },
+  });
 })
 
 $(document).on('mouseenter', '.name', function () {

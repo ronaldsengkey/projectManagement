@@ -620,61 +620,126 @@ async function fireMyTask() {
             $('.chartLabelPersonal').append('<option value="' + element + '">' + element + '</option>')
         });
         $('.publicBoardLabel').html('Personal Board');
-        $('input[name="datePickerRangeFilterPersonal"]').daterangepicker({
-            opens: 'center',
-            autoUpdateInput: false,
-            minDate: new Date(),
-            ranges: {
-                'Next 7 Days': [moment().add(6, 'days'), moment()],
-                'Next 30 Days': [moment().add(29, 'days'), moment()],
-                'Rest of this month': [moment(), moment().endOf('month')],
+
+        const picker = new Litepicker({ 
+            element: document.getElementsByName('datePickerRangeFilterPersonal')[0],
+            format: 'DD-MMM-YYYY',
+            minDate: moment(),
+            singleMode :false,
+            numberOfColumns : 2,
+            numberOfMonths: 2,
+            resetButton: true,
+            resetButton: () => {
+                let btn = document.createElement('button');
+                btn.innerText = 'Clear';
+                btn.addEventListener('click', async (evt) => {
+                  if (myBarChart != null) myBarChart.destroy();
+                  $("select.chartTaskPersonal").val("mytask");
+                  $("select.chartLabelPersonal").val("all");
+                  $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
+                  $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder', 'all');
+                  await processTaskCanvas(chAnalytic.data, 'chartTaskForMe', 'personal');
+                });
+             
+                return btn;
+             },
+            setup: (picker) => {
+              picker.on('selected', async (date1, date2) => {
+                let startDate = moment(date1.dateInstance).format('YYYY-MM-DD');
+                let endDate = moment(date2.dateInstance).format('YYYY-MM-DD');
+                let chartRangeFilter;
+                loadingActivated();
+                chartRangeFilter = await getChartAnalytic({
+                    startDate: startDate,
+                    endDate: endDate,
+                    name: ct.name,
+                    category: $("select.chartTaskPersonal").val(),
+                    type: 'personal'
+                });
+                loadingDeactivated();
+                if (chartRangeFilter.responseCode == '200') {
+                    $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
+                    if (myBarChart != null) myBarChart.destroy();
+                    $("select.chartTaskPersonal").val("mytask");
+                    $("select.chartLabelPersonal").val("all");
+                    $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
+                    await processTaskCanvas(chartRangeFilter.data, 'chartTaskForMe', 'personal')
+                } else if (chartRangeFilter.responseCode == '401') {
+                    logoutNotif();
+                } else if (chartRangeFilter.responseCode == '404') {
+                    callNotif({
+                        type: 'error',
+                        text: chartRangeFilter.responseMessage
+                    })
+                    if (myBarChart != null) myBarChart.destroy();
+                } else {
+                    callNotif({
+                        type: 'error',
+                        text: chartRangeFilter.responseMessage
+                    })
+                }
+
+              });
             },
-            locale: {
-                cancelLabel: 'Clear'
-            }
-        }, async function (start, end) {
-            let chartRangeFilter;
-            let startDate = start.format('YYYY-MM-DD');
-            let endDate = end.format('YYYY-MM-DD');
-            loadingActivated();
-            chartRangeFilter = await getChartAnalytic({
-                startDate: startDate,
-                endDate: endDate,
-                name: ct.name,
-                category: $("select.chartTaskPersonal").val(),
-                type: 'personal'
-            });
-            loadingDeactivated();
-            if (chartRangeFilter.responseCode == '200') {
-                $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
-                if (myBarChart != null) myBarChart.destroy();
-                $("select.chartTaskPersonal").val("mytask");
-                $("select.chartLabelPersonal").val("all");
-                $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
-                await processTaskCanvas(chartRangeFilter.data, 'chartTaskForMe', 'personal')
-            } else if (chartRangeFilter.responseCode == '401') {
-                logoutNotif();
-            } else if (chartRangeFilter.responseCode == '404') {
-                callNotif({
-                    type: 'error',
-                    text: chartRangeFilter.responseMessage
-                })
-                if (myBarChart != null) myBarChart.destroy();
-            } else {
-                callNotif({
-                    type: 'error',
-                    text: chartRangeFilter.responseMessage
-                })
-            }
-        })
-        $('input[name="datePickerRangeFilterPersonal"]').on('cancel.daterangepicker', async function (ev, picker) {
-            if (myBarChart != null) myBarChart.destroy();
-            $("select.chartTaskPersonal").val("mytask");
-            $("select.chartLabelPersonal").val("all");
-            $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
-            $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder', 'all');
-            await processTaskCanvas(chAnalytic.data, 'chartTaskForMe', 'personal');
         });
+          
+        // $('input[name="datePickerRangeFilterPersonal"]').daterangepicker({
+        //     opens: 'center',
+        //     autoUpdateInput: false,
+        //     minDate: new Date(),
+        //     ranges: {
+        //         'Next 7 Days': [moment().add(6, 'days'), moment()],
+        //         'Next 30 Days': [moment().add(29, 'days'), moment()],
+        //         'Rest of this month': [moment(), moment().endOf('month')],
+        //     },
+        //     locale: {
+        //         cancelLabel: 'Clear'
+        //     }
+        // }, async function (start, end) {
+        //     let chartRangeFilter;
+        //     let startDate = start.format('YYYY-MM-DD');
+        //     let endDate = end.format('YYYY-MM-DD');
+        //     loadingActivated();
+        //     chartRangeFilter = await getChartAnalytic({
+        //         startDate: startDate,
+        //         endDate: endDate,
+        //         name: ct.name,
+        //         category: $("select.chartTaskPersonal").val(),
+        //         type: 'personal'
+        //     });
+        //     loadingDeactivated();
+        //     if (chartRangeFilter.responseCode == '200') {
+        //         $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
+        //         if (myBarChart != null) myBarChart.destroy();
+        //         $("select.chartTaskPersonal").val("mytask");
+        //         $("select.chartLabelPersonal").val("all");
+        //         $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
+        //         await processTaskCanvas(chartRangeFilter.data, 'chartTaskForMe', 'personal')
+        //     } else if (chartRangeFilter.responseCode == '401') {
+        //         logoutNotif();
+        //     } else if (chartRangeFilter.responseCode == '404') {
+        //         callNotif({
+        //             type: 'error',
+        //             text: chartRangeFilter.responseMessage
+        //         })
+        //         if (myBarChart != null) myBarChart.destroy();
+        //     } else {
+        //         callNotif({
+        //             type: 'error',
+        //             text: chartRangeFilter.responseMessage
+        //         })
+        //     }
+        // })
+
+        // $('input[name="datePickerRangeFilterPersonal"]').on('cancel.daterangepicker', async function (ev, picker) {
+        //     if (myBarChart != null) myBarChart.destroy();
+        //     $("select.chartTaskPersonal").val("mytask");
+        //     $("select.chartLabelPersonal").val("all");
+        //     $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
+        //     $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder', 'all');
+        //     await processTaskCanvas(chAnalytic.data, 'chartTaskForMe', 'personal');
+        // });
+
         $(".dateDueFilterPersonal").datepicker({
             showButtonPanel: true,
             closeText: 'Clear',
@@ -1138,58 +1203,120 @@ $(document).on('click', '.analyticList', async function () {
                     let pageFilterr = '<div id="pageFilterTeam" class="d-flex align-items-center justify-content-end p-3"></div>';
                     $(pageFilterr).appendTo($('.placeForFilter'));
                     appendFilter([filterAllChart, filterChartType], false, 'team');
-                    $('input[name="datePickerRangeFilter"]').daterangepicker({
-                        opens: 'center',
-                        autoUpdateInput: false,
-                        minDate: new Date(),
-                        ranges: {
-                            'Next 7 Days': [moment().add(6, 'days'), moment()],
-                            'Next 30 Days': [moment().add(29, 'days'), moment()],
-                            'Rest of this month': [moment(), moment().endOf('month')],
+
+                    const picker = new Litepicker({ 
+                        element: document.getElementsByName('datePickerRangeFilter')[0],
+                        format: 'DD-MMM-YYYY',
+                        minDate: moment(),
+                        singleMode :false,
+                        numberOfColumns : 2,
+                        numberOfMonths: 2,
+                        resetButton: true,
+                        resetButton: () => {
+                            let btn = document.createElement('button');
+                            btn.innerText = 'Clear';
+                            btn.addEventListener('click', async (evt) => {
+                              if (charted != null) charted.destroy();
+                              $("select.chartTaskEmployee").val("all");
+                              $("select.chartLabelName").val("all");
+                              $('#datepickerFilter').val('').attr('placeholder', 'all')
+                              $('input[name="datePickerRangeFilter"]').val('').attr('placeholder', 'all');
+                              await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                              // some custom action
+                            });
+                         
+                            return btn;
+                         },
+                        setup: (picker) => {
+                          picker.on('selected', async (date1, date2) => {
+                            // some action
+                            let startDate = moment(date1.dateInstance).format('YYYY-MM-DD');
+                            let endDate = moment(date2.dateInstance).format('YYYY-MM-DD');
+                            let chartRangeFilter;
+                            loadingActivated();
+                            chartRangeFilter = await getChartAnalytic({
+                                startDate: startDate,
+                                endDate: endDate
+                            });
+                            loadingDeactivated();
+                            if (chartRangeFilter.responseCode == '200') {
+                                $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
+                                if (charted != null) charted.destroy();
+                                $("select.chartTaskEmployee").val("all");
+                                $("select.chartLabelName").val("all");
+                                $('#datepickerFilter').val('').attr('placeholder', 'all')
+                                await processTaskCanvas(chartRangeFilter.data, 'canvasTask')
+                            } else if (chartRangeFilter.responseCode == '401') {
+                                logoutNotif();
+                            } else if (chartRangeFilter.responseCode == '404') {
+                                callNotif({
+                                    type: 'error',
+                                    text: chartRangeFilter.responseMessage
+                                })
+                                if (charted != null) charted.destroy();
+                            } else {
+                                callNotif({
+                                    type: 'error',
+                                    text: chartRangeFilter.responseMessage
+                                })
+                            }
+            
+                          });
                         },
-                        locale: {
-                            cancelLabel: 'Clear'
-                        }
-                    }, async function (start, end) {
-                        let chartRangeFilter;
-                        let startDate = start.format('YYYY-MM-DD');
-                        let endDate = end.format('YYYY-MM-DD');
-                        loadingActivated();
-                        chartRangeFilter = await getChartAnalytic({
-                            startDate: startDate,
-                            endDate: endDate
-                        });
-                        loadingDeactivated();
-                        if (chartRangeFilter.responseCode == '200') {
-                            $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
-                            if (charted != null) charted.destroy();
-                            $("select.chartTaskEmployee").val("all");
-                            $("select.chartLabelName").val("all");
-                            $('#datepickerFilter').val('').attr('placeholder', 'all')
-                            await processTaskCanvas(chartRangeFilter.data, 'canvasTask')
-                        } else if (chartRangeFilter.responseCode == '401') {
-                            logoutNotif();
-                        } else if (chartRangeFilter.responseCode == '404') {
-                            callNotif({
-                                type: 'error',
-                                text: chartRangeFilter.responseMessage
-                            })
-                            if (charted != null) charted.destroy();
-                        } else {
-                            callNotif({
-                                type: 'error',
-                                text: chartRangeFilter.responseMessage
-                            })
-                        }
-                    })
-                    $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function (ev, picker) {
-                        if (charted != null) charted.destroy();
-                        $("select.chartTaskEmployee").val("all");
-                        $("select.chartLabelName").val("all");
-                        $('#datepickerFilter').val('').attr('placeholder', 'all')
-                        $('input[name="datePickerRangeFilter"]').val('').attr('placeholder', 'all');
-                        await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
                     });
+
+                    // $('input[name="datePickerRangeFilter"]').daterangepicker({
+                    //     opens: 'center',
+                    //     autoUpdateInput: false,
+                    //     minDate: new Date(),
+                    //     ranges: {
+                    //         'Next 7 Days': [moment().add(6, 'days'), moment()],
+                    //         'Next 30 Days': [moment().add(29, 'days'), moment()],
+                    //         'Rest of this month': [moment(), moment().endOf('month')],
+                    //     },
+                    //     locale: {
+                    //         cancelLabel: 'Clear'
+                    //     }
+                    // }, async function (start, end) {
+                    //     let chartRangeFilter;
+                    //     let startDate = start.format('YYYY-MM-DD');
+                    //     let endDate = end.format('YYYY-MM-DD');
+                    //     loadingActivated();
+                    //     chartRangeFilter = await getChartAnalytic({
+                    //         startDate: startDate,
+                    //         endDate: endDate
+                    //     });
+                    //     loadingDeactivated();
+                    //     if (chartRangeFilter.responseCode == '200') {
+                    //         $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
+                    //         if (charted != null) charted.destroy();
+                    //         $("select.chartTaskEmployee").val("all");
+                    //         $("select.chartLabelName").val("all");
+                    //         $('#datepickerFilter').val('').attr('placeholder', 'all')
+                    //         await processTaskCanvas(chartRangeFilter.data, 'canvasTask')
+                    //     } else if (chartRangeFilter.responseCode == '401') {
+                    //         logoutNotif();
+                    //     } else if (chartRangeFilter.responseCode == '404') {
+                    //         callNotif({
+                    //             type: 'error',
+                    //             text: chartRangeFilter.responseMessage
+                    //         })
+                    //         if (charted != null) charted.destroy();
+                    //     } else {
+                    //         callNotif({
+                    //             type: 'error',
+                    //             text: chartRangeFilter.responseMessage
+                    //         })
+                    //     }
+                    // })
+                    // $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function (ev, picker) {
+                    //     if (charted != null) charted.destroy();
+                    //     $("select.chartTaskEmployee").val("all");
+                    //     $("select.chartLabelName").val("all");
+                    //     $('#datepickerFilter').val('').attr('placeholder', 'all')
+                    //     $('input[name="datePickerRangeFilter"]').val('').attr('placeholder', 'all');
+                    //     await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                    // });
 
                     $(".dateDueFilter").datepicker({
                         showButtonPanel: true,
