@@ -355,9 +355,9 @@ async function domTaskTable(data, id, result, boardMember) {
       }
 
       if(haveSync){
-        htmlTask += '<td><i style="color:green;" class="fas fa-lg fa-check" data-id=' + element._id + '></i></td>';
+        htmlTask += '<td><i style="color:green;" class="fas fa-lg fa-check"></i></td>';
       } else {
-        htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-sync syncGoogle" data-id=' + element._id + '></i></td>';
+        htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-sync syncGoogle" data-groupid="' + element.group_id + '" data-id=' + element._id + '></i></td>';
       }
 
       if (haveComment) {

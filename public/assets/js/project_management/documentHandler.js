@@ -1292,6 +1292,7 @@ $(document).on('click', '.btnDoneGT', async function () {
 
 $(document).on('click','.syncGoogle',async function(){
   let taskid = $(this).data('id');
+  let groupId = $(this).data('groupid');
   let emailEmployee = ct.email;
   let idEmployee = ct.id_employee;
   let hostname = window.location.protocol + '//' + window.location.hostname + ':' + projectManagementLocalPort
@@ -1315,6 +1316,7 @@ $(document).on('click','.syncGoogle',async function(){
       type: 'success',
       text: syncGoogleData.responseMessage
     })
+    refreshTableData(groupId);
   } else {
     callNotif({
       type: 'error',
