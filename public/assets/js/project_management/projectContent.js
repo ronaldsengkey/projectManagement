@@ -273,6 +273,20 @@ async function domTaskTable(data, id, result, boardMember) {
 
       let haveSync = element.isSync == undefined ||  element.isSync.toString() == 'null' ? false : element.isSync;
 
+      let syncId;
+      try {
+        syncId =  JSON.parse(element.syncId)
+      } catch (error) {
+        syncId = element.syncId
+      }
+      let bools = false;
+      let trueSync = syncId.filter(function(e){ 
+        if(e == ct.id_employee) {
+          bools = true;
+        }
+        return bools;
+      })
+
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
       htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
@@ -354,7 +368,7 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td>-</td>';
       }
 
-      if(haveSync){
+      if(haveSync && bools){
         htmlTask += '<td><i style="color:green;" class="fas fa-lg fa-check"></i></td>';
       } else {
         htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-sync syncGoogle" data-groupid="' + element.group_id + '" data-id=' + element._id + '></i></td>';
