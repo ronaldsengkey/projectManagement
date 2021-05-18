@@ -1290,6 +1290,39 @@ $(document).on('click', '.btnDoneGT', async function () {
   });
 })
 
+$(document).on('click','.syncGoogle',async function(){
+  let taskid = $(this).data('id');
+  let emailEmployee = ct.email;
+  let idEmployee = ct.id_employee;
+  let hostname = window.location.protocol + '//' + window.location.hostname + ':' + projectManagementLocalPort
+
+  let bodySync = {
+    "employeeId": idEmployee,
+    "taskId" : taskid,
+    "email": emailEmployee,
+    "hostname": hostname
+  }
+
+  loadingActivated();
+  let syncGoogleData = await syncGoogle(bodySync);
+  loadingDeactivated()
+  if(syncGoogleData.responseCode == '476'){
+    var w = window.innerWidth / 2;
+    var h = window.innerHeight / 3 * 2;
+    window.open(syncGoogleData.data.url, "",  `width=${w},height=${h}`);
+  } else if(syncGoogleData.responseCode == '200') {
+    callNotif({
+      type: 'success',
+      text: syncGoogleData.responseMessage
+    })
+  } else {
+    callNotif({
+      type: 'error',
+      text: syncGoogleData.responseMessage
+    })
+  }
+})
+
 $(document).on('click', '.btnFavorites', function () {
   let idFav = $(this).data('id');
   let nameFav = $(this).data('name');

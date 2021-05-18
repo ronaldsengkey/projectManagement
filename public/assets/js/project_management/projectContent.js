@@ -234,12 +234,13 @@ async function domTaskTable(data, id, result, boardMember) {
     '<th>Due Date</th>' +
     '<th>Timeline</th>' +
     '<th>Attachment</th>' +
+    '<th>Sync</th>' +
     '<th>Action</th>' +
     '</tr>' +
     '</thead>' +
     '<tbody class="dataTask text-center" data-id="'+id+'">' +
     '<tr>' +
-    '<td class="newTask" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '" colspan="9">+ Add Task</td>' +
+    '<td class="newTask" data-id="' + id + '" data-name="' + result.name + '" data-boardid="' + result.board_id + '" colspan="10">+ Add Task</td>' +
     '</tr>' +
     '</tbody>' +
     '</table>';
@@ -269,6 +270,8 @@ async function domTaskTable(data, id, result, boardMember) {
       let haveTeam = element.member == undefined || element.member == '[]' || element.member.toString() == 'null' ? false : element.member;
 
       let haveComment = element.comment == undefined || element.comment == '0' ? false : element.comment;
+
+      let haveSync = element.sync == undefined ||  element.sync.toString() == 'null' ? false : element.sync;
 
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
@@ -349,6 +352,13 @@ async function domTaskTable(data, id, result, boardMember) {
         htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i class="far fa-file-alt fa-lg"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
       } else {
         htmlTask += '<td>-</td>';
+      }
+
+      if(haveSync){
+        // window['fileAttachment'+element._id] = JSON.parse(element.file);
+        // htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i class="far fa-file-alt fa-lg"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+      } else {
+        htmlTask += '<td><i style="cursor:pointer;" class="fas fa-lg fa-sync syncGoogle" data-id=' + element._id + '></i></td>';
       }
 
       if (haveComment) {
@@ -505,6 +515,10 @@ async function domTaskTable(data, id, result, boardMember) {
     {
       field: 'attachment',
       title: 'Attachment'
+    }, 
+    {
+      field: 'sync',
+      title: 'Sync'
     }, 
     {
       field: 'action',

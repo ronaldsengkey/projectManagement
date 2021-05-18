@@ -184,6 +184,27 @@ async function deleteTask(body) {
     });
 }
 
+async function syncGoogle(body) {
+    return new Promise(async function (resolve, reject) {
+        $.ajax({
+            url: 'syncGoogle',
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature,
+            },
+            data: JSON.stringify(body),
+            success: function (result) {
+                resolve(result);
+            }
+        })
+    });
+}
+
 async function addTask(value, groupId) {
     return new Promise(async function (resolve, reject) {
         let bodyTask = {

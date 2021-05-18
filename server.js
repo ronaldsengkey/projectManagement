@@ -1417,6 +1417,83 @@ fastify.get("/comment", async function (req, reply) {
   }
 });
 
+fastify.get('/google/response', async function (request, reply){
+  reply.sendFile('layouts/google_response.html')
+})
+
+fastify.post("/google/syncGoogle", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    console.log('aaa',req.headers);
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/google/auth',
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+        },
+        body: JSON.stringify(req.body)
+      },
+    };
+
+    data.settings.body = encryptPostBody(data)
+    let a = await actionPost(data);
+    console.log('post sync',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.post("/syncGoogle", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/calendar',
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+        },
+        body: JSON.stringify(req.body)
+      },
+    };
+
+    data.settings.body = encryptPostBody(data)
+
+    console.log("coba post sync", data);
+    let a = await actionPost(data);
+    console.log('post sync',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 fastify.put("/editGroup", async function (req, reply) {
   try {
     console.log('req',req.body);
