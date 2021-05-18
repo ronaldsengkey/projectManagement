@@ -135,7 +135,7 @@ async function domBoardContent() {
 
     if(element.status == false) colorDone = 'black'
     else {
-      backgroundDone = '#9f5f80'
+      backgroundDone = '#FFBA64'
       colorDone = 'green'
     } 
 
@@ -156,7 +156,7 @@ async function domBoardContent() {
         '<div class="col-lg-2 text-center placeTools" data-id='+element._id+' style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
         
         '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
-        '<div class="card-body p-4" data-id="' + element._id + '">' +
+        '<div class="card-body p-4 cardStatusGT" data-statusGT='+element.status+' data-id="' + element._id + '">' +
         'Loading...' +
         '</div>'
       '</div>'
@@ -244,6 +244,7 @@ async function domTaskTable(data, id, result, boardMember) {
     '</tbody>' +
     '</table>';
   $('.card-body[data-id="' + id + '"]').empty();
+
   if (data.length > 0) {
     $('.card-body[data-id="' + id + '"]').append(emptyTable);
     let progBar = await processProgressBar(data, id);
@@ -442,7 +443,7 @@ async function domTaskTable(data, id, result, boardMember) {
       let dueDateTask = moment(element.due_date);
       let currentDate = moment()
       let diff = dueDateTask.diff(currentDate,'days')
-      if(diff <= 7 && currentDate.isAfter(dueDateTask) && element.status == 'Pending'){
+      if(diff < 0 && diff >= -7 && currentDate.isAfter(dueDateTask) && element.status == 'Pending'){
         $('.taskRow[data-id=' + element._id + ']').addClass('taskRowDueDate')
       }
     });
@@ -510,6 +511,10 @@ async function domTaskTable(data, id, result, boardMember) {
       title: 'Action'
     }],
   })
+
+  if(result.status.toString() == "true"){
+    $('.cardStatusGT[data-statusGT="true"]').find('.bootstrap-table').css('background-color','white')
+  }
 
   $('table[id=table' + id + ']').removeClass('table-bordered')
 }

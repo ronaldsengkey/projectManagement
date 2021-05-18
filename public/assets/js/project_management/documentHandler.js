@@ -1344,6 +1344,67 @@ $(document).on('click', '.btnFavorites', function () {
   }
 })
 
+$(document).on('mouseenter', '.teamStatus', function () {
+  let name = $(this).data('name');
+  let dataFor = $(this).data('for');
+  let backupName;
+  switch(name){
+    case "pending":
+    case "working":
+    case "stuck":
+    case "review":
+    case "done":
+      backupName = $('select.chartTaskEmployee :selected').text();
+      break; 
+  }
+  switch(dataFor){
+    case 'teal':
+      dataFor = 'dataPending'
+      break;
+    case 'orange':
+      dataFor = 'dataWorking'
+      break;
+    case 'red':
+      dataFor = 'dataStuck'
+      break;
+    case 'cadetblue':
+      dataFor = 'dataReview'
+      break;
+    default:
+      dataFor = 'dataDone'
+      break;
+  }
+  triggerPopoverChartLegendTeam(name,dataFor,backupName);
+})
+
+async function triggerPopoverChartLegendTeam(name,status,backupName = '') {
+  if ($('.teamStatus[data-name="' + name + '"]').data("bs.popover") == undefined) {
+      let htmlLegendChart = '';
+      window['datacanvasTask'].filter(function(e){
+        if(e.name == name && backupName == '') {
+          for (let i = 0; i < e[status].length; i++) {
+            htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
+          }
+        } else if(e.name == backupName) {
+          for (let i = 0; i < e[status].length; i++) {
+            htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
+          }
+        }
+      })
+      let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlLegendChart + '</ul></div></div>';
+
+      $('.teamStatus[data-name="' + name + '"]').attr('tabindex', '0');
+      $('.teamStatus[data-name="' + name + '"]').attr('data-toggle', 'popover');
+
+      $('.teamStatus[data-name="' + name + '"]').popover({
+        content: legendHTML,
+        placement: "right",
+        html: true,
+        sanitize: false
+      });
+  }
+}
+
 $(document).on('mouseenter', '.personalDetail', function () {
   let forType = $(this).data('for');
   triggerPopoverChartLegend(forType, capitalize(forType));
@@ -1351,6 +1412,20 @@ $(document).on('mouseenter', '.personalDetail', function () {
 
 $(document).on('click', '.openTask', async function () {
   let idData = window['personalData'][0]['data' + $(this).data('for')][$(this).data('index')];
+  loadingActivated();
+  let idBoard = await getBoard({
+    group_id: idData.group_id
+  }, 'boardId');
+  let boardid = idBoard[0]._id;
+  if (boardid != undefined && boardid != null) {
+    await checkGroupTaskRedirect('200', boardid, idData.group_id, idData._id);
+    loadingDeactivated();
+  } else loadingDeactivated();
+
+})
+
+$(document).on('click', '.openTaskTeam', async function () {
+  let idData = window['personalData'][0][$(this).data('for')][$(this).data('index')];
   loadingActivated();
   let idBoard = await getBoard({
     group_id: idData.group_id
