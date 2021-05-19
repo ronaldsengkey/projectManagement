@@ -213,7 +213,7 @@ async function addTask(value, groupId) {
             'user_create': ct.name,
             'status': "Pending",
             'priority': "High",
-            'due_date': moment().format("YYYY-MM-DD"),
+            'due_date': moment(moment(), 'YYYY-MM-DD').add(7, 'days').format('YYYY-MM-DD'),
             'timeline': JSON.stringify([moment().format("YYYY-MM-DD"), moment(moment(), 'YYYY-MM-DD').add(7, 'days').format('YYYY-MM-DD')])
         }
         let settingsTask = {
