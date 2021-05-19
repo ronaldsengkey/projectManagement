@@ -16,6 +16,8 @@ let csLocalPort;
 let extToken;
 let localhostIP;
 let serverDomain;
+let cdnLink;
+let cdnPort;
 
 // Require the framework and instantiate it
 const fastify = require("fastify")({
@@ -53,6 +55,72 @@ let returnedConfig = {};
 let token;
 let port;
 
+// fastify.register((fastify, opts, next) => {
+  
+//   fastify.route({
+//     method: 'GET',
+//     url: 'login',
+//     handler: async (req, res) => {
+//       res.send('foo!')
+//     }
+//   });
+
+//   next();
+
+// }, { prefix: 'proman' });
+
+// // fastify.register(function (instance, opts, next) {
+// //   instance.get('/login', function (request, reply) {
+// //     // Will log "basePath: /v1"
+// //     request.log.info('basePath: %s', instance.prefix)
+// //     // reply.send({basePath: instance.prefix})
+// //     reply.sendFile("layouts/login.html");
+// //   })
+
+// //   // instance.register(function (instance, opts, next) {
+// //   //   instance.get('/bar', function (request, reply) {
+// //   //     // Will log "basePath: /v1/v2"
+// //   //     request.log.info('basePath: %s', instance.basePath)
+// //   //     reply.send({basePath: instance.basePath})
+// //   //   })
+
+// //   //   next()
+// //   // }, { prefix: '/v2' })
+
+// //   next()
+// // }, { prefix: '/proman' })
+
+// fastify.register(require('fastify-foo'), {
+//   prefix: '/proman',
+// })
+
+async function getSource(requestTo,concern) {
+  return new Promise(async (resolve, reject) => {
+    let link = cdnLink + ':' + cdnPort + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
+    console.log('a',link);
+    r.get({
+        async: true,
+        crossDomain: true,
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-type": "plain/text"
+        },
+        url: link,
+        rejectUnauthorized: false
+      },
+      function (error, response, body) {
+        if (error) {
+          console.log('gagal',requestTo.source,link);
+          resolve(error);
+        } else {
+          console.log('diterima',requestTo.source,link);
+          resolve(body);
+        }
+      }
+    );
+  });
+}
 
 fastify.get("/:origin", async function (req, reply) {
   let signature = req.headers.signature;
@@ -1418,7 +1486,7 @@ fastify.get("/comment", async function (req, reply) {
 });
 
 fastify.get('/google/response', async function (request, reply){
-  reply.sendFile('layouts/google_response.html')
+  reply.type('text/html').send(await getSource({source:'googleResponse',flow:'ultipayDashboard'},'page'))
 })
 
 fastify.post("/google/syncGoogle", async function (req, reply) {
@@ -2680,6 +2748,8 @@ fastify.get('/envConfig', function (req, reply) {
       portTrans = data.TRANSACTION_SERVER_KEY;
       employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
       csLocalPort = data.CS_DASHBOARD_PORT;
+      cdnLink = data.CDN_LINK;
+      cdnPort = data.CDN_PORT;
       reply.send(JSON.stringify(data));
   });
 });
@@ -2761,6 +2831,8 @@ async function restartEnv(){
         csLocalPort = data.CS_DASHBOARD_PORT;
         localhostIP = data.LOCALHOST_IP;
         serverDomain = data.SERVER;
+        cdnLink = data.CDN_LINK;
+        cdnPort = data.CDN_PORT;
         resolve(data);
     });
   })
