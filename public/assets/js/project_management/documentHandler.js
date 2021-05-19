@@ -1354,7 +1354,7 @@ $(document).on('click', '.btnFavorites', function () {
     localStorage.setItem('favList', JSON.stringify(window['favList']));
     toastrNotifFull('success pin group task : ' + nameFav + '');
     $('.favGT[data-id=' + idFav + ']').css('color', 'orange');
-    $('#cardGT' + idFav + '').prependTo($('.accordionBoard'))
+    $('#cardGT' + idFav + '').insertAfter($('.searchShortcut'))
     if ($('.pinLength').length > 0) {
       $('.pinLength').html(window['favList'].length + '<i class="fas fa-chevron-right ml-2"></i>')
     } else {
@@ -1490,6 +1490,10 @@ async function triggerPopoverChartLegend(type, capitalType) {
       html: true,
       sanitize: false
     });
+
+    // $('.popover-body').css('height','75vh');
+    // $('.popover-body').css('overflow','auto');
+
   }
 }
 

@@ -194,7 +194,7 @@ async function domBoardContent() {
   });
 
   if($('.accordionBoard').children().length > 0){
-    let searchTask = '<div class="d-block" style="margin: 0 auto; width: 25%;">'+
+    let searchTask = '<div class="d-block searchShortcut" style="margin: 0 auto; width: 25%;">'+
       '<div class="md-form input-group mb-5">'+
         '<input type="text" class="form-control searchGT" placeholder="Search Group Task" />'+
         '<div class="input-group-prepend">'+

@@ -1360,6 +1360,7 @@ $(document).on('click', '.analyticList', async function () {
                         },
                     });
                     await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
+                    $('.chartLabelName').val("pending").change()
                 } else if (chartsAnalytic.responseCode == '401') {
                     logoutNotif()
                 } else {
