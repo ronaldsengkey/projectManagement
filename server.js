@@ -858,7 +858,7 @@ fastify.get("/getChannelSlack", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/slack/channel',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/slack/channel',
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -891,7 +891,7 @@ fastify.get("/getSlackSettings", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -925,7 +925,7 @@ fastify.post("/submitActivationSlack", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
         method: "POST",
         headers: {
           Accept: "*/*",
@@ -960,7 +960,7 @@ fastify.post("/submitChannel", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
         method: "POST",
         headers: {
           Accept: "*/*",
