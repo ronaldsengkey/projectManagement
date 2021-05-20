@@ -1512,7 +1512,7 @@ $(document).on('click', '#addChannelSlack', function () {
         if (channelSlack != 500) {
           $('#channelMember').empty()
           channelSlackDone = !channelSlackDone;
-          if(window['dataSlack'].length > 0){
+          if(window['dataSlack'] != undefined){
             let difference = objDiffSlack(channelSlack,window['dataSlack']);
             difference.forEach(element => {
               $('#channelMember').append('<option value=' + element._id + '>' + element.name + '</option>')
@@ -1528,7 +1528,7 @@ $(document).on('click', '#addChannelSlack', function () {
         }
         Swal.hideLoading()
       } catch (error) {
-        toastrNotifFull('failed to get data', 'error');
+        toastrNotifFull(error, 'error');
         Swal.hideLoading();
       }
     },
