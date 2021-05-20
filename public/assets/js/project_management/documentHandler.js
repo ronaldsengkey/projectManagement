@@ -1538,7 +1538,7 @@ $(document).on('click', '#addChannelSlack', function () {
     preConfirm: async () => {
       let channelMember = $('#channelMember option:selected').toArray().map(item => item.value);
       if (channelMember.length > 0) {
-        if(window['dataSlack'].length > 0){
+        if(window['dataSlack'] != undefined){
           channelMember = window['dataSlack'].concat(channelMember)
         }
         let bodyChannel = {
