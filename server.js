@@ -850,6 +850,145 @@ fastify.get("/board", async function (req, reply) {
   }
 });
 
+
+fastify.get("/getChannelSlack", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/slack/channel',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          )
+        },
+      },
+    };
+
+    console.log("coba get slack", data);
+    let a = await actionGet(data);
+    console.log('aaaaa slack',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.get("/getSlackSettings", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          ),
+          param: req.headers.param
+        },
+      },
+    };
+
+    console.log("coba get slack settings", data);
+    let a = await actionGet(data);
+    console.log('aaaaa slack settings',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.post("/submitActivationSlack", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-Type": 'application/json',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          )
+        },
+        body: req.body.settings.body
+      },
+    };
+
+    console.log("coba post activate slack", data);
+    let a = await actionPost(data);
+    console.log('aaaaa activate slack post',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+fastify.post("/submitChannel", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + '8203/backend' + '/dashboard/user/setting',
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "Content-Type": 'application/json',
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          )
+        },
+        body: req.body.settings.body
+      },
+    };
+
+    console.log("coba post channel slack", data);
+    let a = await actionPost(data);
+    console.log('aaaaa slack post',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
+
 fastify.get("/getEmployee", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
@@ -2370,6 +2509,10 @@ fastify.get("/getEmployeeDetail", async function (req, reply) {
 
 fastify.get('/employeeDetail',async function(req,reply){
   reply.sendFile('layouts/profileMember.html');
+})
+
+fastify.get('/setting',async function(req,reply){
+  reply.sendFile('layouts/setting.html');
 })
 
 fastify.get("/getMethod", async function (req, reply) {

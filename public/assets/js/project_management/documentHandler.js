@@ -1,5 +1,11 @@
 'use strict'
 
+$(function () {
+  $('.settingBeef').beefup({
+    selfClose: true
+  });
+})
+
 function lightOrDark(color) {
   let brightness = tinycolor(color).getBrightness();
   if (brightness >= 140) return 'light';
@@ -165,24 +171,24 @@ $(document).on('click', '.shareLink', async function () {
   })
 })
 
-$(document).on('input','.searchGT',function(){
+$(document).on('input', '.searchGT', function () {
   let valueSearch = $(this).val();
-  $('.cardGroupTask').each(function(index,data){
+  $('.cardGroupTask').each(function (index, data) {
     let nameGT = $(data).data('name');
-    if(nameGT.toUpperCase().indexOf(valueSearch.toUpperCase()) > -1){
-       $(data).animate({
+    if (nameGT.toUpperCase().indexOf(valueSearch.toUpperCase()) > -1) {
+      $(data).animate({
         opacity: 1,
-        }, 250, function () {
-            $(data).fadeIn('slow');
-        });
+      }, 250, function () {
+        $(data).fadeIn('slow');
+      });
 
     } else {
       $(data).animate({
         opacity: 0.25,
         left: "0"
-        }, 250, function () {
-            $(data).fadeOut('slow');
-        });
+      }, 250, function () {
+        $(data).fadeOut('slow');
+      });
     }
   })
 })
@@ -1290,7 +1296,400 @@ $(document).on('click', '.btnDoneGT', async function () {
   });
 })
 
-$(document).on('click','.syncGoogle',async function(){
+$(document).on('click', '.toSetting', function () {
+  $.ajax({
+    url: 'setting',
+    method: 'GET',
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "*/*",
+      "Cache-Control": "no-cache",
+    },
+    success: async function (result) {
+      $('#wrapper').empty();
+      $('#wrapper').removeClass('d-flex');
+      $('#wrapper').html(result);
+      $('#modalNav').modal('hide')
+    }
+  })
+})
+
+$(document).on('click', '.settingSlack', function () {
+  var collapsed = $(this).attr('aria-expanded');
+  if (collapsed == 'true') {
+    globalLoad('settingSlack', $(this).data('name'), '', true);
+    showToggleScope($(this).data('id'), $(this).data('name'));
+  }
+})
+
+async function showToggleScope(id, name) {
+  $('#for' + id).empty();
+  console.log('kok toggle', id);
+  let slackSettings = await getSlackSettings();
+  globalUnLoad('settingSlack', name, '', true);
+  if (slackSettings.responseCode == '200') {
+    var tag = '<ul class="list-group p-3">';
+    tag += '<li class="list-group-item">' +
+      '<div class="row">' +
+      '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
+      '<h5>Status</h5>' +
+      '</div>' +
+      '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
+      '<div class="slider round">' +
+      '<span class="on">Activated</span>' +
+      '<span class="off">Deactivated</span>' +
+      '</div>' +
+      '</label></div>' +
+      '</div></li>';
+    tag += '<li class="list-group-item">' +
+      '<div class="row">' +
+      '<div class="col-lg-9 listOfChannels" style="text-align:start;align-self:center;">' +
+      '<h5>Channel</h5>' +
+      '</div>' +
+      '<div class="col-lg-3" style="text-align:end;"><button class="text-white btn-md rounded-pill btn amber lighten-1" id="addChannelSlack" type="button">Add Channel</button></div>' +
+      '</div></li>';
+    tag += '</ul>';
+    $('#for' + id).append(tag);
+    if (slackSettings.data[0].slack_notif == 'on') $('.switchSlackStatus').prop('checked', true);
+    if (slackSettings.data[0].slack_channels.length > 0) {
+      let dataSlack = slackSettings.data[0].slack_channels;
+      window['dataSlack'] = dataSlack;
+      let tags = '';
+      dataSlack.forEach(element => {
+        tags += '<div class="chip waves-effect mr-2" data-id='+element._id+'>' + element.name + '<i data-id=' + element._id + ' class="removeChannel fas fa-times fa-xs ml-2 mt-1"></i></div>'
+      });
+      $('.listOfChannels').append(tags);
+    }
+  } else if (slackSettings.responseCode == '404') {
+    var tag = '<ul class="list-group p-3">';
+    tag += '<li class="list-group-item">' +
+      '<div class="row">' +
+      '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
+      '<h5>Status</h5>' +
+      '</div>' +
+      '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
+      '<div class="slider round">' +
+      '<span class="on">Activated</span>' +
+      '<span class="off">Deactivated</span>' +
+      '</div>' +
+      '</label></div>' +
+      '</div></li>';
+    $('#for' + id).append(tag);
+  } else {
+    let param = {
+      type: 'error',
+      text: slackSettings.responseMessage
+    };
+    callNotif(param);
+  }
+}
+
+$(document).on('click', '.removeChannel', async function () {
+  let idChannel = $(this).data('id');
+  let dataRemove = window['dataSlack'].filter(function (e) {
+    return e._id != idChannel;
+  })
+  let bodyChannel = {
+    "account_id": ct.id_employee,
+    "account_category": 'employee',
+    "slack_channels": dataRemove
+  }
+  loadingActivated();
+  let removeChannel = await submitChannel(bodyChannel,true);
+  loadingDeactivated();
+  if(removeChannel.responseCode == '200') {
+    window['dataSlack'] = dataRemove;
+    let param = {
+      type: 'success',
+      text: removeChannel.responseMessage
+    };
+    callNotif(param);
+    $('.chip[data-id='+idChannel+']').remove();
+  } 
+  else {
+    let param = {
+      type: 'error',
+      text: removeChannel.responseMessage
+    };
+    callNotif(param);
+  }
+  
+})
+
+$(document).on('click', '.switchSlackStatus', async function () {
+  var checkedMethod = $(this).is(':checked');
+  let bodySlack;
+  if (checkedMethod) {
+    bodySlack = {
+      "account_id": ct.id_employee,
+      "account_category": 'employee',
+      "slack_notif": 'on'
+    }
+  } else {
+    bodySlack = {
+      "account_id": ct.id_employee,
+      "account_category": 'employee',
+      "slack_notif": 'off'
+    }
+  }
+  loadingActivated();
+  let submitted = await submitActivationSlack(bodySlack);
+  loadingDeactivated()
+  if (submitted.responseCode == '200') {
+    let paramSubmit = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmit);
+  } else {
+    $('.switchSlackStatus').prop('checked', false);
+    let paramSubmitFailed = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitFailed);
+  }
+})
+
+function globalLoad(classContainer, name, idContainer = '', accordion = false) {
+  let containLoading = '<div class="loader" data-loader=' + name + '>' +
+    '<h4></h4>' +
+    '<span></span>' +
+    '<span></span>' +
+    '<span></span>' +
+    '</div>';
+  let offsetData;
+  if (idContainer != '') {
+    offsetData = $('#' + idContainer).offset();
+    $('#' + idContainer).css('pointer-events', 'none');
+    $('#' + idContainer).css('opacity', '0.4');
+  } else {
+    offsetData = $('.' + classContainer).offset();
+    if (accordion) {
+      $('.' + classContainer + '[data-name="' + name + '"]').css('pointer-events', 'none');
+      $('.' + classContainer + '[data-name="' + name + '"]').css('opacity', '0.4');
+    } else {
+      $('.' + classContainer).css('pointer-events', 'none');
+      $('.' + classContainer).css('opacity', '0.4');
+    }
+
+  }
+  $('.loader[data-loader="' + name + '"]').css('margin-top', offsetData.top);
+  if ($('.loader[data-loader="' + name + '"]').length == 0) {
+    if (idContainer) $(containLoading).insertBefore($('#' + idContainer));
+    else $(containLoading).insertBefore($('.' + classContainer));
+  }
+}
+
+function globalUnLoad(classContainer, name, idContainer = '', accordion = false) {
+  $('.loader[data-loader="' + name + '"]').remove();
+  if (idContainer != '') {
+    $('#' + idContainer).css('pointer-events', 'auto');
+    $('#' + idContainer).css('opacity', '1');
+  } else {
+    if (accordion) {
+      $('.' + classContainer + '[data-name="' + name + '"]').css('pointer-events', 'auto');
+      $('.' + classContainer + '[data-name="' + name + '"]').css('opacity', '1');
+    } else {
+      $('.' + classContainer).css('pointer-events', 'auto');
+      $('.' + classContainer).css('opacity', '1');
+    }
+  }
+
+
+}
+
+$(document).on('click', '#addChannelSlack', function () {
+  Swal.fire({
+    title: 'Please select channel',
+    html: '<div class="row rowChannel"><div class="col-lg-12"><select id="channelMember" multiple class="swal2-input" style="height:auto;"></select></div></div><div class="accordionPlace"></div>',
+    onOpen: async () => {
+      Swal.showLoading();
+      let channelSlack;
+      let channelSlackDone = false;
+      try {
+        channelSlack = await getChannelSlack();
+        if (channelSlack != 500) {
+          $('#channelMember').empty()
+          channelSlackDone = !channelSlackDone;
+          if(window['dataSlack'].length > 0){
+            let difference = objDiffSlack(channelSlack,window['dataSlack']);
+            difference.forEach(element => {
+              $('#channelMember').append('<option value=' + element._id + '>' + element.name + '</option>')
+            });
+          } else {
+            channelSlack.forEach(element => {
+              $('#channelMember').append('<option value=' + element._id + '>' + element.name + '</option>')
+            });
+          }
+        }
+        if (channelSlackDone) {
+          $('#employeeId').prop('disabled', false);
+        }
+        Swal.hideLoading()
+      } catch (error) {
+        toastrNotifFull('failed to get data', 'error');
+        Swal.hideLoading();
+      }
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Submit',
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      let channelMember = $('#channelMember option:selected').toArray().map(item => item.value);
+      if (channelMember.length > 0) {
+        if(window['dataSlack'].length > 0){
+          channelMember = window['dataSlack'].concat(channelMember)
+        }
+        let bodyChannel = {
+          "account_id": ct.id_employee,
+          "account_category": 'employee',
+          "slack_channels": channelMember
+        }
+        let submitted = await submitChannel(bodyChannel);
+        if(submitted.responseCode == '200'){
+          $('.settingSlack').click()
+          setTimeout(() => {
+            $('.settingSlack').click()
+          }, 1250);
+          
+        } else {
+          let paramSubmitted = {
+            type: 'error',
+            text: submitted.responseMessage
+          };
+          callNotif(paramSubmitted);
+        }
+      } else {
+        toastrNotifFull('please select at least one channel');
+      }
+    },
+    allowOutsideClick: () => !Swal.isLoading()
+  })
+})
+
+function objDiffSlack(array1, array2) {
+  var resultArray = []
+
+  array2.forEach(function (destObj) {
+      var check = array1.some(function (origObj) {
+          if (origObj._id == destObj._id) return true
+      })
+      if (!check) {
+          resultArray.push(destObj)
+      }
+  })
+
+  array1.forEach(function (origObj) {
+      var check = array2.some(function (destObj) {
+          if (origObj._id == destObj._id) return true
+      })
+      if (!check) {
+          resultArray.push(origObj)
+      }
+  })
+  return resultArray
+}
+
+async function submitActivationSlack(bodyEdit) {
+  return new Promise(async function (resolve, reject) {
+    let editSettingsBoard = {
+      settings: {
+        "async": true,
+        "crossDomain": true,
+        "url": "/submitActivationSlack",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Accept": "*/*",
+          "Cache-Control": "no-cache",
+          "secretKey": ct.secretKey,
+          "token": ct.token,
+          "signature": ct.signature
+        },
+        "processData": false,
+        "body": JSON.stringify(bodyEdit),
+      }
+    }
+
+    $.ajax({
+      url: 'submitActivationSlack',
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+        "secretKey": ct.secretKey,
+        "token": ct.token,
+        "signature": ct.signature
+      },
+      data: JSON.stringify(editSettingsBoard),
+      success: async function (result) {
+        resolve(result);
+      }
+    })
+  })
+}
+
+async function submitChannel(bodyEdit, chip = true) {
+  return new Promise(async function (resolve, reject) {
+    let editSettingsBoard = {
+      settings: {
+        "async": true,
+        "crossDomain": true,
+        "url": "/submitChannel",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Accept": "*/*",
+          "Cache-Control": "no-cache",
+          "secretKey": ct.secretKey,
+          "token": ct.token,
+          "signature": ct.signature
+        },
+        "processData": false,
+        "body": JSON.stringify(bodyEdit),
+      }
+    }
+
+    $.ajax({
+      url: 'submitChannel',
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+        "secretKey": ct.secretKey,
+        "token": ct.token,
+        "signature": ct.signature
+      },
+      data: JSON.stringify(editSettingsBoard),
+      success: async function (result) {
+        if (!chip) {
+          if (result.responseCode == '200') {
+            let param = {
+              type: 'success',
+              text: result.responseMessage
+            };
+            callNotif(param);
+          } else if (result.responseCode == '401') {
+            logoutNotif();
+          } else {
+            let param = {
+              type: 'error',
+              text: result.responseMessage
+            };
+            callNotif(param);
+          }
+        } else {
+          resolve(result);
+        }
+      }
+    })
+  })
+}
+
+$(document).on('click', '.syncGoogle', async function () {
   let taskid = $(this).data('id');
   let groupId = $(this).data('groupid');
   let emailEmployee = ct.email;
@@ -1299,7 +1698,7 @@ $(document).on('click','.syncGoogle',async function(){
 
   let bodySync = {
     "employeeId": idEmployee,
-    "taskId" : taskid,
+    "taskId": taskid,
     "email": emailEmployee,
     "hostname": hostname
   }
@@ -1307,11 +1706,11 @@ $(document).on('click','.syncGoogle',async function(){
   loadingActivated();
   let syncGoogleData = await syncGoogle(bodySync);
   loadingDeactivated()
-  if(syncGoogleData.responseCode == '476'){
+  if (syncGoogleData.responseCode == '476') {
     var w = window.innerWidth / 2;
     var h = window.innerHeight / 3 * 2;
-    window.open(syncGoogleData.data.url, "",  `width=${w},height=${h}`);
-  } else if(syncGoogleData.responseCode == '200') {
+    window.open(syncGoogleData.data.url, "", `width=${w},height=${h}`);
+  } else if (syncGoogleData.responseCode == '200') {
     callNotif({
       type: 'success',
       text: syncGoogleData.responseMessage
@@ -1383,16 +1782,16 @@ $(document).on('mouseenter', '.teamStatus', function () {
   let name = $(this).data('name');
   let dataFor = $(this).data('for');
   let backupName;
-  switch(name){
+  switch (name) {
     case "pending":
     case "working":
     case "stuck":
     case "review":
     case "done":
       backupName = $('select.chartTaskEmployee :selected').text();
-      break; 
+      break;
   }
-  switch(dataFor){
+  switch (dataFor) {
     case 'teal':
       dataFor = 'dataPending'
       break;
@@ -1409,34 +1808,34 @@ $(document).on('mouseenter', '.teamStatus', function () {
       dataFor = 'dataDone'
       break;
   }
-  triggerPopoverChartLegendTeam(name,dataFor,backupName);
+  triggerPopoverChartLegendTeam(name, dataFor, backupName);
 })
 
-async function triggerPopoverChartLegendTeam(name,status,backupName = '') {
+async function triggerPopoverChartLegendTeam(name, status, backupName = '') {
   if ($('.teamStatus[data-name="' + name + '"]').data("bs.popover") == undefined) {
-      let htmlLegendChart = '';
-      window['datacanvasTask'].filter(function(e){
-        if(e.name == name && backupName == '') {
-          for (let i = 0; i < e[status].length; i++) {
-            htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
-          }
-        } else if(e.name == backupName) {
-          for (let i = 0; i < e[status].length; i++) {
-            htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
-          }
+    let htmlLegendChart = '';
+    window['datacanvasTask'].filter(function (e) {
+      if (e.name == name && backupName == '') {
+        for (let i = 0; i < e[status].length; i++) {
+          htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
         }
-      })
-      let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlLegendChart + '</ul></div></div>';
+      } else if (e.name == backupName) {
+        for (let i = 0; i < e[status].length; i++) {
+          htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + e[status][i].name + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTaskTeam" data-for="' + status + '" data-index=' + i + '></i></span></li> '
+        }
+      }
+    })
+    let legendHTML = '<div class="row p-2 mb-2"><div class="col-lg-12"><ul class="list-group list-group-flush">' + htmlLegendChart + '</ul></div></div>';
 
-      $('.teamStatus[data-name="' + name + '"]').attr('tabindex', '0');
-      $('.teamStatus[data-name="' + name + '"]').attr('data-toggle', 'popover');
+    $('.teamStatus[data-name="' + name + '"]').attr('tabindex', '0');
+    $('.teamStatus[data-name="' + name + '"]').attr('data-toggle', 'popover');
 
-      $('.teamStatus[data-name="' + name + '"]').popover({
-        content: legendHTML,
-        placement: "right",
-        html: true,
-        sanitize: false
-      });
+    $('.teamStatus[data-name="' + name + '"]').popover({
+      content: legendHTML,
+      placement: "right",
+      html: true,
+      sanitize: false
+    });
   }
 }
 
@@ -1938,11 +2337,11 @@ $(document).on('click', '.timeline', function () {
     }
   );
 
-  const picker = new Litepicker({ 
+  const picker = new Litepicker({
     element: document.getElementById('date'),
     format: 'DD-MMM-YYYY',
-    singleMode :false,
-    numberOfColumns : 2,
+    singleMode: false,
+    numberOfColumns: 2,
     numberOfMonths: 2,
     resetButton: true,
     setup: (picker) => {

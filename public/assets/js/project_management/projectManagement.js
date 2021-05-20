@@ -2807,7 +2807,6 @@ $(document).on('change', '#divisionId', async function () {
 
 async function getEmployee() {
     return new Promise(async function (resolve, reject) {
-
         let param = {
             url: 'getEmployee',
             headers: {
@@ -2829,7 +2828,49 @@ async function getEmployee() {
             reject(500);
         }
     });
+}
 
+async function getChannelSlack() {
+    return new Promise(async function (resolve, reject) {
+        let param = {
+            url: 'getChannelSlack',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "token": ct.token,
+                "secretKey": ct.secretKey,
+                "signature": ct.signature
+            }
+        }
+
+        let b = await getData(param);
+        if (b.responseCode == '200') {
+            resolve(b.data);
+        } else {
+            reject(500);
+        }
+    });
+}
+
+async function getSlackSettings() {
+    return new Promise(async function (resolve, reject) {
+        let param = {
+            url: 'getSlackSettings',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "token": ct.token,
+                "secretKey": ct.secretKey,
+                "signature": ct.signature,
+                "param": JSON.stringify({"account_id":ct.id_employee})
+            }
+        }
+
+        let b = await getData(param);
+        resolve(b);
+    });
 }
 
 async function getDivision() {
