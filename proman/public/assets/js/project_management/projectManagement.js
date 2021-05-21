@@ -26,7 +26,7 @@ $(async function () {
             let boardDataStatus = await getBoard();
             if (boardDataStatus == '401') {
                 logoutNotif(function () {
-                    window.location.href = '/login' + window.location.search
+                    window.location.href = '/proman/login' + window.location.search
                 })
 
             } else {
@@ -46,7 +46,7 @@ $(async function () {
             }
 
         } else
-            window.location.href = '/login' + window.location.search
+            window.location.href = '/proman/login' + window.location.search
     } else {
         let boardDataStatus = await getBoard();
         if (boardDataStatus == '401') {
@@ -252,7 +252,7 @@ function checkGroupTaskRedirect(boardDataStatus, boardId = '', groupTaskId = '',
                         $('#cardGT' + groupTaskAidi).hover(
                             function () {
                                 $('#cardGT' + groupTaskAidi).css('border', 'none');
-                                history.pushState({}, null, 'employee');
+                                history.pushState({}, null, '/proman/employee');
                             },
                             function () {
 
