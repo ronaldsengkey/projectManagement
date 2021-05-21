@@ -243,12 +243,13 @@ function actionGet(data) {
           if(error.toString().includes('TIMEDOUT')) reject(999)
           else reject(process.env.ERRORINTERNAL_RESPONSE);
         } else {
-          // console.log("action Get body data => ", body);
+          console.log("action Get body data => ", body);
           let result = "";
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
             if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
             else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
+            else if(settings.headers.target == 'slack') result.data = JSON.parse(cryptography.decryptMessage(result.data))
             else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
             else result.data = cryptography.decryptMessage(result.data);
           } else {
@@ -863,6 +864,7 @@ fastify.get("/getChannelSlack", async function (req, reply) {
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
+          "target": "slack",
           signature:cryptography.aesEncrypt(req.headers.signature),
           secretkey:cryptography.aesEncrypt(
             req.headers.secretkey
@@ -896,6 +898,7 @@ fastify.get("/getSlackSettings", async function (req, reply) {
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
+          "target": "slack",
           signature:cryptography.aesEncrypt(req.headers.signature),
           secretkey:cryptography.aesEncrypt(
             req.headers.secretkey
@@ -903,7 +906,7 @@ fastify.get("/getSlackSettings", async function (req, reply) {
           token: cryptography.aesEncrypt(
             token
           ),
-          param: req.headers.param
+          param: cryptography.aesEncrypt(req.headers.param)
         },
       },
     };
@@ -939,7 +942,7 @@ fastify.post("/submitActivationSlack", async function (req, reply) {
             token
           )
         },
-        body: req.body.settings.body
+        body: JSON.stringify(iterateObject(JSON.parse(req.body.settings.body)))
       },
     };
 
@@ -974,7 +977,7 @@ fastify.post("/submitChannel", async function (req, reply) {
             token
           )
         },
-        body: req.body.settings.body
+        body: JSON.stringify(iterateObject(JSON.parse(req.body.settings.body)))
       },
     };
 

@@ -1392,7 +1392,7 @@ $(document).on('click', '.removeChannel', async function () {
   let bodyChannel = {
     "account_id": ct.id_employee,
     "account_category": 'employee',
-    "slack_channels": dataRemove
+    "slack_channels": JSON.stringify(dataRemove)
   }
   loadingActivated();
   let removeChannel = await submitChannel(bodyChannel,true);
@@ -1544,7 +1544,7 @@ $(document).on('click', '#addChannelSlack', function () {
         let bodyChannel = {
           "account_id": ct.id_employee,
           "account_category": 'employee',
-          "slack_channels": channelMember
+          "slack_channels": JSON.stringify(channelMember)
         }
         let submitted = await submitChannel(bodyChannel);
         if(submitted.responseCode == '200'){
