@@ -105,7 +105,7 @@ $(document).on('click', '.pinnedLabel', async function () {
             "Cache-Control": "no-cache",
         },
         success: async function (result) {
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", async function (data, textStatus, jqxhr) {
+            $.getScript(window.location.origin + "/proman/public/assets/js/project_management/projectContent.js", async function (data, textStatus, jqxhr) {
                 $('#chartSection').prev().removeClass('d-none');
                 $('#chartSection').addClass('d-none');
                 await domBoardPinned(window['favList'].filter(function (e) {
@@ -2284,7 +2284,7 @@ $(document).on('click', '.boardList', async function () {
                     "Cache-Control": "no-cache",
                 },
                 success: function (result) {
-                    $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", async function (data, textStatus, jqxhr) {
+                    $.getScript(window.location.origin + "/proman/public/assets/js/project_management/projectContent.js", async function (data, textStatus, jqxhr) {
                         $('#chartSection').prev().removeClass('d-none');
                         $('#chartSection').addClass('d-none');
                         await domBoardContent();
@@ -2905,8 +2905,7 @@ $(document).on('click', '.goTrello', async function () {
     let authRes = await goAuth();
     if (authRes.responseCode == '200') {
         sessionStorage.setItem('meId', JSON.parse(authRes.data).id);
-        // $.getScript('http://'+localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloCall.js", function (data, textStatus, jqxhr) {})
-        $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
+        $.getScript(window.location.origin + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
     } else if (authRes.responseCode == '476') {
         activeModalConfirmToken()
         window.open(authRes.data, "_blank", "width=750,height=750,top=400,left=900");
@@ -3068,7 +3067,7 @@ $(document).on('click', '#addGroupTask', function () {
                 "division_id": ct.division_id,
                 "grade": ct.grade,
                 "user_create": ct.name,
-                'url': localUrl + ':' + projectManagementLocalPort + '/employee?boardId=' + thisId
+                'url': window.location.origin  + '/employee?boardId=' + thisId
             }
             return await postGroupTask(bodyGroup).then(async function (result) {
                 let param;

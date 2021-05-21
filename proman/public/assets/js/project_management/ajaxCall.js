@@ -53,7 +53,7 @@ function checkLocalStorage(varLocal) {
 async function getTaskData(id, data, boardMember) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'getTaskData',
+            url: '/proman/getTaskData',
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -88,7 +88,7 @@ async function getTaskData(id, data, boardMember) {
 async function editGroupTask(body) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'editGroup',
+            url: '/proman/editGroup',
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -109,7 +109,7 @@ async function editGroupTask(body) {
 async function deleteGroupTask(body) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'deleteGroup',
+            url: '/proman/deleteGroup',
             method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
@@ -130,7 +130,7 @@ async function deleteGroupTask(body) {
 async function getComment(taskId) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'comment',
+            url: '/proman/comment',
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -166,7 +166,7 @@ async function getComment(taskId) {
 async function deleteTask(body) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'deleteTask',
+            url: '/proman/deleteTask',
             method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
@@ -187,7 +187,7 @@ async function deleteTask(body) {
 async function syncGoogle(body) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'syncGoogle',
+            url: '/proman/syncGoogle',
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -235,7 +235,7 @@ async function addTask(value, groupId) {
             }
         }
         $.ajax({
-            url: 'postTask',
+            url: '/proman/postTask',
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -283,7 +283,7 @@ function globalUpdateTask(concern, data) {
         }
     }
     $.ajax({
-        url: 'putTask',
+        url: '/proman/putTask',
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",
@@ -306,7 +306,7 @@ function globalUpdateTask(concern, data) {
 async function globalAttachFile(data,method = 'POST') {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'attachFile',
+            url: '/proman/attachFile',
             method: method,
             headers: {
                 "Accept": "*/*",
@@ -335,7 +335,7 @@ async function globalAttachFile(data,method = 'POST') {
 async function showAttachmentDetails(id) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'showAttachmentDetails',
+            url: '/proman/showAttachmentDetails',
             method: 'GET',
             headers: {
                 "Accept": "*/*",
@@ -380,7 +380,7 @@ async function globalAddComment(data) {
         //     }
         // }
         $.ajax({
-            url: 'commentUpdate',
+            url: '/proman/commentUpdate',
             method: 'POST',
             headers: {
                 "Accept": "*/*",
@@ -427,7 +427,7 @@ function globalUpdateComment(method, data) {
         }
     }
     $.ajax({
-        url: 'commentUpdate',
+        url: '/proman/commentUpdate',
         method: method,
         headers: {
             "Content-Type": "application/json",
@@ -469,7 +469,7 @@ async function globalUpdateReplyComment(method, data) {
                 }
             }
             $.ajax({
-                url: 'commentReply',
+                url: '/proman/commentReply',
                 method: method,
                 headers: {
                     "Accept": "*/*",
@@ -494,7 +494,7 @@ async function globalUpdateReplyComment(method, data) {
             })
         } else {
             $.ajax({
-                url: 'commentReply',
+                url: '/proman/commentReply',
                 method: method,
                 headers: {
                     "Accept": "*/*",

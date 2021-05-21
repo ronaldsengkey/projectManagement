@@ -7,7 +7,7 @@ $(function(){
 async function renameBoard(id,newName) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: renameBoard.name,
+            url: '/proman/' + renameBoard.name,
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -28,7 +28,7 @@ async function renameBoard(id,newName) {
 async function getTrelloBoard(){
     loadingActivated();
     $.ajax({
-        url: 'trelloBoard',
+        url: '/proman/trelloBoard',
         method: 'GET',
         headers: {
             "Content-Type": "application/json",
@@ -64,7 +64,7 @@ async function getTrelloBoard(){
 async function getTrelloList(id) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: 'trelloList',
+            url: '/proman/trelloList',
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -98,7 +98,7 @@ async function getTrelloList(id) {
 async function deleteBoardTrello(id) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: deleteBoardTrello.name,
+            url: '/proman/' + deleteBoardTrello.name,
             method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
@@ -119,7 +119,7 @@ async function deleteBoardTrello(id) {
 async function deleteList(id) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: deleteList.name,
+            url: '/proman/' + deleteList.name,
             method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
@@ -140,7 +140,7 @@ async function deleteList(id) {
 async function renameList(id,newName) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: renameList.name,
+            url: '/proman/' + renameList.name,
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -182,7 +182,7 @@ async function deleteTaskTrello(body) {
 async function getCardData(id, data) {
     return new Promise(async function (resolve, reject) {
         $.ajax({
-            url: getCardData.name,
+            url: '/proman/' + getCardData.name,
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -230,7 +230,7 @@ async function selectedTask(data){
 
 function globalUpdateTaskTrello(concern, data) {
     $.ajax({
-        url: 'putTaskTrello',
+        url: '/proman/putTaskTrello',
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",

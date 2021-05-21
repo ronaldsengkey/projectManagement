@@ -31,7 +31,7 @@ function loadingDeactivated() {
 loadingDeactivated();
 
 $(async function () {
-    disableDevTools();
+    // disableDevTools();
     await getEnvData();
     $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
@@ -73,7 +73,7 @@ $(document).on('click', 'button', async function () {
                 params: {
                     'email': $('#email').val(),
                     'password': $('#password').val(),
-                    'continue': localUrl + ':' + projectManagementLocalPort
+                    'continue': window.location.origin
                 }
             };
             p = iterateObjectEncryptAESLogin(p);
@@ -135,7 +135,7 @@ $(document).on('click', 'button', async function () {
 
 function getPage(param) {
     $.ajax({
-        url: param,
+        url: '/proman/' + param,
         crossDomain: true,
         method: "GET",
         headers: {
@@ -156,7 +156,7 @@ function getPage(param) {
 
 function postData(data) {
     $.ajax({
-        url: "postData",
+        url: "/proman/postData",
         crossDomain: true,
         method: "POST",
         headers: {

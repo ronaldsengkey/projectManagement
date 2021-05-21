@@ -157,7 +157,7 @@ $(document).on('click', '.shareLink', async function () {
       $('<label class="mb-2 mt-3" style="font-size:1.25em;font-weight:500;">Share URL</label>').insertBefore($('.swal2-input'))
       $('.swal2-input').addClass('mt-2');
       $('.swal2-input').attr('id', 'urlLink')
-      $('.swal2-input').val(localUrl + ':' + projectManagementLocalPort + '/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
+      $('.swal2-input').val(window.location.origin  + '/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
       $('.swal2-input').prop('disabled', true);
     },
     preConfirm: async () => {
@@ -581,7 +581,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
-        formUpdateComment.append('url', localUrl + ':' + projectManagementLocalPort + '/employee')
+        formUpdateComment.append('url', window.location.origin  + '/employee')
         $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
         $(this).val('');
         $(this).blur();
@@ -1694,7 +1694,7 @@ $(document).on('click', '.syncGoogle', async function () {
   let groupId = $(this).data('groupid');
   let emailEmployee = ct.email;
   let idEmployee = ct.id_employee;
-  let hostname = window.location.protocol + '//' + window.location.hostname + ':' + projectManagementLocalPort
+  let hostname = window.location.origin
 
   let bodySync = {
     "employeeId": idEmployee,
@@ -1929,7 +1929,7 @@ $(document).on('change', '.emploPic', function () {
       'account_id': val,
       'account_name': valName
     }]),
-    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
   $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:' + window['color' + val] + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
@@ -2275,7 +2275,7 @@ $(document).on('click', '.submitTeam', function () {
     'name': name,
     'user_update': ct.name,
     'member': memberData,
-    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
   refreshTableData(groupid);
@@ -2509,7 +2509,7 @@ $(document).on('click', '.rowStat', async function () {
     'status': stat,
     'name': name,
     'user_update': ct.name,
-    'url': localUrl + ':' + projectManagementLocalPort + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);

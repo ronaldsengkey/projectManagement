@@ -11,7 +11,7 @@ async function checkSessionSettings(){
 
 async function getTrelloPage(){
     $.ajax({
-        url: 'trello_management',
+        url: '/proman/trello_management',
         method: 'GET',
         headers: {
             "Content-Type": "application/json",
@@ -80,7 +80,7 @@ $(document).on('click', '.trelloBoardList', async function () {
         $('#page-content-wrapper').addClass('warp-boundary');
         window['trelloListTask' + id + ''] = trelloList;
         $.ajax({
-            url: 'trelloBoardPage',
+            url: '/proman/trelloBoardPage',
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -88,7 +88,7 @@ $(document).on('click', '.trelloBoardList', async function () {
                 "Cache-Control": "no-cache",
             },
             success: function (result) {
-                $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/trelloContent.js", function (data, textStatus, jqxhr) {})
+                $.getScript("/proman/public/assets/js/project_management/trelloContent.js", function (data, textStatus, jqxhr) {})
                 $('.trelloContentData').html(result);
                 let pass = {
                     boardName: boardName,

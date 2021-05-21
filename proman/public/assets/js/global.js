@@ -169,40 +169,133 @@ async function contactMore(){
     })
 }
 
-async function checkIfServiceIsOpen(port,token){
+async function ajaxCall({
+    data,
+    url,
+    method,
+    credentialHeader = false,
+    extraHeaders = {},
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+    },
+    formdata = false,
+    decrypt = false
+}) {
     return new Promise(async function (resolve, reject) {
-        try {
+        let ct;
+        if (credentialHeader) {
+            try {
+                ct = JSON.parse(localStorage.getItem('accountProfile'));
+                headers.token = ct.token;
+                headers.secretKey = ct.secretKey,
+                headers.signature = ct.signature
+            } catch (error) {
+                console.log('err', error);
+                resolve(toastrNotifFull('empty credential'));
+            }
+        }
+
+        if (extraHeaders) headers = Object.assign(headers, extraHeaders);
+
+        if (!formdata) {
             $.ajax({
-                url: 'openService',
+                url: url,
                 crossDomain: true,
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "*/*",
-                    "Cache-Control": "no-cache",
-                    "port": port,
-                    "token":token
-                },
-                success: function (callback) {
+                method: method,
+                headers: headers,
+                data: JSON.stringify(data)
+            }).done(async function (callback) {
+                if (!decrypt) resolve(callback);
+                else {
+                    iterateObjectDecryptAES(callback.data)
                     resolve(callback);
-                },
+                }
+
+            }).fail(async function (b) {
+                resolve(false)
             })
-        } catch (err) {
-            console.log(err);
-            reject(callback);
+        } else {
+            $.ajax({
+                type: method,
+                crossDomain: true,
+                contentType: false,
+                cache: false,
+                url: url,
+                processData: false,
+                enctype: 'multipart/form-data',
+                headers: headers,
+                data: data,
+            }).done(async function (callback) {
+                resolve(callback);
+            }).fail(async function (b) {
+                resolve(false)
+            })
+        }
+
+    })
+}
+
+
+function iterateObjectDecryptAES(obj) {
+    try {
+        let temp;
+        Object.keys(obj).forEach(key => {
+            if (typeof obj[key] === 'object') {
+                iterateObjectDecryptAES(obj[key])
+            } else {
+                temp = obj[key];
+                obj[key] = aesDecrypt(obj[key]);
+                if (obj[key] == "") obj[key] = temp;
+                if (obj[key].toString().includes("error")) obj[key] = temp;
+            }
+        })
+        return obj;
+    } catch (error) {
+        return obj;
+    }
+}
+
+function aesDecrypt(data) {
+    var key = CryptoJS.enc.Utf8.parse(aesKeyDecrypt);
+    var iv = CryptoJS.enc.Utf8.parse(ivKeyDecrypt);
+    var decryptedWA = CryptoJS.AES.decrypt(data, key, {
+        iv: iv
+    });
+    var decryptedUtf8 = decryptedWA.toString(CryptoJS.enc.Utf8);
+    return decryptedUtf8;
+}
+
+function iterateObjectEncryptAESGlobal(obj) {
+    Object.keys(obj).forEach(key => {
+        if (typeof obj[key] === 'object') {
+            iterateObjectEncryptAESGlobal(obj[key])
+        } else {
+            obj[key] = aesEncryptGlobal(obj[key]);
         }
     })
-    
+    return obj;
 }
 
-function diffTime(a, b, time) {
-    var result = a.diff(b, time);
-    return result;
+function aesEncryptGlobal(data) {
+    let key = aesKeyDecrypt;
+    let iv = ivKeyDecrypt;
+    let cipher = CryptoJS.AES.encrypt(data, CryptoJS.enc.Utf8.parse(key), {
+        iv: CryptoJS.enc.Utf8.parse(iv),
+        padding: CryptoJS.pad.Pkcs7,
+        mode: CryptoJS.mode.CBC
+    });
+    return cipher.toString();
 }
 
-function getDifference(item, time) {
-    var thedate = moment(item.date);
-    var todayDate = moment();
-    var difference = diffTime(todayDate, thedate, time);
-    return difference;
+function iterateObjectValueToString(obj) {
+    Object.keys(obj).forEach(key => {
+        if (typeof obj[key] === 'object') {
+            iterateObjectValueToString(obj[key])
+        } else {
+            obj[key] = obj[key].toString();
+        }
+    })
+    return obj;
 }

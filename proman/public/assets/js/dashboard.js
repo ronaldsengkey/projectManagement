@@ -53,7 +53,7 @@ $(document).on('click', '.profilePict', function () {
 })
 $(async function () {
     loadingActivated();
-    disableDevTools();
+    // disableDevTools();
     await getEnvData();
     getChatContainer();
     try {
@@ -64,7 +64,7 @@ $(async function () {
         {
             fromOther=true;
             $.ajax({
-                url: 'getSession',
+                url: '/proman/getSession',
                 crossDomain: true,
                 method: "GET",
                 headers: {
@@ -77,7 +77,6 @@ $(async function () {
                 retryLimit : 3,
                 timeout : 6000,
                 success: async function(callback){
-                    
                     var callback = JSON.parse(callback);
                     console.log("callback::", callback);
                     localStorage.setItem("accountProfile", JSON.stringify(callback));
@@ -166,7 +165,7 @@ async function subscribeOneSignal(){
         url: domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/onesignal.js",
         dataType: "script",
         error: function(){
-            $.getScript(localUrl + ":" + mainLocalPort + "/public/assets/js/global/onesignal.js", function (data, textStatus, jqxhr){})
+            $.getScript("/public/assets/js/global/onesignal.js", function (data, textStatus, jqxhr){})
         }
     });
 }
@@ -308,7 +307,7 @@ function formDoneLoad() {
 
 async function getPageHtml(param, callbackFunc) {
     $.ajax({
-        url: param,
+        url: '/proman/' + param,
         crossDomain: true,
         method: "GET",
         headers: {
@@ -332,7 +331,7 @@ async function getAjax(url, token) {
         if (url == 'getMethodParam') {
             token = JSON.parse(token);
             $.ajax({
-                url: url,
+                url: '/proman/'+ url,
                 crossDomain: true,
                 method: "GET",
                 headers: {
@@ -362,7 +361,7 @@ async function getAjax(url, token) {
         } else {
             console.log('masuk else', url);
             $.ajax({
-                url: url,
+                url: '/proman/' + url,
                 crossDomain: true,
                 method: "GET",
                 headers: {
@@ -446,7 +445,7 @@ function getData(param, token) {
                 }
             }
             $.ajax({
-                url: _url,
+                url: '/proman/' + _url,
                 crossDomain: true,
                 method: "GET",
                 headers: _headers,
@@ -491,7 +490,7 @@ $(document).on('click', '.closeExpand', function () {
     $('#contentPath').closest('.row').remove();
     let target = $(this).data('origin');
     $.ajax({
-        url: target,
+        url: '/proman/' + target,
         crossDomain: true,
         method: "GET",
         headers: {
@@ -514,7 +513,7 @@ $(document).on('click', '.expand', function () {
         $('#' + target).empty();
         $('#' + target).html('');
         $.ajax({
-            url: target,
+            url: '/proman/' + target,
             crossDomain: true,
             method: "GET",
             headers: {
@@ -536,7 +535,7 @@ $(document).on('click', '.expand', function () {
         $('#' + target).empty();
         $('#' + target).html('');
         $.ajax({
-            url: target,
+            url: '/proman/' + target,
             crossDomain: true,
             method: "GET",
             headers: {
@@ -554,7 +553,7 @@ $(document).on('click', '.expand', function () {
             }
         })
         $.ajax({
-            url: elementBefore,
+            url: '/proman/' + elementBefore,
             crossDomain: true,
             method: "GET",
             headers: {
@@ -591,7 +590,7 @@ $(document).on('keyup', '.search', function () {
 async function postData(data) {
     let ct = localStorage.getItem('accountProfile')
     $.ajax({
-        url: "postData",
+        url: "/proman/postData",
         crossDomain: true,
         method: "POST",
         headers: {
@@ -637,7 +636,7 @@ function getPage(param) {
     } else {
         return new Promise(async function (resolve, reject) {
             $.ajax({
-                url: param,
+                url: '/proman/' + param,
                 crossDomain: true,
                 method: "GET",
                 headers: {
@@ -662,7 +661,7 @@ function getPage(param) {
 
 function getProjectManagement(){
     $.ajax({
-        url: 'project_management',
+        url: '/proman/project_management',
         crossDomain: true,
         method: "GET",
         headers: {
@@ -671,11 +670,11 @@ function getProjectManagement(){
             "Cache-Control": "no-cache"
         },
         success: function (callback) {
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/page-filter.js", function (data, textStatus, jqxhr) {})
-            $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
+            $.getScript("/proman/public/assets/js/project_management/ajaxCall.js", function (data, textStatus, jqxhr) {})
+            $.getScript("/proman/public/assets/js/project_management/documentHandler.js", function (data, textStatus, jqxhr) {})
+            $.getScript("/proman/public/assets/js/project_management/authChecking.js", function (data, textStatus, jqxhr) {})
+            $.getScript("/proman/public/assets/js/project_management/page-filter.js", function (data, textStatus, jqxhr) {})
+            $.getScript("/proman/public/assets/js/project_management/projectManagement.js", function (data, textStatus, jqxhr) {})
             $('#mainContent').append(callback);
         }
     })
@@ -789,7 +788,7 @@ function postDataAll(data, param) {
         try {
             let ct = localStorage.getItem('accountProfile')
             $.ajax({
-                url: param,
+                url: '/proman/' + param,
                 crossDomain: true,
                 method: "POST",
                 headers: {
@@ -857,7 +856,7 @@ async function getRDataDashboard(_param, ct) {
     // console.log('sblm get data', data);
     return new Promise(function (resolve, reject) {
         $.ajax({
-            url: "getRData",
+            url: "/proman/getRData",
             crossDomain: true,
             method: "POST",
             headers: {

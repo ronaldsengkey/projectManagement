@@ -39,8 +39,8 @@ var client = redis.createClient();
 // // Declare a routen
 fastify.register(require('fastify-multipart'));
 fastify.register(require('fastify-static'), {
-    root: path.join(__dirname, 'public'),
-    prefix: '/public/', // optional: default '/'
+    root: path.join(__dirname, 'proman/public'),
+    prefix: '/proman/public/', // optional: default '/'
 })
 
 // var Monitor = require('monitor');
@@ -49,50 +49,8 @@ let mainDBKey = efs.readFileSync('./mainDB.key', 'utf8');
 const fs = require('fs');
 let redisKey = [];
 let returnedConfig = {};
-
-
-
 let token;
 let port;
-
-// fastify.register((fastify, opts, next) => {
-  
-//   fastify.route({
-//     method: 'GET',
-//     url: 'login',
-//     handler: async (req, res) => {
-//       res.send('foo!')
-//     }
-//   });
-
-//   next();
-
-// }, { prefix: 'proman' });
-
-// // fastify.register(function (instance, opts, next) {
-// //   instance.get('/login', function (request, reply) {
-// //     // Will log "basePath: /v1"
-// //     request.log.info('basePath: %s', instance.prefix)
-// //     // reply.send({basePath: instance.prefix})
-// //     reply.sendFile("layouts/login.html");
-// //   })
-
-// //   // instance.register(function (instance, opts, next) {
-// //   //   instance.get('/bar', function (request, reply) {
-// //   //     // Will log "basePath: /v1/v2"
-// //   //     request.log.info('basePath: %s', instance.basePath)
-// //   //     reply.send({basePath: instance.basePath})
-// //   //   })
-
-// //   //   next()
-// //   // }, { prefix: '/v2' })
-
-// //   next()
-// // }, { prefix: '/proman' })
-
-// fastify.register(require('fastify-foo'), {
-//   prefix: '/proman',
-// })
 
 async function getSource(requestTo,concern) {
   return new Promise(async (resolve, reject) => {
@@ -122,7 +80,7 @@ async function getSource(requestTo,concern) {
   });
 }
 
-fastify.get("/:origin", async function (req, reply) {
+fastify.get("/proman/:origin", async function (req, reply) {
   let signature = req.headers.signature;
   let secretKey = req.headers.secretkey;
   let paramTemp;
@@ -143,28 +101,10 @@ fastify.get("/:origin", async function (req, reply) {
         break;
       case "":
         // reply.type('text/html').send(await getSource());
-        reply.redirect("/login");
+        reply.redirect("/proman/login");
         break;
       case "reqpassword":
         reply.sendFile("layouts/login.html");
-        break;
-      case "openService":
-        port = req.headers.port;
-        token = req.headers.token;
-        request.get({
-            async: true,
-            crossDomain: true,
-            headers: {
-              Accept: "*/*",
-              "Cache-Control": "no-cache",
-              "Content-type": "plain/text",
-            },
-            url: "http://"+ localUrl + ":" + port + "/dashboard?token=" + token,
-          },
-          function (err, response, body) {
-            reply.send(body);
-          }
-        );
         break;
       case "employee":
         if(req.query.use == 'project_management'){
@@ -215,13 +155,18 @@ fastify.get("/:origin", async function (req, reply) {
   }
 });
 
-fastify.get("/login", function (req, reply) {
+fastify.get("/proman", function (req, reply) {
+  reply.redirect("/proman/login");
+});
+
+fastify.get("/proman/login", function (req, reply) {
   reply.sendFile("layouts/login.html");
 });
-fastify.get("/home", function (req, reply) {
+
+fastify.get("/proman/home", function (req, reply) {
   reply.sendFile("layouts/home.html");
 });
-fastify.get("/displayOnTable", async function (req, reply) {
+fastify.get("/proman/displayOnTable", async function (req, reply) {
   reply.sendFile("layouts/displayOnTable.html");
 });
 
@@ -269,7 +214,7 @@ function actionGet(data) {
   });
 }
 
-fastify.get('/getSession', async function (req, reply) {
+fastify.get('/proman/getSession', async function (req, reply) {
   console.log('sesos');
   let sessionGet = await getSession(req.headers.for);
   reply.send(sessionGet);
@@ -294,7 +239,7 @@ function getSession(idEmployee){
   
 }
 
-fastify.post("/sendEmailReset", async function (req, reply) {
+fastify.post("/proman/sendEmailReset", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url = hostIP + ":" + accPort + data.settings.url;
@@ -310,7 +255,7 @@ fastify.post("/sendEmailReset", async function (req, reply) {
   }
 });
 
-fastify.put("/sendNewPassword", async function (req, reply) {
+fastify.put("/proman/sendNewPassword", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url = hostIP + ":" + accPort + data.settings.url;
@@ -489,7 +434,7 @@ function isEmptyResult(val) {
   }
 }
 
-fastify.post("/getData", async function (req, reply) {
+fastify.post("/proman/getData", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.headers.param = cryptography.aesEncrypt(
@@ -515,7 +460,7 @@ fastify.post("/getData", async function (req, reply) {
   }
 });
 
-fastify.get("/getFile", async function (req, reply) {
+fastify.get("/proman/getFile", async function (req, reply) {
   console.log("getFile");
   try {
     let server = req.headers.server;
@@ -554,7 +499,7 @@ function iterateObjectDecryptAESLogin(obj) {
   return obj;
 }
 
-fastify.post("/oneSignalInit", async function (request, reply) {
+fastify.post("/proman/oneSignalInit", async function (request, reply) {
   try {
     let data = request.body;
     if (data.settings.target == "onesignal") {
@@ -581,7 +526,7 @@ fastify.post("/oneSignalInit", async function (request, reply) {
 });
 
 
-fastify.post("/postData", async function (request, reply) {
+fastify.post("/proman/postData", async function (request, reply) {
   try {
     let data = request.body;
     if (data.settings.target == "login" || data.settings.target == 'login-auth') {
@@ -661,23 +606,23 @@ async function getRedisData(
   });
 }
 
-fastify.get("/trello_management", function (req, reply) {
+fastify.get("/proman/trello_management", function (req, reply) {
   reply.sendFile("layouts/trello/trelloManagement.html");
 });
 
-fastify.get("/project_management", function (req, reply) {
+fastify.get("/proman/project_management", function (req, reply) {
   reply.sendFile("layouts/projectManagement.html");
 });
 
-fastify.get("/projectBoard", function (req, reply) {
+fastify.get("/proman/projectBoard", function (req, reply) {
   reply.sendFile("layouts/projectBoard.html");
 });
 
-fastify.get("/trelloBoardPage", function (req, reply) {
+fastify.get("/proman/trelloBoardPage", function (req, reply) {
   reply.sendFile("layouts/trello/trelloBoard.html");
 });
 
-fastify.post("/postBoard", async function (req, reply) {
+fastify.post("/proman/postBoard", async function (req, reply) {
   try {
     let data = req.body;
     let token = extToken ? extToken : data.settings.headers.token;
@@ -704,7 +649,7 @@ fastify.post("/postBoard", async function (req, reply) {
   }
 });
 
-fastify.delete("/board", async function (req, reply) {
+fastify.delete("/proman/board", async function (req, reply) {
   try {
     let data = req.body;
     console.log('dataa',data);
@@ -732,7 +677,7 @@ fastify.delete("/board", async function (req, reply) {
   }
 });
 
-fastify.put("/board", async function (req, reply) {
+fastify.put("/proman/board", async function (req, reply) {
   try {
     let data = req.body;
     console.log('dataa',data);
@@ -760,7 +705,7 @@ fastify.put("/board", async function (req, reply) {
   }
 });
 
-fastify.post("/postTask", async function (req, reply) {
+fastify.post("/proman/postTask", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task';
@@ -788,7 +733,7 @@ fastify.post("/postTask", async function (req, reply) {
   }
 });
 
-fastify.post("/postGroup", async function (req, reply) {
+fastify.post("/proman/postGroup", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/group';
@@ -814,7 +759,7 @@ fastify.post("/postGroup", async function (req, reply) {
   }
 });
 
-fastify.get("/board", async function (req, reply) {
+fastify.get("/proman/board", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -852,7 +797,7 @@ fastify.get("/board", async function (req, reply) {
 });
 
 
-fastify.get("/getChannelSlack", async function (req, reply) {
+fastify.get("/proman/getChannelSlack", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -886,7 +831,7 @@ fastify.get("/getChannelSlack", async function (req, reply) {
   }
 });
 
-fastify.get("/getSlackSettings", async function (req, reply) {
+fastify.get("/proman/getSlackSettings", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -921,7 +866,7 @@ fastify.get("/getSlackSettings", async function (req, reply) {
   }
 });
 
-fastify.post("/submitActivationSlack", async function (req, reply) {
+fastify.post("/proman/submitActivationSlack", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -956,7 +901,7 @@ fastify.post("/submitActivationSlack", async function (req, reply) {
   }
 });
 
-fastify.post("/submitChannel", async function (req, reply) {
+fastify.post("/proman/submitChannel", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -992,7 +937,7 @@ fastify.post("/submitChannel", async function (req, reply) {
 });
 
 
-fastify.get("/getEmployee", async function (req, reply) {
+fastify.get("/proman/getEmployee", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1028,7 +973,7 @@ fastify.get("/getEmployee", async function (req, reply) {
   }
 });
 
-fastify.get("/getDivision", async function (req, reply) {
+fastify.get("/proman/getDivision", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1062,7 +1007,7 @@ fastify.get("/getDivision", async function (req, reply) {
   }
 });
 
-fastify.get("/goAuth", async function (req, reply) {
+fastify.get("/proman/goAuth", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1096,7 +1041,7 @@ fastify.get("/goAuth", async function (req, reply) {
   }
 });
 
-fastify.post("/confirmAuthToken", async function (req, reply) {
+fastify.post("/proman/confirmAuthToken", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1132,7 +1077,7 @@ fastify.post("/confirmAuthToken", async function (req, reply) {
 });
 
 
-fastify.get("/trelloBoard", async function (req, reply) {
+fastify.get("/proman/trelloBoard", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1167,7 +1112,7 @@ fastify.get("/trelloBoard", async function (req, reply) {
   }
 });
 
-fastify.get("/trelloList", async function (req, reply) {
+fastify.get("/proman/trelloList", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1202,7 +1147,7 @@ fastify.get("/trelloList", async function (req, reply) {
   }
 });
 
-fastify.get("/getCardData", async function (req, reply) {
+fastify.get("/proman/getCardData", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1237,7 +1182,7 @@ fastify.get("/getCardData", async function (req, reply) {
   }
 });
 
-fastify.delete("/deleteList", async function (req, reply) {
+fastify.delete("/proman/deleteList", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1269,7 +1214,7 @@ fastify.delete("/deleteList", async function (req, reply) {
   }
 });
 
-fastify.put("/renameList", async function (req, reply) {
+fastify.put("/proman/renameList", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1301,7 +1246,7 @@ fastify.put("/renameList", async function (req, reply) {
   }
 });
 
-fastify.put("/putTaskTrello", async function (req, reply) {
+fastify.put("/proman/putTaskTrello", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1336,7 +1281,7 @@ fastify.put("/putTaskTrello", async function (req, reply) {
   }
 });
 
-fastify.delete("/deleteTaskTrello", async function (req, reply) {
+fastify.delete("/proman/deleteTaskTrello", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1371,7 +1316,7 @@ fastify.delete("/deleteTaskTrello", async function (req, reply) {
   }
 });
 
-fastify.put("/renameBoard", async function (req, reply) {
+fastify.put("/proman/renameBoard", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1403,7 +1348,7 @@ fastify.put("/renameBoard", async function (req, reply) {
   }
 });
 
-fastify.delete("/deleteBoardTrello", async function (req, reply) {
+fastify.delete("/proman/deleteBoardTrello", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1436,7 +1381,7 @@ fastify.delete("/deleteBoardTrello", async function (req, reply) {
   }
 });
 
-fastify.get("/getChartAnalytic", async function (req, reply) {
+fastify.get("/proman/getChartAnalytic", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     console.log('qqq',req.headers.param);
@@ -1475,7 +1420,7 @@ fastify.get("/getChartAnalytic", async function (req, reply) {
 });
 
 
-fastify.get("/summaryBoard", async function (req, reply) {
+fastify.get("/proman/summaryBoard", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1515,7 +1460,7 @@ fastify.get("/summaryBoard", async function (req, reply) {
   }
 });
 
-fastify.get("/getGroupTask", async function (req, reply) {
+fastify.get("/proman/getGroupTask", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1552,7 +1497,7 @@ fastify.get("/getGroupTask", async function (req, reply) {
   }
 });
 
-fastify.get("/getTaskData", async function (req, reply) {
+fastify.get("/proman/getTaskData", async function (req, reply) {
   try {
     console.log('req',req.headers);
     let token = extToken ? extToken : req.headers.token;
@@ -1590,7 +1535,7 @@ fastify.get("/getTaskData", async function (req, reply) {
   }
 });
 
-fastify.get("/comment", async function (req, reply) {
+fastify.get("/proman/comment", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1627,11 +1572,11 @@ fastify.get("/comment", async function (req, reply) {
   }
 });
 
-fastify.get('/google/response', async function (request, reply){
+fastify.get('/proman/google/response', async function (request, reply){
   reply.type('text/html').send(await getSource({source:'googleResponse',flow:'ultipayDashboard'},'page'))
 })
 
-fastify.post("/google/syncGoogle", async function (req, reply) {
+fastify.post("/proman/google/syncGoogle", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     console.log('aaa',req.headers);
@@ -1667,7 +1612,7 @@ fastify.post("/google/syncGoogle", async function (req, reply) {
   }
 });
 
-fastify.post("/syncGoogle", async function (req, reply) {
+fastify.post("/proman/syncGoogle", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
     let data = {
@@ -1704,7 +1649,7 @@ fastify.post("/syncGoogle", async function (req, reply) {
   }
 });
 
-fastify.put("/editGroup", async function (req, reply) {
+fastify.put("/proman/editGroup", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.headers.token;
@@ -1743,7 +1688,7 @@ fastify.put("/editGroup", async function (req, reply) {
   }
 });
 
-fastify.put("/putTask", async function (req, reply) {
+fastify.put("/proman/putTask", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.body.settings.headers.token;
@@ -1781,7 +1726,7 @@ fastify.put("/putTask", async function (req, reply) {
   }
 });
 
-fastify.put("/attachFile", async function (request, reply) {
+fastify.put("/proman/attachFile", async function (request, reply) {
   try {
     if (!request.isMultipart()) {
       reply.code(400).send(new Error('Request is not multipart'))
@@ -1833,7 +1778,7 @@ fastify.put("/attachFile", async function (request, reply) {
   }
 });
 
-fastify.post("/attachFile", async function (request, reply) {
+fastify.post("/proman/attachFile", async function (request, reply) {
   try {
     if (!request.isMultipart()) {
       reply.code(400).send(new Error('Request is not multipart'))
@@ -1884,7 +1829,7 @@ fastify.post("/attachFile", async function (request, reply) {
   }
 });
 
-fastify.get("/showAttachmentDetails", async function (req, reply) {
+fastify.get("/proman/showAttachmentDetails", async function (req, reply) {
   try {
     let token = req.headers.token;
     let signature = req.headers.signature;
@@ -1914,7 +1859,7 @@ fastify.get("/showAttachmentDetails", async function (req, reply) {
   }
 });
 
-fastify.post("/commentUpdate", async function (request, reply) {
+fastify.post("/proman/commentUpdate", async function (request, reply) {
   try {
     if (!request.isMultipart()) {
       reply.code(400).send(new Error('Request is not multipart'))
@@ -1969,7 +1914,7 @@ fastify.post("/commentUpdate", async function (request, reply) {
   }
 });
 
-fastify.delete("/commentUpdate", async function (req, reply) {
+fastify.delete("/proman/commentUpdate", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.body.settings.headers.token;
     console.log('req',req.body);
@@ -2007,7 +1952,7 @@ fastify.delete("/commentUpdate", async function (req, reply) {
   }
 });
 
-fastify.post("/commentReply", async function (request, reply) {
+fastify.post("/proman/commentReply", async function (request, reply) {
   try {
     if (!request.isMultipart()) {
       reply.code(400).send(new Error('Request is not multipart'))
@@ -2060,7 +2005,7 @@ fastify.post("/commentReply", async function (request, reply) {
   }
 });
 
-fastify.put("/commentReply", async function (request, reply) {
+fastify.put("/proman/commentReply", async function (request, reply) {
 
   try {
     if (!request.isMultipart()) {
@@ -2152,7 +2097,7 @@ fastify.put("/commentReply", async function (request, reply) {
   // }
 });
 
-fastify.delete("/commentReply", async function (req, reply) {
+fastify.delete("/proman/commentReply", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.body.settings.headers.token;
@@ -2190,7 +2135,7 @@ fastify.delete("/commentReply", async function (req, reply) {
   }
 });
 
-fastify.put("/commentUpdate", async function (req, reply) {
+fastify.put("/proman/commentUpdate", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.body.settings.headers.token;
@@ -2228,7 +2173,7 @@ fastify.put("/commentUpdate", async function (req, reply) {
   }
 });
 
-fastify.delete("/deleteGroup", async function (req, reply) {
+fastify.delete("/proman/deleteGroup", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.headers.token;
@@ -2267,7 +2212,7 @@ fastify.delete("/deleteGroup", async function (req, reply) {
   }
 });
 
-fastify.delete("/deleteTask", async function (req, reply) {
+fastify.delete("/proman/deleteTask", async function (req, reply) {
   try {
     console.log('req',req.body);
     let token = extToken ? extToken : req.headers.token;
@@ -2305,7 +2250,7 @@ fastify.delete("/deleteTask", async function (req, reply) {
   }
 });
 
-fastify.post("/getRData", async function (request, reply) {
+fastify.post("/proman/getRData", async function (request, reply) {
   try {
     let data = request.body.param;
     let token = request.headers.token;
@@ -2321,7 +2266,7 @@ fastify.post("/getRData", async function (request, reply) {
   }
 });
 
-fastify.post('/updateConfig', async function (request, reply) {
+fastify.post('/proman/updateConfig', async function (request, reply) {
   try {
     console.log('request: ', request.headers.serverkey);
     let key = request.headers.serverkey;
@@ -2472,7 +2417,7 @@ async function convertURLRedis(data) {
   }
 }
 
-fastify.get("/getEmployeeDetail", async function (req, reply) {
+fastify.get("/proman/getEmployeeDetail", async function (req, reply) {
   try {
     let idEmployee = req.headers.employeeid;
     let signature = req.headers.signature;
@@ -2510,15 +2455,15 @@ fastify.get("/getEmployeeDetail", async function (req, reply) {
   }
 });
 
-fastify.get('/employeeDetail',async function(req,reply){
+fastify.get('/proman/employeeDetail',async function(req,reply){
   reply.sendFile('layouts/profileMember.html');
 })
 
-fastify.get('/setting',async function(req,reply){
+fastify.get('/proman/setting',async function(req,reply){
   reply.sendFile('layouts/setting.html');
 })
 
-fastify.get("/getMethod", async function (req, reply) {
+fastify.get("/proman/getMethod", async function (req, reply) {
   try {
     let token = req.headers.token;
     let signature = req.headers.signature;
@@ -2553,7 +2498,7 @@ fastify.get("/getMethod", async function (req, reply) {
   }
 });
 
-fastify.get("/getMethodOnly", async function (req, reply) {
+fastify.get("/proman/getMethodOnly", async function (req, reply) {
   try {
     let token = req.headers.token;
     let signature = req.headers.signature;
@@ -2583,7 +2528,7 @@ fastify.get("/getMethodOnly", async function (req, reply) {
   }
 });
 
-fastify.get("/getMethodParam", async function (req, reply) {
+fastify.get("/proman/getMethodParam", async function (req, reply) {
   try {
     let token = req.headers.token;
     let signature = req.headers.signature;
@@ -2621,7 +2566,7 @@ fastify.get("/getMethodParam", async function (req, reply) {
   }
 });
 
-fastify.get("/getScopeEmployee", async function (req, reply) {
+fastify.get("/proman/getScopeEmployee", async function (req, reply) {
   try {
     let token = req.headers.token;
     let signature = req.headers.signature;
@@ -2650,7 +2595,7 @@ fastify.get("/getScopeEmployee", async function (req, reply) {
   }
 });
 
-fastify.post("/deleteEmployeeMethod", async function (req, res) {
+fastify.post("/proman/deleteEmployeeMethod", async function (req, res) {
   try {
     let data = req.body;
     let hostNameData = await getRedisData(hostNameServer);
@@ -2678,7 +2623,7 @@ fastify.post("/deleteEmployeeMethod", async function (req, res) {
   }
 });
 
-fastify.put("/updateEmployeeMethod", async function (req, res) {
+fastify.put("/proman/updateEmployeeMethod", async function (req, res) {
   try {
     let data = req.body;
     let hostNameData = await getRedisData(hostNameServer);
@@ -2706,7 +2651,7 @@ fastify.put("/updateEmployeeMethod", async function (req, res) {
   }
 });
 
-fastify.put("/updateEmployeeRole", async function (req, res) {
+fastify.put("/proman/updateEmployeeRole", async function (req, res) {
   try {
     let data = req.body;
     let hostNameData = await getRedisData(hostNameServer);
@@ -2734,7 +2679,7 @@ fastify.put("/updateEmployeeRole", async function (req, res) {
   }
 });
 
-fastify.get('/getRole',async function(req,reply){
+fastify.get('/proman/getRole',async function(req,reply){
   try {
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
@@ -2765,7 +2710,7 @@ fastify.get('/getRole',async function(req,reply){
   }
 })
 
-fastify.put("/updateEmployee", async function (req, reply) {
+fastify.put("/proman/updateEmployee", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url =
@@ -2810,16 +2755,7 @@ async function defineConfig() {
   // // ANCHOR LOCAL PORT
   // employeeLocalPort = "8103";
   // csLocalPort = "8105";
-}
-
-async function defineLocalConfig(){
-  // ANCHOR LOCAL URL
-  // // localUrl = "http://sandbox.dashboard.ultipay.id";
-  // localUrl = "http://localhost";
-
-  // // ANCHOR LOCAL PORT
-  // mainLocalPort = '8100'
-}
+}=
 
 async function updateConfig(data){
   let keys = Object.keys(data);
@@ -2831,8 +2767,7 @@ async function updateConfig(data){
 }
 
 async function checkAndGetConfigFromMainDB(){
-  return new Promise(async function(resolve,reject){
-    // await defineLocalConfig();
+  return new Promise(async function(resolve,reject){=
     r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/getConfig', {
       "headers": {
           "serverKey": mainDBKey
@@ -2871,7 +2806,7 @@ async function getBranch(){
   })
 }
 
-fastify.get('/envConfig', function (req, reply) {
+fastify.get('/proman/envConfig', function (req, reply) {
   r.get({
     "async": true,
     "crossDomain": true,
@@ -2900,7 +2835,7 @@ fastify.get('/envConfig', function (req, reply) {
   });
 });
 
-fastify.get('/chat', async function (request, reply) {
+fastify.get('/proman/chat', async function (request, reply) {
   r.get({
     "async": true,
     "crossDomain": true,
@@ -2913,7 +2848,7 @@ fastify.get('/chat', async function (request, reply) {
   });
 });
 
-fastify.get('/getChatPage', async function (req, reply) {
+fastify.get('/proman/getChatPage', async function (req, reply) {
   console.log('getchat ...');
   // console.log(req.headers);
   try {  

@@ -62,7 +62,7 @@ $(async function(){
 async function getEnvData(){
     return new Promise(async function(resolve,reject){
         $.ajax({
-            url: 'envConfig',
+            url: '/proman/envConfig',
             crossDomain: true,
             method: "GET",
             headers: {
