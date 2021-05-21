@@ -157,7 +157,7 @@ $(document).on('click', '.shareLink', async function () {
       $('<label class="mb-2 mt-3" style="font-size:1.25em;font-weight:500;">Share URL</label>').insertBefore($('.swal2-input'))
       $('.swal2-input').addClass('mt-2');
       $('.swal2-input').attr('id', 'urlLink')
-      $('.swal2-input').val(window.location.origin  + '/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
+      $('.swal2-input').val(window.location.origin  + '/proman/employee?boardId=' + boardId + '&groupTaskId=' + groupId + '&taskId=' + id)
       $('.swal2-input').prop('disabled', true);
     },
     preConfirm: async () => {
@@ -581,7 +581,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
-        formUpdateComment.append('url', window.location.origin  + '/employee')
+        formUpdateComment.append('url', window.location.origin  + '/proman/employee')
         $('.commentInputArea[data-id=' + id + ']').attr('disabled', 'disabled')
         $(this).val('');
         $(this).blur();
@@ -1329,18 +1329,18 @@ async function showToggleScope(id, name) {
   globalUnLoad('settingSlack', name, '', true);
   if (slackSettings.responseCode == '200') {
     var tag = '<ul class="list-group p-3">';
-    tag += '<li class="list-group-item">' +
-      '<div class="row">' +
-      '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
-      '<h5>Status</h5>' +
-      '</div>' +
-      '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
-      '<div class="slider round">' +
-      '<span class="on">Activated</span>' +
-      '<span class="off">Deactivated</span>' +
-      '</div>' +
-      '</label></div>' +
-      '</div></li>';
+    // tag += '<li class="list-group-item">' +
+    //   '<div class="row">' +
+    //   '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
+    //   '<h5>Status</h5>' +
+    //   '</div>' +
+    //   '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
+    //   '<div class="slider round">' +
+    //   '<span class="on">Activated</span>' +
+    //   '<span class="off">Deactivated</span>' +
+    //   '</div>' +
+    //   '</label></div>' +
+    //   '</div></li>';
     tag += '<li class="list-group-item">' +
       '<div class="row">' +
       '<div class="col-lg-9 listOfChannels" style="text-align:start;align-self:center;">' +
@@ -1929,7 +1929,7 @@ $(document).on('change', '.emploPic', function () {
       'account_id': val,
       'account_name': valName
     }]),
-    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/proman/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
   $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:' + window['color' + val] + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
@@ -2275,7 +2275,7 @@ $(document).on('click', '.submitTeam', function () {
     'name': name,
     'user_update': ct.name,
     'member': memberData,
-    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/proman/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('team', updateTeam);
   refreshTableData(groupid);
@@ -2509,7 +2509,7 @@ $(document).on('click', '.rowStat', async function () {
     'status': stat,
     'name': name,
     'user_update': ct.name,
-    'url': window.location.origin  + '/employee?groupTaskId=' + groupid + '&taskId=' + id
+    'url': window.location.origin  + '/proman/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
   globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);

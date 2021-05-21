@@ -44,7 +44,7 @@ $(async function () {
             $('#login_img').attr('src', JSON.parse(accountLogin).qrcode)
         } else {
             if (accountProfile == 'undefined' || accountProfile == null) {
-                window.location = "login";
+                window.location = "/proman/login";
             }
         }
     }

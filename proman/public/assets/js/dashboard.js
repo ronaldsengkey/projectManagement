@@ -476,7 +476,7 @@ function logout() {
     localStorage.removeItem('accountProfile');
     localStorage.removeItem('accountLogin');
     sessionStorage.clear();
-    window.location = "login";
+    window.location = "/proman/login";
 };
 $(document).on('click', '#logout', function () {
     logout();

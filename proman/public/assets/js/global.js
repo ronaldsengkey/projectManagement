@@ -92,7 +92,7 @@ function logout() {
     localStorage.removeItem('accountProfile');
     localStorage.removeItem('accountLogin');
     sessionStorage.clear();
-    window.location = "login";
+    window.location = "/proman/login";
 }
 
 function toastrNotifFull(title,type="success"){

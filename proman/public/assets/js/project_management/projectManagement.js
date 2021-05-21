@@ -2905,7 +2905,7 @@ $(document).on('click', '.goTrello', async function () {
     let authRes = await goAuth();
     if (authRes.responseCode == '200') {
         sessionStorage.setItem('meId', JSON.parse(authRes.data).id);
-        $.getScript(window.location.origin + "/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
+        $.getScript(window.location.origin + "/proman/public/assets/js/project_management/trello.js", function (data, textStatus, jqxhr) {})
     } else if (authRes.responseCode == '476') {
         activeModalConfirmToken()
         window.open(authRes.data, "_blank", "width=750,height=750,top=400,left=900");
@@ -3067,7 +3067,7 @@ $(document).on('click', '#addGroupTask', function () {
                 "division_id": ct.division_id,
                 "grade": ct.grade,
                 "user_create": ct.name,
-                'url': window.location.origin  + '/employee?boardId=' + thisId
+                'url': window.location.origin  + '/proman/employee?boardId=' + thisId
             }
             return await postGroupTask(bodyGroup).then(async function (result) {
                 let param;
