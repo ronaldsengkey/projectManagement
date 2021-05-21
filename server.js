@@ -2755,7 +2755,7 @@ async function defineConfig() {
   // // ANCHOR LOCAL PORT
   // employeeLocalPort = "8103";
   // csLocalPort = "8105";
-}=
+}
 
 async function updateConfig(data){
   let keys = Object.keys(data);
@@ -2767,7 +2767,7 @@ async function updateConfig(data){
 }
 
 async function checkAndGetConfigFromMainDB(){
-  return new Promise(async function(resolve,reject){=
+  return new Promise(async function(resolve,reject){
     r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/getConfig', {
       "headers": {
           "serverKey": mainDBKey
