@@ -131,11 +131,11 @@ async function domBoardContent() {
     else doneGT = false;
 
     let colorDone;
-    let backgroundDone;
+    let classDone;
 
     if(element.status == false) colorDone = 'black'
     else {
-      backgroundDone = '#FFBA64'
+      classDone = 'classDone'
       colorDone = 'green'
     } 
 
@@ -143,7 +143,7 @@ async function domBoardContent() {
       let camelizeBoard = camelize(element.name);
       // let joinBoardAndId = camelize(element.name) + element.board_id;
       let menuTemplate = '<div class="row menuRow menuRename" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-edit"></i>&nbsp;Rename Group</div></div> <div class="row menuRow menuDelete" data-camelized="' + camelizedBoard + '" data-boardname="' + boardName + '" data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + '><div class="col-lg-12"><i class="fas fa-trash"></i>&nbsp;Delete Group</div></div>';
-      let htmlAccordion = '<div class="card mt-3 mb-3 cardGroupTask" style="background:'+backgroundDone+'" data-name="'+element.name+'"  id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
+      let htmlAccordion = '<div class="card mt-3 mb-3 cardGroupTask '+classDone+'" data-name="'+element.name+'"  id="cardGT' + element._id + '" data-boardtype=' + boardType + ' data-parent="parent' + element._id + '" data-boardAidi=' + id + '>' +
         '<div class="card-header" id="' + camelizeBoard + '">' +
         '<div class="row"><div class="col-lg-8">' +
         '<h2 class="mb-0">' +
