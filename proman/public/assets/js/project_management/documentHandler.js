@@ -1310,6 +1310,16 @@ $(document).on('click', '.toSetting', function () {
       $('#wrapper').removeClass('d-flex');
       $('#wrapper').html(result);
       $('#modalNav').modal('hide')
+
+      loadingActivated()
+      let slackSettings = await getSlackSettings();
+      loadingDeactivated()
+      if (slackSettings.data[0].slack_notif == 'on') $('.switchSlackStatus').prop('checked', true);
+      else {
+        $('.selectedChannelData').addClass('disableElement');
+        $('.availableChannelData').addClass('disableElement');
+      } 
+
     }
   })
 })
@@ -1317,8 +1327,11 @@ $(document).on('click', '.toSetting', function () {
 $(document).on('click', '.settingSlack', function () {
   var collapsed = $(this).attr('aria-expanded');
   if (collapsed == 'true') {
+    $('.switchSlack').css('top','6%')
     globalLoad('settingSlack', $(this).data('name'), '', true);
     showToggleScope($(this).data('id'), $(this).data('name'));
+  } else {
+    $('.switchSlack').css('top','25%')
   }
 })
 
@@ -1326,31 +1339,18 @@ async function showToggleScope(id, name) {
   $('#for' + id).empty();
   console.log('kok toggle', id);
   let slackSettings = await getSlackSettings();
-  globalUnLoad('settingSlack', name, '', true);
-  if (slackSettings.responseCode == '200') {
-    var tag = '<ul class="list-group p-3">';
-    // tag += '<li class="list-group-item">' +
-    //   '<div class="row">' +
-    //   '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
-    //   '<h5>Status</h5>' +
-    //   '</div>' +
-    //   '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
-    //   '<div class="slider round">' +
-    //   '<span class="on">Activated</span>' +
-    //   '<span class="off">Deactivated</span>' +
-    //   '</div>' +
-    //   '</label></div>' +
-    //   '</div></li>';
+  var tag = '<ul class="list-group p-3 col selectedChannelData">';
     tag += '<li class="list-group-item">' +
-      '<div class="row">' +
+      '<div class="row liSelected">' +
       '<div class="col-lg-9 listOfChannels" style="text-align:start;align-self:center;">' +
-      '<h5>Channel</h5>' +
+      '<h5>Selected Channel</h5>' +
       '</div>' +
-      '<div class="col-lg-3" style="text-align:end;"><button class="text-white btn-md rounded-pill btn amber lighten-1" id="addChannelSlack" type="button">Add Channel</button></div>' +
+      // '<div class="col-lg-3" style="text-align:end;"><button class="text-white btn-md rounded-pill btn amber lighten-1" id="addChannelSlack" type="button">Add Channel</button></div>' +
       '</div></li>';
     tag += '</ul>';
     $('#for' + id).append(tag);
-    if (slackSettings.data[0].slack_notif == 'on') $('.switchSlackStatus').prop('checked', true);
+
+  if (slackSettings.responseCode == '200') {
     if (slackSettings.data[0].slack_channels.length > 0) {
       let dataSlack = slackSettings.data[0].slack_channels;
       window['dataSlack'] = dataSlack;
@@ -1359,8 +1359,42 @@ async function showToggleScope(id, name) {
         tags += '<div class="chip waves-effect mr-2" data-id='+element._id+'>' + element.name + '<i data-id=' + element._id + ' class="removeChannel fas fa-times fa-xs ml-2 mt-1"></i></div>'
       });
       $('.listOfChannels').append(tags);
+      $('.liSelected').append('<div class="col-lg-3" style="text-align:end;"><a href="#" class="removeAllChannel">Remove All</a></div>')
     }
+    let channelSlack = await getChannelSlack();
+    globalUnLoad('settingSlack', name, '', true);
+    if (channelSlack != 500) {
+      let tags = '<ul class="list-group p-3 col availableChannelData"><li class="list-group-item"><div class="row liAvailable"><div class="col-lg-9 listOfAvailableChannels" style="text-align:start;align-self:center;"><h5>Available Channel</h5></div>'
+      tags += '</div></li></ul>';
+      let tagsChip = '';
+      if(window['dataSlack'] != undefined){
+        let difference = objDiffSlack(channelSlack,window['dataSlack']);
+        window['availSlack'] = difference;
+        if(difference.length > 0){
+          difference.forEach(element => {
+            tagsChip += '<div class="chip waves-effect mr-2" data-id='+element._id+'>' + element.name + '<i data-id=' + element._id + ' class="addChannelTags fas fa-plus fa-xs ml-2 mt-1"></i></div>'
+          });
+          $('#for' + id).append(tags)
+        }
+      } else {
+        window['availSlack'] = channelSlack
+        channelSlack.forEach(element => {
+          tagsChip += '<div class="chip waves-effect mr-2" data-id='+element._id+'>' + element.name + '<i data-id=' + element._id + ' class="addChannelTags fas fa-plus fa-xs ml-2 mt-1"></i></div>'
+        });
+        $('#for' + id).append(tags)
+      }
+      try {
+        if(window['availSlack'].length > 0){
+          $('.liAvailable').append('<div class="col-lg-3" style="text-align:end;"><a href="#" class="addAllChannel">Add All</a></div>')
+        }
+      } catch (error) {
+        
+      }
+      $('.listOfAvailableChannels').append(tagsChip)
+    }
+    
   } else if (slackSettings.responseCode == '404') {
+    globalUnLoad('settingSlack', name, '', true);
     var tag = '<ul class="list-group p-3">';
     tag += '<li class="list-group-item">' +
       '<div class="row">' +
@@ -1376,6 +1410,7 @@ async function showToggleScope(id, name) {
       '</div></li>';
     $('#for' + id).append(tag);
   } else {
+    globalUnLoad('settingSlack', name, '', true);
     let param = {
       type: 'error',
       text: slackSettings.responseMessage
@@ -1383,6 +1418,92 @@ async function showToggleScope(id, name) {
     callNotif(param);
   }
 }
+
+$(document).on('click','.removeAllChannel',async function(){
+  let chooseArray = [];
+  loadingActivated();
+  let bodyChannel = {
+    "account_id": ct.id_employee,
+    "account_category": 'employee',
+    "slack_channels": JSON.stringify(chooseArray)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    window['dataSlack'] = [];
+    $('.settingSlack').click()
+    setTimeout(() => {
+      $('.settingSlack').click()
+    }, 1250);
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
+
+$(document).on('click','.addAllChannel',async function(){
+  let chooseArray = [];
+  window['availSlack'].forEach(element => {
+    chooseArray.push(element._id);
+  });
+  if(window['dataSlack'] != undefined){
+    chooseArray = window['dataSlack'].concat(chooseArray)
+  }
+  loadingActivated();
+  let bodyChannel = {
+    "account_id": ct.id_employee,
+    "account_category": 'employee',
+    "slack_channels": JSON.stringify(chooseArray)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    $('.settingSlack').click()
+    setTimeout(() => {
+      $('.settingSlack').click()
+    }, 1250);
+    
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
+
+$(document).on('click','.addChannelTags',async function(){
+  let currentChoose = $(this).data('id');
+  let chooseArray = [];
+  chooseArray.push(currentChoose);
+  if(window['dataSlack'] != undefined){
+    chooseArray = window['dataSlack'].concat(chooseArray)
+  }
+  loadingActivated();
+  let bodyChannel = {
+    "account_id": ct.id_employee,
+    "account_category": 'employee',
+    "slack_channels": JSON.stringify(chooseArray)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    $('.settingSlack').click()
+    setTimeout(() => {
+      $('.settingSlack').click()
+    }, 1250);
+    
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
 
 $(document).on('click', '.removeChannel', async function () {
   let idChannel = $(this).data('id');
@@ -1405,6 +1526,10 @@ $(document).on('click', '.removeChannel', async function () {
     };
     callNotif(param);
     $('.chip[data-id='+idChannel+']').remove();
+    $('.settingSlack').click()
+    setTimeout(() => {
+      $('.settingSlack').click()
+    }, 1250);
   } 
   else {
     let param = {
@@ -1441,6 +1566,10 @@ $(document).on('click', '.switchSlackStatus', async function () {
       text: submitted.responseMessage
     };
     callNotif(paramSubmit);
+    $('.settingSlack').click()
+    setTimeout(() => {
+      $('.settingSlack').click()
+    }, 1250);
   } else {
     $('.switchSlackStatus').prop('checked', false);
     let paramSubmitFailed = {
@@ -1694,7 +1823,7 @@ $(document).on('click', '.syncGoogle', async function () {
   let groupId = $(this).data('groupid');
   let emailEmployee = ct.email;
   let idEmployee = ct.id_employee;
-  let hostname = window.location.origin
+  let hostname = window.location.origin  + "/proman"
 
   let bodySync = {
     "employeeId": idEmployee,

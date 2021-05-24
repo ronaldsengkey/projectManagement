@@ -213,6 +213,7 @@ async function addTask(value, groupId) {
             'user_create': ct.name,
             'status': "Pending",
             'priority': "High",
+            'user_create_id': ct.id_employee,
             'due_date': moment(moment(), 'YYYY-MM-DD').add(7, 'days').format('YYYY-MM-DD'),
             'timeline': JSON.stringify([moment().format("YYYY-MM-DD"), moment(moment(), 'YYYY-MM-DD').add(7, 'days').format('YYYY-MM-DD')])
         }
