@@ -54,7 +54,8 @@ let port;
 
 async function getSource(requestTo,concern) {
   return new Promise(async (resolve, reject) => {
-    let link = cdnLink + ':' + cdnPort + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
+    // let link = cdnLink + ':' + cdnPort + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
+    let link = cdnLink + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
     console.log('a',link);
     r.get({
         async: true,
