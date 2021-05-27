@@ -33,7 +33,7 @@ loadingDeactivated();
 $(async function () {
     // disableDevTools();
     await getEnvData();
-    $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
+    $.getScript(localUrl + ":" + mainLocalPort + "/main/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname

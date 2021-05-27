@@ -2769,7 +2769,7 @@ async function updateConfig(data){
 
 async function checkAndGetConfigFromMainDB(){
   return new Promise(async function(resolve,reject){
-    r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/getConfig', {
+    r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/main/getConfig', {
       "headers": {
           "serverKey": mainDBKey
         }
@@ -2782,7 +2782,7 @@ async function checkAndGetConfigFromMainDB(){
         }
       });
     setInterval(() => {
-      r.get( "http://" + localUrl+ ':' + mainLocalPort + '/getConfig', {
+      r.get( "http://" + localUrl+ ':' + mainLocalPort + '/main/getConfig', {
       "headers": {
           "serverKey": mainDBKey
         }
@@ -2817,7 +2817,7 @@ fastify.get('/proman/envConfig', function (req, reply) {
       "Content-type" : "plain/text",
       "serverkey": mainDBKey
     },
-      "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
+      "url": 'http://'+localUrl+':'+mainLocalPort+'/main/envConfig'
     }, function (err, response, body) {
       let data = JSON.parse(body);
       hostIP = data.MAIN_IP_DESTINATION;
@@ -2898,7 +2898,7 @@ async function restartEnv(){
         "Content-type" : "plain/text",
         "serverkey": mainDBKey
       },
-        "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
+        "url": 'http://'+localUrl+':'+mainLocalPort+'/main/envConfig'
       }, function (err, response, body) {
         let data = JSON.parse(body);
         hostIP = data.MAIN_IP_DESTINATION;
