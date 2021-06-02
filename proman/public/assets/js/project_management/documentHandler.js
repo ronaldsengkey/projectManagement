@@ -1315,13 +1315,21 @@ $(document).on('click', '.toSetting', function () {
       let slackSettings = await getSlackSettings();
       loadingDeactivated()
       if (slackSettings.data[0].slack_notif == 'on') $('.switchSlackStatus').prop('checked', true);
-      else {
-        $('.selectedChannelData').addClass('disableElement');
-        $('.availableChannelData').addClass('disableElement');
-      } 
 
+      if(slackSettings.data[0].telegram_notif == 'on') $('.switchTelegramStatus').prop('checked', true);
     }
   })
+})
+
+$(document).on('click', '.settingTelegram', function () {
+  var collapsed = $(this).attr('aria-expanded');
+  if (collapsed == 'true') {
+    $('.switchTelegram').css('top','6%')
+    globalLoad('settingTelegram', $(this).data('name'), '', true);
+    showToggleScopeTele($(this).data('id'), $(this).data('name'));
+  } else {
+    $('.switchTelegram').css('top','25%')
+  }
 })
 
 $(document).on('click', '.settingSlack', function () {
@@ -1335,6 +1343,84 @@ $(document).on('click', '.settingSlack', function () {
   }
 })
 
+async function showToggleScopeTele(id, name) {
+  $('#fort' + id).empty();
+  console.log('kok toggle', id);
+  let telegramSettings = await getSlackSettings();
+  var tag = '<ul class="list-group p-3 col selectedChannelDataTelegram">';
+    tag += '<li class="list-group-item">' +
+      '<div class="row liSelectedTele">' +
+      '<div class="col-lg-9 listOfChannelsTelegram" style="text-align:start;align-self:center;">' +
+      '<h5 class="labelTele">Selected Channel</h5>' +
+      '</div>' +
+      // '<div class="col-lg-3" style="text-align:end;"><button class="text-white btn-md rounded-pill btn amber lighten-1" id="addChannelSlack" type="button">Add Channel</button></div>' +
+      '</div></li>';
+    tag += '</ul>';
+    $('#fort' + id).append(tag);
+
+  if (telegramSettings.responseCode == '200') {
+    if (telegramSettings.data[0].telegram_channels.length > 0) {
+      let dataTelegram = telegramSettings.data[0].telegram_channels;
+      window['dataTelegram'] = dataTelegram;
+      let tags = '';
+      dataTelegram.forEach(element => {
+        tags += '<div class="chip waves-effect mr-2" data-id='+element.chatId+'>' + element.name + '<i data-id=' + element.chatId + ' class="removeChannelTelegram fas fa-times fa-xs ml-2 mt-1"></i></div>'
+      });
+      $('.listOfChannelsTelegram').append(tags);
+      $('.liSelectedTele').append('<div class="col-lg-3" style="text-align:end;"><a href="#" class="removeAllChannelTelegram">Remove All</a></div>')
+    }
+    let channelTelegram = await getChannelTelegram();
+    globalUnLoad('settingTelegram', name, '', true);
+    if (channelTelegram != 500) {
+      let tags = '<ul class="list-group p-3 col availableChannelDataTelegram"><li class="list-group-item"><div class="row liAvailableTelegram"><div class="col-lg-9 listOfAvailableChannelsTelegram" style="text-align:start;align-self:center;"><h5>Available Channel</h5></div>'
+      tags += '</div></li></ul>';
+      let tagsChip = '';
+      if(window['dataTelegram'] != undefined){
+        let difference = objDiffTelegram(channelTelegram,window['dataTelegram']);
+        window['availTelegram'] = difference;
+        if(difference.length > 0){
+          difference.forEach(element => {
+            tagsChip += '<div class="chip waves-effect mr-2" data-id='+element.chatId+'>' + element.name + '<i data-id=' + element.chatId + ' class="addChannelTagsTelegram fas fa-plus fa-xs ml-2 mt-1"></i></div>'
+          });
+          $('#fort' + id).append(tags)
+        }
+      } else {
+        window['availTelegram'] = channelTelegram
+        channelTelegram.forEach(element => {
+          tagsChip += '<div class="chip waves-effect mr-2" data-id='+element.chatId+'>' + element.name + '<i data-id=' + element.chatId + ' class="addChannelTagsTelegram fas fa-plus fa-xs ml-2 mt-1"></i></div>'
+        });
+        $('#fort' + id).append(tags)
+      }
+      try {
+        if(window['availTelegram'].length > 0){
+          $('.liAvailableTelegram').append('<div class="col-lg-3" style="text-align:end;"><a href="#" class="addAllChannelTelegram">Add All</a></div>')
+        }
+      } catch (error) {
+        
+      }
+      $('.listOfAvailableChannelsTelegram').append(tagsChip)
+
+      if(telegramSettings.data[0].telegram_notif == 'off') {
+        $('.selectedChannelDataTelegram').addClass('disableElement');
+        $('.availableChannelDataTelegram').addClass('disableElement');
+      } 
+    }
+    
+  } else if (telegramSettings.responseCode == '404') {
+    globalUnLoad('settingTelegram', name, '', true);
+    $('.selectedChannelDataTelegram').addClass('disableElement');
+    $('.labelTele').html('')
+    $('.labelTele').html('please activate telegram')
+  } else {
+    globalUnLoad('settingTelegram', name, '', true);
+    let param = {
+      type: 'error',
+      text: telegramSettings.responseMessage
+    };
+    callNotif(param);
+  }
+}
+
 async function showToggleScope(id, name) {
   $('#for' + id).empty();
   console.log('kok toggle', id);
@@ -1343,7 +1429,7 @@ async function showToggleScope(id, name) {
     tag += '<li class="list-group-item">' +
       '<div class="row liSelected">' +
       '<div class="col-lg-9 listOfChannels" style="text-align:start;align-self:center;">' +
-      '<h5>Selected Channel</h5>' +
+      '<h5 class="labelSlack">Selected Channel</h5>' +
       '</div>' +
       // '<div class="col-lg-3" style="text-align:end;"><button class="text-white btn-md rounded-pill btn amber lighten-1" id="addChannelSlack" type="button">Add Channel</button></div>' +
       '</div></li>';
@@ -1391,24 +1477,18 @@ async function showToggleScope(id, name) {
         
       }
       $('.listOfAvailableChannels').append(tagsChip)
+
+      if (slackSettings.data[0].slack_notif == 'off') {
+        $('.selectedChannelData').addClass('disableElement');
+        $('.availableChannelData').addClass('disableElement');
+      } 
     }
     
   } else if (slackSettings.responseCode == '404') {
     globalUnLoad('settingSlack', name, '', true);
-    var tag = '<ul class="list-group p-3">';
-    tag += '<li class="list-group-item">' +
-      '<div class="row">' +
-      '<div class="col-lg-9 d-flex flex-column" style="text-align:start;align-self:center;">' +
-      '<h5>Status</h5>' +
-      '</div>' +
-      '<div class="col-lg-3" style="text-align:end;"><label class="switch row"><input type="checkbox" class="switchSlackStatus">' +
-      '<div class="slider round">' +
-      '<span class="on">Activated</span>' +
-      '<span class="off">Deactivated</span>' +
-      '</div>' +
-      '</label></div>' +
-      '</div></li>';
-    $('#for' + id).append(tag);
+    $('.selectedChannelData').addClass('disableElement');
+    $('.labelSlack').html('')
+    $('.labelSlack').html('please activate slack')
   } else {
     globalUnLoad('settingSlack', name, '', true);
     let param = {
@@ -1423,14 +1503,17 @@ $(document).on('click','.removeAllChannel',async function(){
   let chooseArray = [];
   loadingActivated();
   let bodyChannel = {
-    "account_id": ct.id_employee,
-    "account_category": 'employee',
     "slack_channels": JSON.stringify(chooseArray)
   }
   let submitted = await submitChannel(bodyChannel);
   loadingDeactivated()
   if(submitted.responseCode == '200'){
     window['dataSlack'] = [];
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
     $('.settingSlack').click()
     setTimeout(() => {
       $('.settingSlack').click()
@@ -1444,6 +1527,35 @@ $(document).on('click','.removeAllChannel',async function(){
   }
 })
 
+$(document).on('click','.removeAllChannelTelegram',async function(){
+  let chooseArray = [];
+  loadingActivated();
+  let bodyChannel = {
+    "telegram_channels": JSON.stringify(chooseArray)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    window['dataTelegram'] = [];
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
+    $('.settingTelegram').click()
+    setTimeout(() => {
+      $('.settingTelegram').click()
+    }, 1250);
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
+
+
 $(document).on('click','.addAllChannel',async function(){
   let chooseArray = [];
   window['availSlack'].forEach(element => {
@@ -1454,16 +1566,88 @@ $(document).on('click','.addAllChannel',async function(){
   }
   loadingActivated();
   let bodyChannel = {
-    "account_id": ct.id_employee,
-    "account_category": 'employee',
     "slack_channels": JSON.stringify(chooseArray)
   }
   let submitted = await submitChannel(bodyChannel);
   loadingDeactivated()
   if(submitted.responseCode == '200'){
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
     $('.settingSlack').click()
     setTimeout(() => {
       $('.settingSlack').click()
+    }, 1250);
+    
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
+
+$(document).on('click','.addAllChannelTelegram',async function(){
+  let chooseArray = [];
+  window['availTelegram'].forEach(element => {
+    chooseArray.push(element);
+  });
+  if(window['dataTelegram'] != undefined){
+    chooseArray = window['dataTelegram'].concat(chooseArray)
+  }
+  loadingActivated();
+  let bodyChannel = {
+    "telegram_channels": JSON.stringify(chooseArray)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
+    $('.settingTelegram').click()
+    setTimeout(() => {
+      $('.settingTelegram').click()
+    }, 1250);
+  } else {
+    let paramSubmitted = {
+      type: 'error',
+      text: submitted.responseMessage
+    };
+    callNotif(paramSubmitted);
+  }
+})
+
+$(document).on('click','.addChannelTagsTelegram',async function(){
+  let currentChoose = $(this).data('id');
+  let dataAddTelegram = window['availTelegram'].filter(function (e) {
+    return e.chatId == currentChoose;
+  })
+  // let chooseArray = [];
+  // chooseArray.push(dataAddTelegram);
+  if(window['dataTelegram'] != undefined){
+    dataAddTelegram = window['dataTelegram'].concat(dataAddTelegram)
+  }
+  loadingActivated();
+  let bodyChannel = {
+    "telegram_channels": JSON.stringify(dataAddTelegram)
+  }
+  let submitted = await submitChannel(bodyChannel);
+  loadingDeactivated()
+  if(submitted.responseCode == '200'){
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
+    $('.settingTelegram').click()
+    setTimeout(() => {
+      $('.settingTelegram').click()
     }, 1250);
     
   } else {
@@ -1484,13 +1668,16 @@ $(document).on('click','.addChannelTags',async function(){
   }
   loadingActivated();
   let bodyChannel = {
-    "account_id": ct.id_employee,
-    "account_category": 'employee',
     "slack_channels": JSON.stringify(chooseArray)
   }
   let submitted = await submitChannel(bodyChannel);
   loadingDeactivated()
   if(submitted.responseCode == '200'){
+    let param = {
+      type: 'success',
+      text: submitted.responseMessage
+    };
+    callNotif(param);
     $('.settingSlack').click()
     setTimeout(() => {
       $('.settingSlack').click()
@@ -1505,14 +1692,46 @@ $(document).on('click','.addChannelTags',async function(){
   }
 })
 
+$(document).on('click', '.removeChannelTelegram', async function () {
+  let idChannel = $(this).data('id');
+  let dataRemove = window['dataTelegram'].filter(function (e) {
+    return e.chatId != idChannel;
+  })
+  let bodyChannel = {
+    "telegram_channels": JSON.stringify(dataRemove)
+  }
+  loadingActivated();
+  let removeChannel = await submitChannel(bodyChannel,true);
+  loadingDeactivated();
+  if(removeChannel.responseCode == '200') {
+    window['dataTelegram'] = dataRemove;
+    let param = {
+      type: 'success',
+      text: removeChannel.responseMessage
+    };
+    callNotif(param);
+    $('.chip[data-id='+idChannel+']').remove();
+    $('.settingTelegram').click()
+    setTimeout(() => {
+      $('.settingTelegram').click()
+    }, 1250);
+  } 
+  else {
+    let param = {
+      type: 'error',
+      text: removeChannel.responseMessage
+    };
+    callNotif(param);
+  }
+  
+})
+
 $(document).on('click', '.removeChannel', async function () {
   let idChannel = $(this).data('id');
   let dataRemove = window['dataSlack'].filter(function (e) {
     return e._id != idChannel;
   })
   let bodyChannel = {
-    "account_id": ct.id_employee,
-    "account_category": 'employee',
     "slack_channels": JSON.stringify(dataRemove)
   }
   loadingActivated();
@@ -1546,14 +1765,10 @@ $(document).on('click', '.switchSlackStatus', async function () {
   let bodySlack;
   if (checkedMethod) {
     bodySlack = {
-      "account_id": ct.id_employee,
-      "account_category": 'employee',
       "slack_notif": 'on'
     }
   } else {
     bodySlack = {
-      "account_id": ct.id_employee,
-      "account_category": 'employee',
       "slack_notif": 'off'
     }
   }
@@ -1567,14 +1782,43 @@ $(document).on('click', '.switchSlackStatus', async function () {
     };
     callNotif(paramSubmit);
     $('.settingSlack').click()
-    setTimeout(() => {
-      $('.settingSlack').click()
-    }, 1250);
   } else {
     $('.switchSlackStatus').prop('checked', false);
     let paramSubmitFailed = {
       type: 'success',
       text: submitted.responseMessage
+    };
+    callNotif(paramSubmitFailed);
+  }
+})
+
+$(document).on('click', '.switchTelegramStatus', async function () {
+  var checkedMethod = $(this).is(':checked');
+  let bodyTelegram;
+  if (checkedMethod) {
+    bodyTelegram = {
+      "telegram_notif": 'on'
+    }
+  } else {
+    bodyTelegram = {
+      "telegram_notif": 'off'
+    }
+  }
+  loadingActivated();
+  let submittedTele = await submitActivationSlack(bodyTelegram);
+  loadingDeactivated()
+  if (submittedTele.responseCode == '200') {
+    let paramSubmit = {
+      type: 'success',
+      text: submittedTele.responseMessage
+    };
+    callNotif(paramSubmit);
+    $('.settingTelegram').click()
+  } else {
+    $('.switchTelegramStatus').prop('checked', false);
+    let paramSubmitFailed = {
+      type: 'success',
+      text: submittedTele.responseMessage
     };
     callNotif(paramSubmitFailed);
   }
@@ -1628,75 +1872,6 @@ function globalUnLoad(classContainer, name, idContainer = '', accordion = false)
 
 }
 
-$(document).on('click', '#addChannelSlack', function () {
-  Swal.fire({
-    title: 'Please select channel',
-    html: '<div class="row rowChannel"><div class="col-lg-12"><select id="channelMember" multiple class="swal2-input" style="height:auto;"></select></div></div><div class="accordionPlace"></div>',
-    onOpen: async () => {
-      Swal.showLoading();
-      let channelSlack;
-      let channelSlackDone = false;
-      try {
-        channelSlack = await getChannelSlack();
-        if (channelSlack != 500) {
-          $('#channelMember').empty()
-          channelSlackDone = !channelSlackDone;
-          if(window['dataSlack'] != undefined){
-            let difference = objDiffSlack(channelSlack,window['dataSlack']);
-            difference.forEach(element => {
-              $('#channelMember').append('<option value=' + element._id + '>' + element.name + '</option>')
-            });
-          } else {
-            channelSlack.forEach(element => {
-              $('#channelMember').append('<option value=' + element._id + '>' + element.name + '</option>')
-            });
-          }
-        }
-        if (channelSlackDone) {
-          $('#employeeId').prop('disabled', false);
-        }
-        Swal.hideLoading()
-      } catch (error) {
-        toastrNotifFull(error, 'error');
-        Swal.hideLoading();
-      }
-    },
-    showCancelButton: true,
-    confirmButtonText: 'Submit',
-    showLoaderOnConfirm: true,
-    preConfirm: async () => {
-      let channelMember = $('#channelMember option:selected').toArray().map(item => item.value);
-      if (channelMember.length > 0) {
-        if(window['dataSlack'] != undefined){
-          channelMember = window['dataSlack'].concat(channelMember)
-        }
-        let bodyChannel = {
-          "account_id": ct.id_employee,
-          "account_category": 'employee',
-          "slack_channels": JSON.stringify(channelMember)
-        }
-        let submitted = await submitChannel(bodyChannel);
-        if(submitted.responseCode == '200'){
-          $('.settingSlack').click()
-          setTimeout(() => {
-            $('.settingSlack').click()
-          }, 1250);
-          
-        } else {
-          let paramSubmitted = {
-            type: 'error',
-            text: submitted.responseMessage
-          };
-          callNotif(paramSubmitted);
-        }
-      } else {
-        toastrNotifFull('please select at least one channel');
-      }
-    },
-    allowOutsideClick: () => !Swal.isLoading()
-  })
-})
-
 function objDiffSlack(array1, array2) {
   var resultArray = []
 
@@ -1719,6 +1894,30 @@ function objDiffSlack(array1, array2) {
   })
   return resultArray
 }
+
+function objDiffTelegram(array1, array2) {
+  var resultArray = []
+
+  array2.forEach(function (destObj) {
+      var check = array1.some(function (origObj) {
+          if (origObj.chatId == destObj.chatId) return true
+      })
+      if (!check) {
+          resultArray.push(destObj)
+      }
+  })
+
+  array1.forEach(function (origObj) {
+      var check = array2.some(function (destObj) {
+          if (origObj.chatId == destObj.chatId) return true
+      })
+      if (!check) {
+          resultArray.push(origObj)
+      }
+  })
+  return resultArray
+}
+
 
 async function submitActivationSlack(bodyEdit) {
   return new Promise(async function (resolve, reject) {

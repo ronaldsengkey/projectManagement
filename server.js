@@ -195,7 +195,7 @@ function actionGet(data) {
             result = JSON.parse(body);
             if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
             else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
-            else if(settings.headers.target == 'slack') result.data = JSON.parse(cryptography.decryptMessage(result.data))
+            else if(settings.headers.target == 'slack' || settings.headers.target == 'telegram') result.data = JSON.parse(cryptography.decryptMessage(result.data))
             else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
             else result.data = cryptography.decryptMessage(result.data);
           } else {
@@ -797,6 +797,39 @@ fastify.get("/proman/board", async function (req, reply) {
   }
 });
 
+fastify.get("/proman/getChannelTelegram", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/telegram/subscriber',
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+          "target": "telegram",
+          signature:cryptography.aesEncrypt(req.headers.signature),
+          secretkey:cryptography.aesEncrypt(
+            req.headers.secretkey
+          ),
+          token: cryptography.aesEncrypt(
+            token
+          )
+        },
+      },
+    };
+
+    console.log("coba get telegram", data);
+    let a = await actionGet(data);
+    console.log('aaaaa telegram',a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
 
 fastify.get("/proman/getChannelSlack", async function (req, reply) {
   try {
@@ -851,8 +884,7 @@ fastify.get("/proman/getSlackSettings", async function (req, reply) {
           ),
           token: cryptography.aesEncrypt(
             token
-          ),
-          param: cryptography.aesEncrypt(req.headers.param)
+          )
         },
       },
     };

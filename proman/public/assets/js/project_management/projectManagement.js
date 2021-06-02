@@ -2863,8 +2863,49 @@ async function getSlackSettings() {
                 "Cache-Control": "no-cache",
                 "token": ct.token,
                 "secretKey": ct.secretKey,
-                "signature": ct.signature,
-                "param": JSON.stringify({"account_id":ct.id_employee})
+                "signature": ct.signature
+            }
+        }
+
+        let b = await getData(param);
+        resolve(b);
+    });
+}
+
+async function getChannelTelegram() {
+    return new Promise(async function (resolve, reject) {
+        let param = {
+            url: 'getChannelTelegram',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "token": ct.token,
+                "secretKey": ct.secretKey,
+                "signature": ct.signature
+            }
+        }
+
+        let b = await getData(param);
+        if (b.responseCode == '200') {
+            resolve(b.data);
+        } else {
+            reject(500);
+        }
+    });
+}
+
+async function getTelegramSettings() {
+    return new Promise(async function (resolve, reject) {
+        let param = {
+            url: 'getTelegramSettings',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "token": ct.token,
+                "secretKey": ct.secretKey,
+                "signature": ct.signature
             }
         }
 
