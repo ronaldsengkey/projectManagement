@@ -67,7 +67,9 @@ async function globalGradeChecking(concern,data,type = ''){
                     "start_date" :startDate,
                     "end_date" : endDate
                 };
-                await getSummaryBoard('taskForMe','');
+                
+                // await getSummaryBoard('taskForMe','');
+                await changeFireMyTask()
                 // await getSummaryBoard('boardType', param);
                 // await getSummaryBoard('boardDivision', data);
                 // await getSummaryBoard('boardMember', data);
@@ -87,7 +89,8 @@ async function globalGradeChecking(concern,data,type = ''){
                     "end_date" : endDate
                 };
                 // await getSummaryBoard('boardTypeForMe',param);
-                await getSummaryBoard('taskForMe',data);
+                // await getSummaryBoard('taskForMe',data);
+                await changeFireMyTask()
                 // await getSummaryBoard('taskForMeByStatus',data);
             }else{
             }

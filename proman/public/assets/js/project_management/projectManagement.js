@@ -406,10 +406,10 @@ async function getSummaryBoard(category, param = '') {
             } else if (result.responseCode == '404' && category == 'taskForMe') {
                 loadingDeactivated()
                 resolve(manageSummaryBoardData([], 'chartTaskForMe', true))
-                callNotif({
-                    type: 'error',
-                    text: result.responseMessage
-                })
+                // callNotif({
+                //     type: 'error',
+                //     text: result.responseMessage
+                // })
             } else {
                 loadingDeactivated();
                 callNotif({
@@ -1117,6 +1117,68 @@ $(document).on('change', '.chartTaskPersonal, .chartTypePersonal', async functio
     }
     $('.filterChartTypePersonalText').html($('select.chartTypePersonal option:selected').text())
 })
+
+async function appendLegendEtc(idCanvas){
+    let pageFilterr = '<div id="pageFilter" class="d-flex align-items-center justify-content-end p-3"></div>';
+    $('#taskForMe').empty();
+    let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lblTaskForMe">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
+    if (idCanvas == 'chartTaskForMe')
+        html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + idCanvas + '" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+    else
+        html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="' + idCanvas + '" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+    $('#taskForMe').html(html);
+    $(pageFilterr).appendTo($('.filterPlace'))
+    appendFilter([filterAllChartPersonal, filterChartTypePersonal, filterTimeRanges], false, 'personal');
+    $('.forFilter').append(personalGrade);
+
+    $('.filterChartPersonalAll').css('font-size', 'initial')
+    $('.filterChartTypePersonal').css('font-size', 'initial')
+    $('.filterChartName').html('Board Type');
+    $('.filterTimeName').html('All');
+    $('#chartTaskForMeBackup').css('display', 'block').css('width', '772px').css('height', '386px')
+}
+
+async function changeFireMyTask(){
+    // let dropValue = $('select.chartTaskPersonal option:selected').val();
+    loadingActivated();
+    let chAnalytic = await getChartAnalytic({
+        category: 'assign',
+        name: ct.name,
+        type: 'personal'
+    })
+    loadingDeactivated();
+    $('#filterChartTypePersonal').removeClass('d-none');
+    $('.ownProperty').removeClass('d-none');
+    if (chAnalytic.responseCode == '200') {
+        if (myBarChart != null) myBarChart.destroy();
+        $('.chartLabelPersonal').val('all');
+        if($('#chartTaskForMe').length == 0){
+            await appendLegendEtc('chartTaskForMe');
+        }
+        $('#chartTaskForMe').removeClass('d-none');
+        $('#chartTaskForMeBackup').remove();
+        if (chAnalytic.data.length == 0) {
+            manageSummaryBoardData([], 'chartTaskForMe', true)
+        } else {
+            await processTaskCanvas(chAnalytic.data, 'chartTaskForMe', 'personal')
+        }
+    } else if (chAnalytic.responseCode == '401') {
+        logoutNotif();
+    } else if (chAnalytic.responseCode == '404') {
+        callNotif({
+            type: 'error',
+            text: chAnalytic.responseMessage
+        })
+        if (myBarChart != null) myBarChart.destroy();
+        manageSummaryBoardData([], 'chartTaskForMe', true)
+    } else {
+        callNotif({
+            type: 'error',
+            text: chAnalytic.responseMessage
+        })
+    }
+    $('.filterChartTypePersonalText').html($('select.chartTypePersonal option:selected').text())
+}
 
 $(document).on('click', '.analyticList', async function () {
     $('.boardHeader').remove();
