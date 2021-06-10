@@ -1,39 +1,9 @@
 'use strict'
-var mainIP = mainIpService;
-var authServicePort = authPortService;
-
-let pageRequest = localStorage.getItem('pageRequest');
-let btn = document.getElementsByClassName('btn');
-if ($(btn).data('target') == 'login') {
-    $(btn).attr('data-origin', pageRequest);
-}
-
-const loading = '<div id="loadingWrap">' +
-    '<div class="text-center contentLoadingWrap">' +
-    '<div class="lds-ripple"><div></div><div></div></div>' +
-    '</div>' +
-    '</div>';
-
 var accountProfile
 var accountLogin
 
-function loadingActivated() {
-    $(loading).insertBefore('section');
-    $('#loadingWrap').fadeIn('slow');
-}
-
-function loadingDeactivated() {
-    $('#loadingWrap').fadeOut('slow', function () {
-        $('#loadingWrap').remove();
-    });
-}
-
-loadingDeactivated();
-
 $(async function () {
-    // disableDevTools();
     await getEnvData();
-    $.getScript(localUrl + ":" + mainLocalPort + "/main/public/assets/js/forgotPassword.js", function (data, textStatus, jqxhr) {})
     accountLogin = localStorage.getItem('accountLogin');
     accountProfile = localStorage.getItem('accountProfile');
     let path = window.location.pathname
@@ -48,7 +18,6 @@ $(async function () {
             }
         }
     }
-    loadingDeactivated();
 });
 
 $(document).on('keypress', 'input', function (e) {
@@ -76,21 +45,23 @@ $(document).on('click', 'button', async function () {
                     'continue': window.location.origin
                 }
             };
-            p = iterateObjectEncryptAESLogin(p);
+            let genKeyLogin = await getGenerateKey();
+            // p = iterateObjectEncryptAESLogin(p);
+            p = iterateObjectNewEncrypt(p,genKeyLogin);
             data = {
                 target: target,
-                origin: origin,
+                origin: 'employee',
                 settings: {
                     "async": true,
                     "crossDomain": true,
-                    // "url": mainIP + ":" + authServicePort + "/login/" + origin
                     "target":"login",
-                    "url":"/login/"+origin,
+                    "url":"/login/"+'employee',
                     "method": "POST",
                     "headers": {
                         "Content-Type": "application/json",
                         "Accept": "*/*",
                         "Cache-Control": "no-cache",
+                        "keyencrypt": genKeyLogin
                     },
                     "processData": false,
                     "body": JSON.stringify(p)
@@ -108,6 +79,8 @@ $(document).on('click', 'button', async function () {
                     'token': $('#login_otp').val()
                 }
             };
+            let genKeyLoginAuth = await getGenerateKey();
+            p = iterateObjectNewEncrypt(p,genKeyLoginAuth);
             data = {
                 target: target,
                 origin: origin,
@@ -121,6 +94,7 @@ $(document).on('click', 'button', async function () {
                         "Content-Type": "application/json",
                         "Accept": "*/*",
                         "Cache-Control": "no-cache",
+                        "keyencrypt": genKeyLoginAuth
                     },
                     "processData": false,
                     "body": JSON.stringify(p)
@@ -172,6 +146,7 @@ function postData(data) {
                 case "401":
                     logoutNotif();
                     break;
+                case "406":
                 case "404":
                     param = {
                         type: "error",
@@ -257,25 +232,3 @@ function postData(data) {
         alert("error", b);
     })
 }
-
-function iterateObjectEncryptAESLogin(obj){
-    Object.keys(obj).forEach(key => {
-      if (typeof obj[key] === 'object') {
-        iterateObjectEncryptAESLogin(obj[key])
-      } else {
-        obj[key] = aesEncryptLogin(obj[key]);
-      }
-    })
-    return obj;
-  }
-
-  function aesEncryptLogin(data) {
-    let key = 'q6AdXos0hs947oNJqjTpendcKrHYVE2u';
-    let iv = 'G5SHxbZzRVyY1xXJ';
-    let cipher = CryptoJS.AES.encrypt(data, CryptoJS.enc.Utf8.parse(key), {
-        iv: CryptoJS.enc.Utf8.parse(iv),
-        padding: CryptoJS.pad.Pkcs7,
-        mode: CryptoJS.mode.CBC
-    });
-    return cipher.toString();
- }

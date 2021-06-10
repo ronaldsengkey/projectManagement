@@ -2,22 +2,22 @@
 
 require('dotenv').config()
 let hostIP;
-let hostIPAlt;
-let hostNameServer;
 let accPort;
-let backendPort;
-let portAcc;
-let portAuth;
-let portTrans;
 let localUrl;
-let employeeLocalPort;
 let mainLocalPort;
-let csLocalPort;
+let authPortService;
+let backendPortService;
 let extToken;
 let localhostIP;
 let serverDomain;
+let domainPlaceUS
 let cdnLink;
-let cdnPort;
+let responseInvalid = {
+  responseCode: '406',
+  responseMessage: 'unauthorized'
+};
+let signatureLogin = require("./signature.js");
+let returnedConfig = {};
 
 // Require the framework and instantiate it
 const fastify = require("fastify")({
@@ -30,33 +30,18 @@ const efs = require('fs');
 const cryptography = require("./crypto.js");
 const myKey = efs.readFileSync("./server.key", 'utf-8');
 var redis = require("redis");
+const fs = require('fs');
 var client = redis.createClient();
-
-// const {
-//   createStore,
-//   applyMiddleware
-// } = require("redux");
-// // Declare a routen
 fastify.register(require('fastify-multipart'));
 fastify.register(require('fastify-static'), {
-    root: path.join(__dirname, 'proman/public'),
-    prefix: '/proman/public/', // optional: default '/'
+  root: path.join(__dirname, 'proman/public'),
+  prefix: '/proman/public/', // optional: default '/'
 })
 
-// var Monitor = require('monitor');
-let signatureLogin = require("./signature.js");
-let mainDBKey = efs.readFileSync('./mainDB.key', 'utf8');
-const fs = require('fs');
-let redisKey = [];
-let returnedConfig = {};
-let token;
-let port;
-
-async function getSource(requestTo,concern) {
+async function getSource(requestTo, concern) {
   return new Promise(async (resolve, reject) => {
-    // let link = cdnLink + ':' + cdnPort + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
-    let link = cdnLink + "/source/"+concern+"/" + requestTo.source + "?v=1&flowEntry="+requestTo.flow;
-    console.log('a',link);
+    let link = cdnLink + "/source/" + concern + "/" + requestTo.source + "?v=1&flowEntry=" + requestTo.flow;
+    console.log('a', link);
     r.get({
         async: true,
         crossDomain: true,
@@ -70,10 +55,10 @@ async function getSource(requestTo,concern) {
       },
       function (error, response, body) {
         if (error) {
-          console.log('gagal',requestTo.source,link);
+          console.log('gagal', requestTo.source, link);
           resolve(error);
         } else {
-          console.log('diterima',requestTo.source,link);
+          console.log('diterima', requestTo.source, link);
           resolve(body);
         }
       }
@@ -108,7 +93,7 @@ fastify.get("/proman/:origin", async function (req, reply) {
         reply.sendFile("layouts/login.html");
         break;
       case "employee":
-        if(req.query.use == 'project_management'){
+        if (req.query.use == 'project_management') {
           extToken = req.query.token;
         }
         reply.sendFile("layouts/index.html");
@@ -120,29 +105,6 @@ fastify.get("/proman/:origin", async function (req, reply) {
         if (req.headers.publickey == publicKey) {
           let a = await generateToken();
           console.log("done");
-          reply.send(a);
-        }
-        break;
-      case "checkToken":
-        let urlToken = req.headers.url;
-        let data = {
-          settings: {
-            async: true,
-            crossDomain: true,
-            // "url": hostIP + ":8202/check/" + token,
-            url: urlToken,
-            method: "GET",
-            headers: {
-              Accept: "*/*",
-              "Cache-Control": "no-cache",
-            },
-          },
-        };
-        // console.log('data check token ', data)
-        let a = await actionGet(data);
-        if (a.responseCode == "401") {
-          reply.sendFile("layouts/index.html");
-        } else {
           reply.send(a);
         }
         break;
@@ -186,18 +148,24 @@ function actionGet(data) {
       let settings = data.settings;
       r.get(settings, function (error, response, body) {
         if (error) {
-          if(error.toString().includes('TIMEDOUT')) reject(999)
+          if (error.toString().includes('TIMEDOUT')) reject(999)
           else reject(process.env.ERRORINTERNAL_RESPONSE);
         } else {
           console.log("action Get body data => ", body);
           let result = "";
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
-            if(settings.headers.target == 'trello') result.data = cryptography.decryptMessage(result.data)
-            else if(settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
-            else if(settings.headers.target == 'slack' || settings.headers.target == 'telegram') result.data = JSON.parse(cryptography.decryptMessage(result.data))
-            else if(settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
+            if (settings.headers.target == 'trello' || settings.headers.target == 'getEmployee') result.data = cryptography.decryptMessage(result.data)
+            else if (settings.headers.target == 'chartAnalytic') result.data = JSON.parse(cryptography.decryptMessage(result.data))
+            else if (settings.headers.target == 'slack' || settings.headers.target == 'telegram') result.data = JSON.parse(cryptography.decryptMessage(result.data))
+            else if (settings.headers.target != 'auth') result.data = iterateObjectDecrypt(result.data);
             else result.data = cryptography.decryptMessage(result.data);
+
+            if ("encrypt" in settings.headers) {
+              let keyss = generateKey();
+              result.data = iterateObjectNewEncrypt(result.data, keyss)
+              result.cred = keyss;
+            }
           } else {
             try {
               result = JSON.parse(body);
@@ -221,32 +189,30 @@ fastify.get('/proman/getSession', async function (req, reply) {
   reply.send(sessionGet);
 })
 
-function getSession(idEmployee){
+function getSession(idEmployee) {
   return new Promise(async (resolve, reject) => {
     console.log("get session neh")
     try {
-      client.get('projectManagement'+idEmployee, async function(err, result) {
+      client.get('projectManagement' + idEmployee, async function (err, result) {
         console.log(result);
         let resultLogin = JSON.parse(result);
-        if(resultLogin != null){
+        if (resultLogin != null) {
           resolve(result);
         } else reject(404);
       });
     } catch (err) {
-        console.log(err);
-        reject(500);
+      console.log(err);
+      reject(500);
     }
-})
-  
+  })
+
 }
 
 fastify.post("/proman/sendEmailReset", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url = hostIP + ":" + accPort + data.settings.url;
-
     data.settings.body = encryptPostBody(data);
-
     console.log("coba send email", data);
     let a = await actionPost(data);
     reply.send(a);
@@ -275,7 +241,7 @@ function iterateObject(obj) {
     if (typeof obj[key] === "object") {
       iterateObject(obj[key]);
     } else {
-      if(obj[key] != 'comment_file') obj[key] = cryptography.encryptMessage(obj[key]);
+      if (obj[key] != 'comment_file') obj[key] = cryptography.encryptMessage(obj[key]);
     }
   });
   return obj;
@@ -283,9 +249,9 @@ function iterateObject(obj) {
 
 function iterateObjectDecrypt(obj) {
   let temp;
- 
+
   Object.keys(obj).forEach((key) => {
-    try{
+    try {
       if (typeof obj[key] === "object") {
         iterateObjectDecrypt(obj[key]);
       } else {
@@ -294,7 +260,7 @@ function iterateObjectDecrypt(obj) {
         if (obj[key] == "") obj[key] = temp;
         if (obj[key].toString().includes("error")) obj[key] = temp;
       }
-    }catch(e){
+    } catch (e) {
       obj[key] = false;
     }
   });
@@ -327,11 +293,11 @@ function actionPost(data) {
         } else {
           let json = IsJsonString(body);
           let result;
-          if(json) {
+          if (json) {
             result = JSON.parse(body);
             console.log("action Post sblm decrypt => ", result);
             if (data.settings.url.includes("listTicketing") || data.settings.url.includes('login')) {
-              if(result.data) result.data = JSON.parse(cryptography.decryptMessage(result.data));
+              if (result.data) result.data = JSON.parse(cryptography.decryptMessage(result.data));
             } else {
               try {
                 result.data = iterateObjectDecrypt(result.data);
@@ -370,10 +336,9 @@ function actionDelete(data) {
         } else {
           let json = IsJsonString(body);
           let result;
-          if(json) {
+          if (json) {
             result = JSON.parse(body);
-          }
-          else {
+          } else {
             result = body;
           }
           resolve(result);
@@ -404,10 +369,9 @@ function actionPut(data) {
         } else {
           let json = IsJsonString(body);
           let result;
-          if(json) {
+          if (json) {
             result = JSON.parse(body);
-          }
-          else {
+          } else {
             result = body;
           }
           resolve(result);
@@ -456,7 +420,7 @@ fastify.post("/proman/getData", async function (req, reply) {
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
-    if(err == 999) reply.send(999)
+    if (err == 999) reply.send(999)
     else reply.send(500);
   }
 });
@@ -504,9 +468,7 @@ fastify.post("/proman/oneSignalInit", async function (request, reply) {
   try {
     let data = request.body;
     if (data.settings.target == "onesignal") {
-      data.settings.server_url = hostNameServer;
-      data.settings.port_url = backendPort;
-      data.settings.url = await convertURLRedis(data.settings);
+      data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + data.settings.url
     }
     data.settings.headers.signature = cryptography.aesEncrypt(
       data.settings.headers.signature
@@ -519,7 +481,7 @@ fastify.post("/proman/oneSignalInit", async function (request, reply) {
     );
     data.settings.body = encryptPostBody(data);
     let a = await actionPost(data);
-    console.log('response',a);
+    console.log('response', a);
     reply.send(a);
   } catch (err) {
     reply.send(err);
@@ -530,31 +492,22 @@ fastify.post("/proman/oneSignalInit", async function (request, reply) {
 fastify.post("/proman/postData", async function (request, reply) {
   try {
     let data = request.body;
-    if (data.settings.target == "login" || data.settings.target == 'login-auth') {
-      data.settings.server_url = hostNameServer;
-      data.settings.port_url = portAuth;
-      data.settings.url = await convertURLRedis(data.settings);
-      data.settings.headers.signature = cryptography.aesEncrypt(
-        signatureLogin.signatureNew
-      );
+    data.settings.url = returnedConfig.hostIP + ':' + returnedConfig.authPortService + data.settings.url;
+    data.settings.headers.signature = cryptography.aesEncrypt(
+      signatureLogin.signatureNew
+    );
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.body = encryptPostBody(data);
+      let a = await actionPost(data);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
     }
-
-    if(data.settings.target == 'login'){
-      data.settings.body = JSON.stringify(iterateObjectDecryptAESLogin(JSON.parse(data.settings.body)));
-    }
-    data.settings.body = encryptPostBody(data);
-
-    let a = await actionPost(data);
-    reply.send(a);
   } catch (err) {
     reply.send(err);
   }
 });
-
-async function setRedisData(param, data) {
-  console.log("getRedisData => " + param + " - ", data);
-  redisKey[param] = data;
-}
 
 function IsJsonString(str) {
   try {
@@ -563,48 +516,6 @@ function IsJsonString(str) {
     return false;
   }
   return true;
-}
-
-async function getRedisDataRaw(param) {
-  return new Promise(async function (resolve, reject) {
-    try {
-      console.log("PARAM GET REDIS DATA RAW", param);
-      if (param == 'all') {
-        try {
-          resolve(JSON.parse(returnedConfig));
-        } catch (e) {
-          resolve(returnedConfig);
-        }
-      } else {
-        resolve(returnedConfig[param]);
-      }
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
-
-async function getRedisData(
-  param
-) {
-  return new Promise(async function (resolve, reject) {
-    let result = "";
-    if (
-      redisKey[param] !== undefined &&
-      redisKey[param] !== "undefined" &&
-      redisKey[param] !== null &&
-      redisKey[param] !== "null" &&
-      redisKey[param] !== ""
-    ) {
-      console.log("redisnya ada", redisKey[param]);
-      result = redisKey[param];
-    } else {
-      let rep = await getRedisDataRaw(param);
-      console.log("repppp", rep);
-      result = rep;
-    }
-    resolve(result);
-  });
 }
 
 fastify.get("/proman/trello_management", function (req, reply) {
@@ -627,23 +538,28 @@ fastify.post("/proman/postBoard", async function (req, reply) {
   try {
     let data = req.body;
     let token = extToken ? extToken : data.settings.headers.token;
-    data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board';
 
-    data.settings.headers.signature = cryptography.aesEncrypt(
-      data.settings.headers.signature
-    );
-    data.settings.headers.secretKey = cryptography.aesEncrypt(
-      data.settings.headers.secretKey
-    );
-    data.settings.headers.token = cryptography.aesEncrypt(
-      token
-    );
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/board';
+      data.settings.headers.signature = cryptography.aesEncrypt(
+        data.settings.headers.signature
+      );
+      data.settings.headers.secretKey = cryptography.aesEncrypt(
+        data.settings.headers.secretKey
+      );
+      data.settings.headers.token = cryptography.aesEncrypt(
+        token
+      );
+      console.log('dataaaaaa', data.settings);
+      data.settings.body = encryptPostBody(data);
+      console.log("coba send email", data);
+      let a = await actionPost(data);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
 
-    data.settings.body = encryptPostBody(data);
-
-    console.log("coba send email", data);
-    let a = await actionPost(data);
-    reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -652,26 +568,35 @@ fastify.post("/proman/postBoard", async function (req, reply) {
 
 fastify.delete("/proman/board", async function (req, reply) {
   try {
-    let data = req.body;
-    console.log('dataa',data);
+    let data
+    try {
+      data = JSON.parse(req.body);
+    } catch (error) {
+      data = req.body;
+    }
+    console.log('dataa', data);
     let token = extToken ? extToken : data.settings.headers.token;
-    data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board';
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/board';
+      data.settings.headers.signature = cryptography.aesEncrypt(
+        data.settings.headers.signature
+      );
+      data.settings.headers.secretKey = cryptography.aesEncrypt(
+        data.settings.headers.secretKey
+      );
+      data.settings.headers.token = cryptography.aesEncrypt(
+        token
+      );
 
-    data.settings.headers.signature = cryptography.aesEncrypt(
-      data.settings.headers.signature
-    );
-    data.settings.headers.secretKey = cryptography.aesEncrypt(
-      data.settings.headers.secretKey
-    );
-    data.settings.headers.token = cryptography.aesEncrypt(
-      token
-    );
+      data.settings.body = encryptPostBody(data);
 
-    data.settings.body = encryptPostBody(data);
-
-    console.log("coba delete board", data);
-    let a = await actionDelete(data);
-    reply.send(a);
+      console.log("coba delete board", data);
+      let a = await actionDelete(data);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -681,25 +606,30 @@ fastify.delete("/proman/board", async function (req, reply) {
 fastify.put("/proman/board", async function (req, reply) {
   try {
     let data = req.body;
-    console.log('dataa',data);
     let token = extToken ? extToken : data.settings.headers.token;
-    data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board';
 
-    data.settings.headers.signature = cryptography.aesEncrypt(
-      data.settings.headers.signature
-    );
-    data.settings.headers.secretKey = cryptography.aesEncrypt(
-      data.settings.headers.secretKey
-    );
-    data.settings.headers.token = cryptography.aesEncrypt(
-      token
-    );
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/board';
 
-    data.settings.body = encryptPostBody(data);
+      data.settings.headers.signature = cryptography.aesEncrypt(
+        data.settings.headers.signature
+      );
+      data.settings.headers.secretKey = cryptography.aesEncrypt(
+        data.settings.headers.secretKey
+      );
+      data.settings.headers.token = cryptography.aesEncrypt(
+        token
+      );
+      console.log('before', data.settings.body);
+      data.settings.body = encryptPostBody(data);
 
-    console.log("coba put board", data);
-    let a = await actionPut(data);
-    reply.send(a);
+      console.log("coba put board", data);
+      let a = await actionPut(data);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -709,25 +639,30 @@ fastify.put("/proman/board", async function (req, reply) {
 fastify.post("/proman/postTask", async function (req, reply) {
   try {
     let data = req.body;
-    data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task';
+    data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task';
     let token = extToken ? extToken : data.settings.headers.token;
 
-    data.settings.headers.signature = cryptography.aesEncrypt(
-      data.settings.headers.signature
-    );
-    data.settings.headers.secretKey = cryptography.aesEncrypt(
-      data.settings.headers.secretKey
-    );
-    data.settings.headers.token = cryptography.aesEncrypt(
-      token
-    );
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.headers.signature = cryptography.aesEncrypt(
+        data.settings.headers.signature
+      );
+      data.settings.headers.secretKey = cryptography.aesEncrypt(
+        data.settings.headers.secretKey
+      );
+      data.settings.headers.token = cryptography.aesEncrypt(
+        token
+      );
 
-    data.settings.body = encryptPostBody(data);
+      data.settings.body = encryptPostBody(data);
 
-    console.log("coba post task", data);
-    let a = await actionPost(data);
-    console.log('post post task',a);
-    reply.send(a);
+      console.log("coba post task", data);
+      let a = await actionPost(data);
+      console.log('post post task', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -737,23 +672,30 @@ fastify.post("/proman/postTask", async function (req, reply) {
 fastify.post("/proman/postGroup", async function (req, reply) {
   try {
     let data = req.body;
-    data.settings.url = hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/group';
+    data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/group';
     let token = extToken ? extToken : data.settings.headers.token;
-    data.settings.headers.signature = cryptography.aesEncrypt(
-      data.settings.headers.signature
-    );
-    data.settings.headers.secretKey = cryptography.aesEncrypt(
-      data.settings.headers.secretKey
-    );
-    data.settings.headers.token = cryptography.aesEncrypt(
-      token
-    );
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      data.settings.headers.signature = cryptography.aesEncrypt(
+        data.settings.headers.signature
+      );
+      data.settings.headers.secretKey = cryptography.aesEncrypt(
+        data.settings.headers.secretKey
+      );
+      data.settings.headers.token = cryptography.aesEncrypt(
+        token
+      );
 
-    data.settings.body = encryptPostBody(data);
+      data.settings.body = encryptPostBody(data);
 
-    console.log("coba send group task", data);
-    let a = await actionPost(data);
-    reply.send(a);
+      console.log("coba send group task", data);
+      let a = await actionPost(data);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
+
+
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -767,29 +709,30 @@ fastify.get("/proman/board", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/board',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getBoard',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
+          encrypt: true
         },
       },
     };
 
-    console.log("coba get board", data);
+    console.log("coba get board", req.headers);
     let a = await actionGet(data);
-    console.log('aaaaa',a);
+    console.log('aaaaa', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -804,26 +747,27 @@ fastify.get("/proman/getChannelTelegram", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/telegram/subscriber',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/telegram/subscriber',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": "telegram",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
-          )
+          ),
+          encrypt: true
         },
       },
     };
 
     console.log("coba get telegram", data);
     let a = await actionGet(data);
-    console.log('aaaaa telegram',a);
+    console.log('aaaaa telegram', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -838,14 +782,14 @@ fastify.get("/proman/getChannelSlack", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/slack/channel',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/slack/channel',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": "slack",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -857,7 +801,7 @@ fastify.get("/proman/getChannelSlack", async function (req, reply) {
 
     console.log("coba get slack", data);
     let a = await actionGet(data);
-    console.log('aaaaa slack',a);
+    console.log('aaaaa slack', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -872,26 +816,27 @@ fastify.get("/proman/getSlackSettings", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/user/setting',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": "slack",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
-          )
+          ),
+          encrypt: true
         },
       },
     };
 
     console.log("coba get slack settings", data);
     let a = await actionGet(data);
-    console.log('aaaaa slack settings',a);
+    console.log('aaaaa slack settings', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -901,33 +846,44 @@ fastify.get("/proman/getSlackSettings", async function (req, reply) {
 
 fastify.post("/proman/submitActivationSlack", async function (req, reply) {
   try {
+    let data;
+    try {
+      data = JSON.parse(req.body);
+    } catch (error) {
+      data = req.body;
+    }
     let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Cache-Control": "no-cache",
-          "Content-Type": 'application/json',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          )
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      let datas = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/user/setting',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Cache-Control": "no-cache",
+            "Content-Type": 'application/json',
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            )
+          },
+          body: JSON.stringify(iterateObject(JSON.parse(data.settings.body)))
         },
-        body: JSON.stringify(iterateObject(JSON.parse(req.body.settings.body)))
-      },
-    };
+      };
 
-    console.log("coba post activate slack", data);
-    let a = await actionPost(data);
-    console.log('aaaaa activate slack post',a);
-    reply.send(a);
+      console.log("coba post activate slack", datas);
+      let a = await actionPost(datas);
+      console.log('aaaaa activate slack post', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -936,33 +892,46 @@ fastify.post("/proman/submitActivationSlack", async function (req, reply) {
 
 fastify.post("/proman/submitChannel", async function (req, reply) {
   try {
-    let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/user/setting',
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Cache-Control": "no-cache",
-          "Content-Type": 'application/json',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          )
-        },
-        body: JSON.stringify(iterateObject(JSON.parse(req.body.settings.body)))
-      },
-    };
 
-    console.log("coba post channel slack", data);
-    let a = await actionPost(data);
-    console.log('aaaaa slack post',a);
-    reply.send(a);
+    let data;
+    try {
+      data = JSON.parse(req.body);
+    } catch (error) {
+      data = req.body;
+    }
+    let token = extToken ? extToken : req.headers.token;
+    if ("keyencrypt" in data.settings.headers && await validateKeyEncrypt(data.settings.headers.keyencrypt)) {
+      data.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(data.settings.body), data.settings.headers.keyencrypt))
+      console.log('data', data.settings.body);
+      let datas = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/user/setting',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Cache-Control": "no-cache",
+            "Content-Type": 'application/json',
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            )
+          },
+          body: JSON.stringify(iterateObject(JSON.parse(data.settings.body)))
+        },
+      };
+
+      console.log("coba post channel slack", datas);
+      let a = await actionPost(datas);
+      console.log('aaaaa slack post', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -977,14 +946,14 @@ fastify.get("/proman/getEmployee", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/data/employee',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/employee',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getEmployee',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getEmployee',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -998,7 +967,7 @@ fastify.get("/proman/getEmployee", async function (req, reply) {
 
     console.log("coba get employee", data);
     let a = await actionGet(data);
-    console.log('aaaaa employee',a);
+    console.log('aaaaa employee', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1013,14 +982,14 @@ fastify.get("/proman/getDivision", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/customerService/list/division',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/customerService/list/division',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getDivision',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getDivision',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1032,7 +1001,7 @@ fastify.get("/proman/getDivision", async function (req, reply) {
 
     console.log("coba get division", data);
     let a = await actionGet(data);
-    console.log('aaaaa division',a);
+    console.log('aaaaa division', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1047,14 +1016,14 @@ fastify.get("/proman/goAuth", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/auth',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/auth',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": 'auth',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1066,7 +1035,7 @@ fastify.get("/proman/goAuth", async function (req, reply) {
 
     console.log("coba get auth", data);
     let a = await actionGet(data);
-    console.log('aaaaauuuutttthhhh',a);
+    console.log('aaaaauuuutttthhhh', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1081,14 +1050,14 @@ fastify.post("/proman/confirmAuthToken", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/auth',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/auth',
         method: "POST",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1101,7 +1070,7 @@ fastify.post("/proman/confirmAuthToken", async function (req, reply) {
 
     console.log("coba post auth", data);
     let a = await actionPost(data);
-    console.log('postttt authhhh',a);
+    console.log('postttt authhhh', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1117,21 +1086,20 @@ fastify.get("/proman/trelloBoard", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/board',
-        // url: 'https://api.trello.com/1/members/me/boards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/trello/board',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": 'trello',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
         },
@@ -1152,21 +1120,20 @@ fastify.get("/proman/trelloList", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/list',
-        // url: 'https://api.trello.com/1/boards/'+boardId+'/lists?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/trello/list',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": 'trello',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
         },
@@ -1187,21 +1154,20 @@ fastify.get("/proman/getCardData", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/trello/card',
-        // url: 'https://api.trello.com/1/lists/'+listId+'/cards?key=156b809da9559f2d476a308cb0cab8ae&token=847a19083739e0c5403a1ad9160da41d401b4dd65af8e06630e1b17d3d257f29',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/trello/card',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           "target": 'trello',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
         },
@@ -1222,21 +1188,21 @@ fastify.delete("/proman/deleteList", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/list',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/list',
         method: "DELETE",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
         },
-        body:JSON.stringify(iterateObject(req.body))
+        body: JSON.stringify(iterateObject(req.body))
       },
     };
     let a = await actionDelete(data);
@@ -1254,21 +1220,21 @@ fastify.put("/proman/renameList", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/list',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/list',
         method: "PUT",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
         },
-        body:JSON.stringify(iterateObject(req.body))
+        body: JSON.stringify(iterateObject(req.body))
       },
     };
     let a = await actionPut(data);
@@ -1286,14 +1252,14 @@ fastify.put("/proman/putTaskTrello", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/card',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/card',
         method: "PUT",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1306,7 +1272,7 @@ fastify.put("/proman/putTaskTrello", async function (req, reply) {
 
     console.log("coba put task timeline", data);
     let a = await actionPut(data);
-    console.log('put task timelinee',a);
+    console.log('put task timelinee', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1321,14 +1287,14 @@ fastify.delete("/proman/deleteTaskTrello", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/card',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/card',
         method: "DELETE",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1341,7 +1307,7 @@ fastify.delete("/proman/deleteTaskTrello", async function (req, reply) {
 
     console.log("coba put task timeline", data);
     let a = await actionDelete(data);
-    console.log('put task timelinee',a);
+    console.log('put task timelinee', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1356,14 +1322,14 @@ fastify.put("/proman/renameBoard", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/board',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/board',
         method: "PUT",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          "Content-Type":'application/json',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          "Content-Type": 'application/json',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1388,14 +1354,14 @@ fastify.delete("/proman/deleteBoardTrello", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/trello/board',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/trello/board',
         method: "DELETE",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          "Content-Type":'application/json',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          "Content-Type": 'application/json',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1417,19 +1383,19 @@ fastify.delete("/proman/deleteBoardTrello", async function (req, reply) {
 fastify.get("/proman/getChartAnalytic", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    console.log('qqq',req.headers.param);
+    console.log('qqq', req.headers.param);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/summary',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/summary',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
           target: 'chartAnalytic',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1438,13 +1404,14 @@ fastify.get("/proman/getChartAnalytic", async function (req, reply) {
           param: cryptography.aesEncrypt(
             req.headers.param
           ),
+          encrypt: true
         },
       },
     };
 
     console.log("coba get analytical", data);
     let a = await actionGet(data);
-    console.log('aaaaa',a);
+    console.log('aaaaa', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1460,25 +1427,26 @@ fastify.get("/proman/summaryBoard", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/board',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/board',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getSummaryBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getSummaryBoard',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
           category: cryptography.aesEncrypt(
             req.headers.category
           ),
+          encrypt:true
         },
       },
     };
@@ -1500,29 +1468,30 @@ fastify.get("/proman/getGroupTask", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/group',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/group',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getBoard',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
+          encrypt: true
         },
       },
     };
 
     console.log("coba get group task", data);
     let a = await actionGet(data);
-    console.log('gerup tasek',a);
+    console.log('gerup tasek', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1532,35 +1501,36 @@ fastify.get("/proman/getGroupTask", async function (req, reply) {
 
 fastify.get("/proman/getTaskData", async function (req, reply) {
   try {
-    console.log('req',req.headers);
+    console.log('req', req.headers);
     let token = extToken ? extToken : req.headers.token;
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getBoard',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
+          encrypt: true
         },
       },
     };
 
     console.log("coba get task", data);
     let a = await actionGet(data);
-    console.log('tasek',a);
+    console.log('tasek', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1575,22 +1545,23 @@ fastify.get("/proman/comment", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/comment',
         method: "GET",
         headers: {
           Accept: "*/*",
           "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          target: 'getBoard',
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
             token
           ),
-          param:cryptography.aesEncrypt(
+          param: cryptography.aesEncrypt(
             req.headers.param
           ),
+          encrypt: true
         },
       },
     };
@@ -1605,26 +1576,29 @@ fastify.get("/proman/comment", async function (req, reply) {
   }
 });
 
-fastify.get('/proman/google/response', async function (request, reply){
-  reply.type('text/html').send(await getSource({source:'googleResponse',flow:'ultipayDashboard'},'page'))
+fastify.get('/proman/google/response', async function (request, reply) {
+  reply.type('text/html').send(await getSource({
+    source: 'googleResponse',
+    flow: 'ultipayDashboard'
+  }, 'page'))
 })
 
 fastify.post("/proman/google/syncGoogle", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    console.log('aaa',req.headers);
+    console.log('aaa', req.headers);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/google/auth',
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/google/auth',
         method: "POST",
         headers: {
           Accept: "*/*",
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
+          signature: cryptography.aesEncrypt(req.headers.signature),
+          secretkey: cryptography.aesEncrypt(
             req.headers.secretkey
           ),
           token: cryptography.aesEncrypt(
@@ -1637,7 +1611,7 @@ fastify.post("/proman/google/syncGoogle", async function (req, reply) {
 
     data.settings.body = encryptPostBody(data)
     let a = await actionPost(data);
-    console.log('post sync',a);
+    console.log('post sync', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1648,34 +1622,39 @@ fastify.post("/proman/google/syncGoogle", async function (req, reply) {
 fastify.post("/proman/syncGoogle", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/calendar',
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    if ("keyencrypt" in req.headers && await validateKeyEncrypt(req.headers.keyencrypt)) {
+      req.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(req.body), req.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/calendar',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: req.body
         },
-        body: JSON.stringify(req.body)
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba post sync", data);
-    let a = await actionPost(data);
-    console.log('post sync',a);
-    reply.send(a);
+      console.log("coba post sync", data);
+      let a = await actionPost(data);
+      console.log('post sync', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -1684,37 +1663,41 @@ fastify.post("/proman/syncGoogle", async function (req, reply) {
 
 fastify.put("/proman/editGroup", async function (req, reply) {
   try {
-    console.log('req',req.body);
     let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/group',
-        method: "PUT",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    if ("keyencrypt" in req.headers && await validateKeyEncrypt(req.headers.keyencrypt)) {
+      req.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(req.body), req.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/group',
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            target: 'getBoard',
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: req.body
         },
-        body: JSON.stringify(req.body)
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba edit group task", data);
-    let a = await actionPut(data);
-    console.log('edit gerup tasek',a);
-    reply.send(a);
+      console.log("coba edit group task", data);
+      let a = await actionPut(data);
+      console.log('edit gerup tasek', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -1723,36 +1706,42 @@ fastify.put("/proman/editGroup", async function (req, reply) {
 
 fastify.put("/proman/putTask", async function (req, reply) {
   try {
-    console.log('req',req.body);
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task',
-        method: "PUT",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    // console.log('req put task',JSON.parse(req.body));
+    let sett = JSON.parse(req.body);
+    let token = extToken ? extToken : sett.settings.headers.token;
+    if ("keyencrypt" in sett.settings.headers && await validateKeyEncrypt(sett.settings.headers.keyencrypt)) {
+      sett.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(sett.settings.body), sett.settings.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task',
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(sett.settings.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              sett.settings.headers.secretKey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: sett.settings.body
         },
-        body: req.body.settings.body
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba put timeline", data);
-    let a = await actionPut(data);
-    console.log('put timelinee',a);
-    reply.send(a);
+      console.log("coba put timeline", data);
+      let a = await actionPut(data);
+      console.log('put timelinee', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -1767,43 +1756,44 @@ fastify.put("/proman/attachFile", async function (request, reply) {
     }
     let data = [];
     const mp = request.multipart(handler, onEnd)
-  
+
     mp.on('field', function (key, value) {
       data[key] = value;
     })
-  
+
     async function onEnd(err) {
       let token = extToken ? extToken : request.headers.token;
       data = Object.assign({}, data);
       var dataSend = {
-          settings: {
-              "async": true,
-              "crossDomain": true,
-              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/file',
-              method: "PUT",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-                signature:cryptography.aesEncrypt(request.headers.signature),
-                secretkey:cryptography.aesEncrypt(
-                  request.headers.secretkey
-                ),
-                token: cryptography.aesEncrypt(
-                  token
-                ),
-              },
-          }
+        settings: {
+          "async": true,
+          "crossDomain": true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/file',
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(request.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              request.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+        }
       };
       data.id = cryptography.encryptMessage(data.id);
       data.file = data.file;
       dataSend.settings.formData = data;
       let a = await actionPut(dataSend);
-      console.log('a attachment update',a);
+      console.log('a attachment update', a);
       reply.send(a);
     }
-    function handler (field, file, filename, encoding, mimetype) {
-      
+
+    function handler(field, file, filename, encoding, mimetype) {
+
     }
   } catch (error) {
     console.log("eroor: ", error);
@@ -1819,33 +1809,33 @@ fastify.post("/proman/attachFile", async function (request, reply) {
     }
     let data = [];
     const mp = request.multipart(handler, onEnd)
-  
+
     mp.on('field', function (key, value) {
       data[key] = value;
     })
-  
+
     async function onEnd(err) {
       let token = extToken ? extToken : request.headers.token;
       data = Object.assign({}, data);
       var dataSend = {
-          settings: {
-              "async": true,
-              "crossDomain": true,
-              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/file',
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-                signature:cryptography.aesEncrypt(request.headers.signature),
-                secretkey:cryptography.aesEncrypt(
-                  request.headers.secretkey
-                ),
-                token: cryptography.aesEncrypt(
-                  token
-                ),
-              },
-          }
+        settings: {
+          "async": true,
+          "crossDomain": true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/file',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(request.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              request.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+        }
       };
       data.id = cryptography.encryptMessage(data.id);
       data.file = data.file;
@@ -1853,8 +1843,9 @@ fastify.post("/proman/attachFile", async function (request, reply) {
       let a = await actionPost(dataSend);
       reply.send(a);
     }
-    function handler (field, file, filename, encoding, mimetype) {
-      
+
+    function handler(field, file, filename, encoding, mimetype) {
+
     }
   } catch (error) {
     console.log("eroor: ", error);
@@ -1868,13 +1859,11 @@ fastify.get("/proman/showAttachmentDetails", async function (req, reply) {
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
     let param = req.headers.param;
-    let hostNameData = await getRedisData(hostNameServer);
-    let backendPortData = await getRedisData(backendPort);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostNameData + ":" + backendPortData + "/getFile/"+req.headers.id,
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + "/getFile/" + req.headers.id,
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -1900,33 +1889,33 @@ fastify.post("/proman/commentUpdate", async function (request, reply) {
     }
     let data = [];
     const mp = request.multipart(handler, onEnd)
-  
+
     mp.on('field', function (key, value) {
       data[key] = value;
     })
-  
+
     async function onEnd(err) {
       let token = extToken ? extToken : request.headers.token;
       data = Object.assign({}, data);
       var dataSend = {
-          settings: {
-              "async": true,
-              "crossDomain": true,
-              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-                signature:cryptography.aesEncrypt(request.headers.signature),
-                secretkey:cryptography.aesEncrypt(
-                  request.headers.secretkey
-                ),
-                token: cryptography.aesEncrypt(
-                  token
-                ),
-              },
-          }
+        settings: {
+          "async": true,
+          "crossDomain": true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/comment',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(request.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              request.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+        }
       };
       data.task_id = cryptography.encryptMessage(data.task_id);
       data.comment = cryptography.encryptMessage(data.comment);
@@ -1935,11 +1924,12 @@ fastify.post("/proman/commentUpdate", async function (request, reply) {
       data.user_create = cryptography.encryptMessage(data.user_create);
       dataSend.settings.formData = data;
       let a = await actionPost(dataSend);
-      console.log('a form data',a);
+      console.log('a form data', a);
       reply.send(a);
     }
-    function handler (field, file, filename, encoding, mimetype) {
-      
+
+    function handler(field, file, filename, encoding, mimetype) {
+
     }
   } catch (error) {
     console.log("eroor: ", error);
@@ -1949,36 +1939,41 @@ fastify.post("/proman/commentUpdate", async function (request, reply) {
 
 fastify.delete("/proman/commentUpdate", async function (req, reply) {
   try {
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    console.log('req',req.body);
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    let settingCommentDelete = JSON.parse(req.body);
+    let token = extToken ? extToken : settingCommentDelete.settings.headers.token;
+    if ("keyencrypt" in settingCommentDelete.settings.headers && await validateKeyEncrypt(settingCommentDelete.settings.headers.keyencrypt)) {
+      settingCommentDelete.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(settingCommentDelete.settings.body), settingCommentDelete.settings.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/comment',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(settingCommentDelete.settings.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              settingCommentDelete.settings.headers.secretKey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: settingCommentDelete.settings.body
         },
-        body: req.body.settings.body
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba delete comment", data);
-    let a = await actionDelete(data);
-    console.log('delete comment',a);
-    reply.send(a);
+      console.log("coba delete comment", data);
+      let a = await actionDelete(data);
+      console.log('delete comment', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -1993,32 +1988,32 @@ fastify.post("/proman/commentReply", async function (request, reply) {
     }
     let data = [];
     const mp = request.multipart(handler, onEnd)
-  
+
     mp.on('field', function (key, value) {
       data[key] = value;
     })
-  
+
     async function onEnd(err) {
       let token = extToken ? extToken : request.headers.token;
       data = Object.assign({}, data);
       var dataSend = {
-          settings: {
-              "async": true,
-              "crossDomain": true,
-              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Cache-Control": "no-cache",
-                signature:cryptography.aesEncrypt(request.headers.signature),
-                secretkey:cryptography.aesEncrypt(
-                  request.headers.secretkey
-                ),
-                token: cryptography.aesEncrypt(
-                  token
-                ),
-              },
-          }
+        settings: {
+          "async": true,
+          "crossDomain": true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/reply',
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(request.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              request.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+        }
       };
       data.comment_id = cryptography.encryptMessage(data.comment_id);
       data.comment = cryptography.encryptMessage(data.comment);
@@ -2026,11 +2021,12 @@ fastify.post("/proman/commentReply", async function (request, reply) {
       data.user_create = cryptography.encryptMessage(data.user_create);
       dataSend.settings.formData = data;
       let a = await actionPost(dataSend);
-      console.log('a form data',a);
+      console.log('a form data', a);
       reply.send(a);
     }
-    function handler (field, file, filename, encoding, mimetype) {
-      
+
+    function handler(field, file, filename, encoding, mimetype) {
+
     }
   } catch (error) {
     console.log("eroor: ", error);
@@ -2047,32 +2043,32 @@ fastify.put("/proman/commentReply", async function (request, reply) {
     }
     let data = [];
     const mp = request.multipart(handler, onEnd)
-  
+
     mp.on('field', function (key, value) {
       data[key] = value;
     })
-  
+
     async function onEnd(err) {
       let token = extToken ? extToken : request.headers.token;
       data = Object.assign({}, data);
       var dataSend = {
-          settings: {
-              "async": true,
-              "crossDomain": true,
-              url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
-              method: "PUT",
-              headers: {
-                Accept: "*/*",
-                "Cache-Control": "no-cache",
-                signature:cryptography.aesEncrypt(request.headers.signature),
-                secretkey:cryptography.aesEncrypt(
-                  request.headers.secretkey
-                ),
-                token: cryptography.aesEncrypt(
-                  token
-                ),
-              },
-          }
+        settings: {
+          "async": true,
+          "crossDomain": true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/reply',
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(request.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              request.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+        }
       };
       data._id = cryptography.encryptMessage(data._id);
       data.comment_id = cryptography.encryptMessage(data.comment_id);
@@ -2081,87 +2077,58 @@ fastify.put("/proman/commentReply", async function (request, reply) {
       data.user_create = cryptography.encryptMessage(data.user_create);
       dataSend.settings.formData = data;
       let a = await actionPut(dataSend);
-      console.log('a form data',a);
+      console.log('a form data', a);
       reply.send(a);
     }
-    function handler (field, file, filename, encoding, mimetype) {
-      
+
+    function handler(field, file, filename, encoding, mimetype) {
+
     }
   } catch (error) {
     console.log("eroor: ", error);
     reply.send(error);
   }
-
-
-  // try {
-  //   console.log('req',req.body);
-  //   let token = extToken ? extToken : req.body.settings.headers.token;
-  //   let data = {
-  //     settings: {
-  //       async: true,
-  //       crossDomain: true,
-  //       url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
-  //       method: "PUT",
-  //       headers: {
-  //         Accept: "*/*",
-  //         "Content-Type": "application/json",
-  //         "Cache-Control": "no-cache",
-  //         signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-  //         secretkey:cryptography.aesEncrypt(
-  //           req.body.settings.headers.secretKey
-  //         ),
-  //         token: cryptography.aesEncrypt(
-  //           token
-  //         ),
-  //       },
-  //       body: req.body.settings.body
-  //     },
-  //   };
-
-  //   data.settings.body = encryptPostBody(data)
-
-  //   console.log("coba reply put comment", data);
-  //   let a = await actionPut(data);
-  //   console.log('put reply comment',a);
-  //   reply.send(a);
-  // } catch (err) {
-  //   console.log("Error apa sih", err);
-  //   reply.send(500);
-  // }
 });
 
 fastify.delete("/proman/commentReply", async function (req, reply) {
   try {
-    console.log('req',req.body);
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/reply',
-        method: "DELETE",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    console.log('req', req.body);
+    let commentReplySetting = JSON.parse(req.body);
+    let token = extToken ? extToken : commentReplySetting.settings.headers.token;
+    if ("keyencrypt" in commentReplySetting.settings.headers && await validateKeyEncrypt(commentReplySetting.settings.headers.keyencrypt)) {
+      commentReplySetting.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(commentReplySetting.settings.body), commentReplySetting.settings.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/reply',
+          method: "DELETE",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(commentReplySetting.settings.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              commentReplySetting.settings.headers.secretKey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: commentReplySetting.settings.body
         },
-        body: req.body.settings.body
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba reply delete comment", data);
-    let a = await actionDelete(data);
-    console.log('delete reply comment',a);
-    reply.send(a);
+      console.log("coba reply delete comment", data);
+      let a = await actionDelete(data);
+      console.log('delete reply comment', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
+
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -2170,36 +2137,42 @@ fastify.delete("/proman/commentReply", async function (req, reply) {
 
 fastify.put("/proman/commentUpdate", async function (req, reply) {
   try {
-    console.log('req',req.body);
-    let token = extToken ? extToken : req.body.settings.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task/comment',
-        method: "PUT",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.body.settings.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.body.settings.headers.secretKey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    console.log('req', req.body);
+    let settingComment = JSON.parse(req.body);
+    let token = extToken ? extToken : settingComment.settings.headers.token;
+    if ("keyencrypt" in settingComment.settings.headers && await validateKeyEncrypt(settingComment.settings.headers.keyencrypt)) {
+      settingComment.settings.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(settingComment.settings.body), settingComment.settings.headers.keyencrypt));
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task/comment',
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(settingComment.settings.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              settingComment.settings.headers.secretKey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: settingComment.settings.body
         },
-        body: req.body.settings.body
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba put comment", data);
-    let a = await actionPut(data);
-    console.log('put comment',a);
-    reply.send(a);
+      console.log("coba put comment", data);
+      let a = await actionPut(data);
+      console.log('put comment', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -2208,37 +2181,43 @@ fastify.put("/proman/commentUpdate", async function (req, reply) {
 
 fastify.delete("/proman/deleteGroup", async function (req, reply) {
   try {
-    console.log('req',req.body);
+    console.log('req', req.body);
     let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/group',
-        method: "DELETE",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          target:'getBoard',
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-           token
-          ),
+    if ("keyencrypt" in req.headers && await validateKeyEncrypt(req.headers.keyencrypt)) {
+      req.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(req.body), req.headers.keyencrypt));
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/group',
+          method: "DELETE",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            target: 'getBoard',
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: req.body
         },
-        body: JSON.stringify(req.body)
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba delete group task", data);
-    let a = await actionDelete(data);
-    console.log('delete gerup tasek',a);
-    reply.send(a);
+      console.log("coba delete group task", data);
+      let a = await actionDelete(data);
+      console.log('delete gerup tasek', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
+
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
@@ -2247,55 +2226,44 @@ fastify.delete("/proman/deleteGroup", async function (req, reply) {
 
 fastify.delete("/proman/deleteTask", async function (req, reply) {
   try {
-    console.log('req',req.body);
+    console.log('req', req.body);
     let token = extToken ? extToken : req.headers.token;
-    let data = {
-      settings: {
-        async: true,
-        crossDomain: true,
-        url: hostIPAlt + ":" + await getRedisData(backendPort) + '/dashboard/task',
-        method: "DELETE",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-          signature:cryptography.aesEncrypt(req.headers.signature),
-          secretkey:cryptography.aesEncrypt(
-            req.headers.secretkey
-          ),
-          token: cryptography.aesEncrypt(
-            token
-          ),
+    if ("keyencrypt" in req.headers && await validateKeyEncrypt(req.headers.keyencrypt)) {
+      req.body = JSON.stringify(iterateObjectNewDecrypt(JSON.parse(req.body), req.headers.keyencrypt))
+      let data = {
+        settings: {
+          async: true,
+          crossDomain: true,
+          url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + '/dashboard/task',
+          method: "DELETE",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            signature: cryptography.aesEncrypt(req.headers.signature),
+            secretkey: cryptography.aesEncrypt(
+              req.headers.secretkey
+            ),
+            token: cryptography.aesEncrypt(
+              token
+            ),
+          },
+          body: req.body
         },
-        body: JSON.stringify(req.body)
-      },
-    };
+      };
 
-    data.settings.body = encryptPostBody(data)
+      data.settings.body = encryptPostBody(data)
 
-    console.log("coba delete task", data);
-    let a = await actionDelete(data);
-    console.log('delete tasek',a);
-    reply.send(a);
+      console.log("coba delete task", data);
+      let a = await actionDelete(data);
+      console.log('delete tasek', a);
+      reply.send(a);
+    } else {
+      reply.send(responseInvalid)
+    }
   } catch (err) {
     console.log("Error apa sih", err);
     reply.send(500);
-  }
-});
-
-fastify.post("/proman/getRData", async function (request, reply) {
-  try {
-    let data = request.body.param;
-    let token = request.headers.token;
-    let signature = request.headers.signature;
-    let secretKey = request.headers.secretkey;
-    let urlRdata = request.headers.url;
-    console.log("redis data get param ==> ", data);
-    let bRD = await getRedisData(data, token, signature, secretKey, urlRdata);
-    // console.log ('jwbn brd ==> ', bRD)
-    reply.send(bRD);
-  } catch (err) {
-    reply.send(err);
   }
 });
 
@@ -2311,7 +2279,7 @@ fastify.post('/proman/updateConfig', async function (request, reply) {
       reply.send({
         responseCode: "200",
         responseMessage: "success!!"
-      });  
+      });
     } else {
       reply.send({
         responseCode: "500",
@@ -2327,129 +2295,6 @@ fastify.post('/proman/updateConfig', async function (request, reply) {
   }
 })
 
-async function convertURLRedis(data) {
-  try {
-    let url;
-    switch (data.server_url) {
-      case "SERVER_EVE":
-        url = redisKey["SERVER_EVE"];
-        break;
-      case "SERVER_SYAFRI":
-        if (redisKey["SERVER_SYAFRI"] == undefined) {
-          redisKey["SERVER_SYAFRI"] = await getRedisData("SERVER_SYAFRI");
-        }
-        url = redisKey["SERVER_SYAFRI"];
-        break;
-      case "SERVER_CENTOS":
-        if (redisKey["SERVER_CENTOS"] == undefined) {
-          redisKey["SERVER_CENTOS"] = await getRedisData("SERVER_CENTOS");
-        }
-        url = redisKey["SERVER_CENTOS"];
-        break;
-      case "SERVER_RONALD":
-        url = redisKey["SERVER_RONALD"];
-        break;
-      case "SERVER_WAHYU":
-        if (redisKey["SERVER_WAHYU"] == undefined) {
-          redisKey["SERVER_WAHYU"] = await getRedisData("SERVER_WAHYU");
-        }
-        url = redisKey["SERVER_WAHYU"];
-        break;
-      case "SERVER_JIMBO":
-        if (redisKey["SERVER_JIMBO"] == undefined) {
-          redisKey["SERVER_JIMBO"] = await getRedisData("SERVER_JIMBO");
-        }
-        url = redisKey["SERVER_JIMBO"];
-        break;
-      case "AWS_SERVER":
-        if (redisKey["AWS_SERVER"] == undefined) {
-          redisKey["AWS_SERVER"] = await getRedisData("AWS_SERVER");
-        }
-        url = redisKey["AWS_SERVER"];
-        break;
-      case "AWS_SERVER2":
-        if (redisKey["AWS_SERVER2"] == undefined) {
-          redisKey["AWS_SERVER2"] = await getRedisData("AWS_SERVER2");
-        }
-        url = redisKey["AWS_SERVER2"];
-        break;
-      default:
-        url = redisKey["SERVER_SYAFRI"];
-        break;
-    }
-    url += ":";
-
-    switch (data.port_url) {
-      case "PORT_TRANSACTION":
-        url += redisKey["PORT_TRANSACTION"];
-        break;
-      case "PORT_TRANSACTION_AWS":
-        if (redisKey["PORT_TRANSACTION_AWS"] == undefined) {
-          redisKey["PORT_TRANSACTION_AWS"] = await getRedisData("PORT_TRANSACTION_AWS", token);
-        }
-        url += redisKey["PORT_TRANSACTION_AWS"];
-        break;
-      case "PORT_AUTH":
-        url += redisKey["PORT_AUTH"];
-        break;
-      case "PORT_AUTH_AWS":
-        if (redisKey["PORT_AUTH_AWS"] == undefined) {
-          redisKey["PORT_AUTH_AWS"] = await getRedisData("PORT_AUTH_AWS", token);
-        }
-        url += redisKey["PORT_AUTH_AWS"];
-        break;
-      case "PORT_BACKEND":
-        url += redisKey["PORT_BACKEND"];
-        break;
-      case "PORT_BACKEND_AWS":
-        if (redisKey["PORT_BACKEND_AWS"] == undefined) {
-          redisKey["PORT_BACKEND_AWS"] = await getRedisData("PORT_BACKEND_AWS", token);
-        }
-        url += redisKey["PORT_BACKEND_AWS"];
-        break;
-      case "PORT_WITHDRAW":
-        url += redisKey["PORT_WITHDRAW"];
-        break;
-      case "PORT_WITHDRAW_AWS":
-        url += redisKey["PORT_WITHDRAW_AWS"];
-        break;
-      case "PORT_OUTLET":
-        url += redisKey["PORT_OUTLET"];
-        break;
-      case "PORT_OUTLET_AWS":
-        url += redisKey["PORT_OUTLET_AWS"];
-        break;
-      case "PORT_ACC":
-        if (redisKey["PORT_ACC"] == undefined) {
-          redisKey["PORT_ACC"] = await getRedisData("PORT_ACC", token);
-        }
-        url += redisKey["PORT_ACC"];
-        break;
-      case "PORT_ACC_AWS":
-        if (redisKey["PORT_ACC_AWS"] == undefined) {
-          redisKey["PORT_ACC_AWS"] = await getRedisData("PORT_ACC_AWS", token);
-        }
-        url += redisKey["PORT_ACC_AWS"];
-        break;
-      case "PORT_NOTIF":
-        url += redisKey["PORT_NOTIF"];
-        break;
-      case "PORT_ULTIPAY":
-        url += redisKey["PORT_ULTIPAY"];
-        break;
-      default:
-        url += redisKey["PORT_BACKEND"];
-        break;
-    }
-
-    data.url = url + data.url;
-    return data.url;
-  } catch (err) {
-    console.log("Error URL convert", err);
-    reply.send(500);
-  }
-}
-
 fastify.get("/proman/getEmployeeDetail", async function (req, reply) {
   try {
     let idEmployee = req.headers.employeeid;
@@ -2460,9 +2305,7 @@ fastify.get("/proman/getEmployeeDetail", async function (req, reply) {
       settings: {
         async: true,
         crossDomain: true,
-        url: (await getRedisData(hostNameServer)) +
-          ":" +
-          (await getRedisData(backendPort)) +
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService +
           "/data/employee",
         method: "GET",
         headers: {
@@ -2488,11 +2331,11 @@ fastify.get("/proman/getEmployeeDetail", async function (req, reply) {
   }
 });
 
-fastify.get('/proman/employeeDetail',async function(req,reply){
+fastify.get('/proman/employeeDetail', async function (req, reply) {
   reply.sendFile('layouts/profileMember.html');
 })
 
-fastify.get('/proman/setting',async function(req,reply){
+fastify.get('/proman/setting', async function (req, reply) {
   reply.sendFile('layouts/setting.html');
 })
 
@@ -2502,15 +2345,12 @@ fastify.get("/proman/getMethod", async function (req, reply) {
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
     let param = req.headers.param;
-    let hostNameData = await getRedisData(hostNameServer);
-    let backendPortData = await getRedisData(backendPort);
-
     console.log("token get", req.headers);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostNameData + ":" + backendPortData + "/master/method",
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + "/master/method",
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -2536,13 +2376,11 @@ fastify.get("/proman/getMethodOnly", async function (req, reply) {
     let token = req.headers.token;
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
-    let hostNameData = await getRedisData(hostNameServer);
-    let backendPortData = await getRedisData(backendPort);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostNameData + ":" + backendPortData + "/master/method",
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + "/master/method",
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -2567,13 +2405,11 @@ fastify.get("/proman/getMethodParam", async function (req, reply) {
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
     let empid = req.headers.empid;
-    let hostNameData = await getRedisData(hostNameServer);
-    let backendPortData = await getRedisData(backendPort);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostNameData + ":" + backendPortData + "/employee/account/scope",
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + "/employee/account/scope",
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -2604,13 +2440,11 @@ fastify.get("/proman/getScopeEmployee", async function (req, reply) {
     let token = req.headers.token;
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
-    let hostNameData = await getRedisData(hostNameServer);
-    let backendPortData = await getRedisData(backendPort);
     let data = {
       settings: {
         async: true,
         crossDomain: true,
-        url: hostNameData + ":" + backendPortData + "/master/access",
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService + "/master/access",
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -2631,9 +2465,6 @@ fastify.get("/proman/getScopeEmployee", async function (req, reply) {
 fastify.post("/proman/deleteEmployeeMethod", async function (req, res) {
   try {
     let data = req.body;
-    let hostNameData = await getRedisData(hostNameServer);
-    let accPortData = await getRedisData(portAcc);
-
     data.settings.body = encryptPostBody(data);
     data.settings.headers.token = cryptography.aesEncrypt(
       data.settings.headers.token
@@ -2644,7 +2475,7 @@ fastify.post("/proman/deleteEmployeeMethod", async function (req, res) {
     data.settings.headers.secretKey = cryptography.aesEncrypt(
       data.settings.headers.secretKey
     );
-    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+    data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.accPort + data.settings.url;
 
     console.log("data url", data.settings.url);
     let a = await actionPost(data);
@@ -2659,9 +2490,6 @@ fastify.post("/proman/deleteEmployeeMethod", async function (req, res) {
 fastify.put("/proman/updateEmployeeMethod", async function (req, res) {
   try {
     let data = req.body;
-    let hostNameData = await getRedisData(hostNameServer);
-    let accPortData = await getRedisData(portAcc);
-
     data.settings.body = encryptPostBody(data);
     data.settings.headers.token = cryptography.aesEncrypt(
       data.settings.headers.token
@@ -2672,7 +2500,7 @@ fastify.put("/proman/updateEmployeeMethod", async function (req, res) {
     data.settings.headers.secretKey = cryptography.aesEncrypt(
       data.settings.headers.secretKey
     );
-    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+    data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.accPort + data.settings.url;
 
     console.log("settung akhir", data.settings);
     let a = await actionPut(data);
@@ -2687,9 +2515,6 @@ fastify.put("/proman/updateEmployeeMethod", async function (req, res) {
 fastify.put("/proman/updateEmployeeRole", async function (req, res) {
   try {
     let data = req.body;
-    let hostNameData = await getRedisData(hostNameServer);
-    let accPortData = await getRedisData(portAcc);
-
     data.settings.body = encryptPostBody(data);
     data.settings.headers.token = cryptography.aesEncrypt(
       data.settings.headers.token
@@ -2700,7 +2525,7 @@ fastify.put("/proman/updateEmployeeRole", async function (req, res) {
     data.settings.headers.secretKey = cryptography.aesEncrypt(
       data.settings.headers.secretKey
     );
-    data.settings.url = hostNameData + ":" + accPortData + data.settings.url
+    data.settings.url = returnedConfig.hostIP + ":" + returnedConfig.accPort + data.settings.url;
 
     console.log("settung akhir", data.settings);
     let a = await actionPut(data);
@@ -2712,7 +2537,7 @@ fastify.put("/proman/updateEmployeeRole", async function (req, res) {
   }
 });
 
-fastify.get('/proman/getRole',async function(req,reply){
+fastify.get('/proman/getRole', async function (req, reply) {
   try {
     let signature = req.headers.signature;
     let secretKey = req.headers.secretkey;
@@ -2721,9 +2546,7 @@ fastify.get('/proman/getRole',async function(req,reply){
       settings: {
         async: true,
         crossDomain: true,
-        url: (await getRedisData(hostNameServer)) +
-          ":" +
-          (await getRedisData(backendPort)) +
+        url: returnedConfig.hostIP + ":" + returnedConfig.backendPortService +
           "/master/role",
         method: "GET",
         headers: {
@@ -2747,9 +2570,7 @@ fastify.put("/proman/updateEmployee", async function (req, reply) {
   try {
     let data = req.body;
     data.settings.url =
-      (await getRedisData(hostNameServer)) +
-      ":" +
-      (await getRedisData(backendPort)) +
+      returnedConfig.hostIP + ":" + returnedConfig.backendPortService +
       "/account/profile/employee";
     data.settings.body = encryptPostBody(data);
     data.settings.headers.token = cryptography.aesEncrypt(
@@ -2769,103 +2590,17 @@ fastify.put("/proman/updateEmployee", async function (req, reply) {
   }
 });
 
-async function defineConfig() {
-  // ANCHOR MAIN SERVER IP
-  // hostIP = returnedConfig.SERVER_JIMBO;
-  // hostNameServer = 'SERVER_JIMBO';
-  // // hostIP = returnedConfig.AWS_SERVER;
-  // // hostNameServer = "AWS_SERVER";
-
-  // hostIPAlt = returnedConfig.SERVER_JIMBO;
-
-  // // ANCHOR MAIN SERVER PORT NAME AND LINK
-  // accPort = "8443/account";
-  // backendPort = "PORT_BACKEND_AWS";
-  // portAcc = "PORT_ACC_AWS";
-  // portAuth = "PORT_AUTH_AWS";
-  // portTrans = "PORT_TRANSACTION_AWS";
-
-  // // ANCHOR LOCAL PORT
-  // employeeLocalPort = "8103";
-  // csLocalPort = "8105";
-}
-
-async function updateConfig(data){
-  let keys = Object.keys(data);
-  for(let key of keys){
-    returnedConfig[key] = data[key];
-    redisKey[key] = data[key];
-  }
-  // defineConfig();
-}
-
-async function checkAndGetConfigFromMainDB(){
-  return new Promise(async function(resolve,reject){
-    r.get( "http://"+ localUrl+ ':' + mainLocalPort + '/getConfig', {
-      "headers": {
-          "serverKey": mainDBKey
-        }
-      }, function (error, response, body) {
-        if(body == undefined){
-          console.log('failed to connect to main DB');
-        } else {
-          resolve(updateConfig(JSON.parse(body).data))
-          console.log('config',returnedConfig);
-        }
-      });
-    setInterval(() => {
-      r.get( "http://" + localUrl+ ':' + mainLocalPort + '/getConfig', {
-      "headers": {
-          "serverKey": mainDBKey
-        }
-      }, function (error, response, body) {
-        if(body == undefined){
-          console.log('failed to connect to main DB');
-        } else {
-          resolve(updateConfig(JSON.parse(body).data))
-        }
-      });
-    }, 5000);
-  })
-  
-}
-
-async function getBranch(){
-  return new Promise(async function(resolve,reject){
-    let branch = process.env.DOMAIN;
-    localUrl = branch == 'master' ? 'sandbox.dashboard.ultipay.id' : 'localhost';
-    mainLocalPort = '8100';
-    resolve(localUrl);
-  })
-}
-
 fastify.get('/proman/envConfig', function (req, reply) {
-  r.get({
-    "async": true,
-    "crossDomain": true,
-    "headers": {
-      "Accept": "*/*",
-      "Cache-Control": "no-cache",
-      "Content-type" : "plain/text",
-      "serverkey": mainDBKey
-    },
-      "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
-    }, function (err, response, body) {
-      let data = JSON.parse(body);
-      hostIP = data.MAIN_IP_DESTINATION;
-      hostNameServer = data.MAIN_SERVER_KEY;
-      hostIPAlt = data.MAIN_IP_DESTINATION;
-      accPort = data.ACCOUNT_PORT_SERVICE;
-      backendPort = data.BACKEND_SERVER_KEY;
-      portAcc = data.ACC_SERVER_KEY;
-      portAuth = data.AUTH_SERVER_KEY;
-      portTrans = data.TRANSACTION_SERVER_KEY;
-      employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
-      csLocalPort = data.CS_DASHBOARD_PORT;
-      cdnLink = data.CDN_LINK;
-      cdnPort = data.CDN_PORT;
-      reply.send(JSON.stringify(data));
-  });
+  let dataConfig = {
+    hostIP: returnedConfig.hostIP,
+    mainLocalPort: returnedConfig.mainLocalPort,
+    backendPortService: returnedConfig.backendPortService,
+    domainPlaceUS: returnedConfig.domainPlaceUS,
+  };
+  let keys = generateKey();
+  iterateObjectNewEncrypt(dataConfig, keys);
+  dataConfig.cred = keys;
+  reply.send(dataConfig);
 });
 
 fastify.get('/proman/chat', async function (request, reply) {
@@ -2875,16 +2610,16 @@ fastify.get('/proman/chat', async function (request, reply) {
     "headers": {
       "Cache-Control": "no-cache",
     },
-      "url": "http://" + localUrl + ':8100/chat'
-    }, function (err, response, body) {
-      reply.send(body);
+    "url": "http://" + localUrl + ':8100/chat'
+  }, function (err, response, body) {
+    reply.send(body);
   });
 });
 
 fastify.get('/proman/getChatPage', async function (req, reply) {
   console.log('getchat ...');
   // console.log(req.headers);
-  try {  
+  try {
     let server = req.headers.server;
     let port = req.headers.port;
     let receiver = req.headers.receiver;
@@ -2919,37 +2654,140 @@ fastify.get('/proman/getChatPage', async function (req, reply) {
   }
 });
 
-async function restartEnv(){
-  return new Promise(async function(resolve,reject){
-    r.get({
-      "async": true,
-      "crossDomain": true,
-      "headers": {
-        "Accept": "*/*",
-        "Cache-Control": "no-cache",
-        "Content-type" : "plain/text",
-        "serverkey": mainDBKey
-      },
-        "url": 'http://'+localUrl+':'+mainLocalPort+'/envConfig'
-      }, function (err, response, body) {
-        let data = JSON.parse(body);
-        hostIP = data.MAIN_IP_DESTINATION;
-        hostNameServer = data.MAIN_SERVER_KEY;
-        hostIPAlt = data.MAIN_IP_DESTINATION;
-        accPort = data.ACCOUNT_PORT_SERVICE;
-        backendPort = data.BACKEND_SERVER_KEY;
-        portAcc = data.ACC_SERVER_KEY;
-        portAuth = data.AUTH_SERVER_KEY;
-        portTrans = data.TRANSACTION_SERVER_KEY;
-        employeeLocalPort = data.EMPLOYEE_DASHBOARD_PORT;
-        csLocalPort = data.CS_DASHBOARD_PORT;
-        localhostIP = data.LOCALHOST_IP;
-        serverDomain = data.SERVER;
-        cdnLink = data.CDN_LINK;
-        cdnPort = data.CDN_PORT;
-        resolve(data);
+async function restartEnv() {
+  return new Promise(async function (resolve, reject) {
+    let data = process.env;
+    hostIP = data.MAIN_IP_DESTINATION;
+    accPort = data.ACCOUNT_PORT_SERVICE;
+    backendPortService = data.BACKEND_PORT_SERVICE;
+    authPortService = data.AUTHENTICATION_PORT_SERVICE;
+    mainLocalPort = data.MAIN_DASHBOARD_PORT;
+    localhostIP = data.LOCALHOST_IP;
+    serverDomain = data.SERVER;
+    cdnLink = data.CDN_LINK;
+    domainPlaceUS = data.SERVER_US_DOMAIN;
+    localUrl = data.LOCALHOST_DOMAIN;
+    returnedConfig = {
+      hostIP: hostIP,
+      accPort: accPort,
+      authPortService: authPortService,
+      backendPortService: backendPortService,
+      mainLocalPort: mainLocalPort,
+      localhostIP: localhostIP,
+      serverDomain: serverDomain,
+      cdnLink: cdnLink,
+      localUrl: localUrl,
+      domainPlaceUS: domainPlaceUS
+    }
+    resolve(returnedConfig);
+  })
+}
+
+function generateKey() {
+  return (Math.random().toString(36).substring(6));
+}
+
+function htmlEncodes(tag) {
+  var htmlEncode = require('htmlencode').htmlEncode;
+  return htmlEncode(tag);
+}
+
+fastify.get("/proman/generateKey", async function (req, reply) {
+  let genKey = generateKey();
+  client.set("proman_" + genKey, genKey, redis.print);
+  reply.send(genKey)
+})
+
+async function clearKey(key) {
+  return new Promise(async function (resolve, reject) {
+    client.DEL("proman_" + key, function (err, succeeded) {
+      resolve(succeeded);
+    });
+  });
+}
+
+async function validateKeyEncrypt(key) {
+  return new Promise(async function (resolve, reject) {
+    client.get('proman_' + key, async function (err, result) {
+      if (result == null) resolve(false)
+      else {
+        await clearKey(key);
+        resolve(true);
+      }
     });
   })
+}
+
+function iterateObjectNewDecrypt(obj, keys) {
+  try {
+    let temp;
+    Object.keys(obj).forEach((key) => {
+      if (typeof obj[key] === "object") {
+        iterateObjectNewDecrypt(obj[key], keys);
+      } else {
+        temp = obj[key];
+        obj[key] = newDecrypt(obj[key], keys);
+        if (key != 'pic' && key != 'timeline' && key != 'member' && key != 'slack_channels' && key != 'telegram_channels') obj[key] = htmlEncodes(obj[key]);
+        if (obj[key] == "" || obj[key] == null || obj[key] == {}) obj[key] = temp;
+        if (obj[key].toString().includes("error")) obj[key] = temp;
+      }
+    });
+    return obj;
+  } catch (error) {
+    console.log('kok error', error);
+    return obj;
+  }
+
+}
+
+function newDecrypt(strings, key) {
+  let result = '';
+  var atob = require('atob')
+  let string = atob(strings);
+  for (let i = 0; i < string.length; i++) {
+    let char = string.substr(i, 1);
+    let keychar = key.substr((i % key.length) - 1, 1);
+    char = String.fromCharCode(char.charCodeAt(0) - keychar.charCodeAt(0));
+    result += char;
+  }
+  return result;
+}
+
+function newEncrypt(string, key) {
+  let result = '';
+  for (let i = 0; i < string.length; i++) {
+    let char = string.toString().substr(i, 1);
+    let keychar = key.substr((i % key.length) - 1, 1);
+    char = String.fromCharCode(char.charCodeAt(0) + keychar.charCodeAt(0));
+    result += char;
+  }
+  var btoa = require('btoa')
+  return btoa(result);
+}
+
+function iterateObjectNewEncrypt(obj, keys) {
+  try {
+    let temp;
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'object') {
+        iterateObjectNewEncrypt(obj[key], keys)
+      } else {
+        temp = obj[key];
+        if(typeof obj[key] == 'number') obj[key] = obj[key].toString()
+        if (obj[key] == true || obj[key] == false) obj[key] = obj[key].toString()
+        obj[key] = newEncrypt(obj[key], keys);
+        if (obj[key] == '')
+          obj[key] = temp;
+        if (obj[key].toString().includes('error'))
+          obj[key] = temp;
+        if (temp == '' && key != 'status') obj[key] = ''
+      }
+    })
+    return obj;
+  } catch (error) {
+    console.log('errorrrr', error);
+    return obj;
+  }
 }
 
 let sockets = require("./socket.js");
@@ -2957,10 +2795,8 @@ let sockets = require("./socket.js");
 // Run the server!
 const start = async () => {
   try {
-    await fastify.listen(8110,'0.0.0.0')
-    await getBranch();
+    await fastify.listen(8110, '0.0.0.0')
     await restartEnv();
-    await checkAndGetConfigFromMainDB();
     let conf = {
       domainServer: localUrl,
       fullDomain: localhostIP,

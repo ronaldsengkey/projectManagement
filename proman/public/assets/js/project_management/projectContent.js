@@ -133,7 +133,7 @@ async function domBoardContent() {
     let colorDone;
     let classDone;
 
-    if(element.status == false) colorDone = 'black'
+    if(element.status == 'false') colorDone = 'black'
     else {
       classDone = 'classDone'
       colorDone = 'green'
@@ -156,7 +156,7 @@ async function domBoardContent() {
         '<div class="col-lg-2 text-center placeTools" data-id='+element._id+' style="align-self:center;"><a tabindex="0" class="btnMenu" data-owner="'+element.user_create+'" data-pic='+JSON.parse(element.pic)[0].account_id+' data-name="' + element.name + '" data-boardid=' + element.board_id + ' data-id=' + element._id + ' data-camelized="'+camelizedBoard+'" data-boardname="' + boardName + '"><i class="fas fa-bars fa-lg menu" data-board="' + element.board_id + '"></i></a><a tabindex="0" class="btnFavorites ml-4" data-from="general" data-all="'+window.btoa(JSON.stringify(element))+'" data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-thumbtack fa-lg favGT" data-id='+element._id+'></i></a></div></div>'+
         
         '<div id="kolap' + element._id + '" class="collapse" data-id="' + element._id + '" aria-labelledby="' + camelizeBoard + '">' +
-        '<div class="card-body p-4 cardStatusGT" data-statusGT='+element.status+' data-id="' + element._id + '">' +
+        '<div class="card-body p-4 cardStatusGT" data-id="' + element._id + '" data-statusGT='+element.status+'>' +
         'Loading...' +
         '</div>'
       '</div>'
@@ -180,7 +180,7 @@ async function domBoardContent() {
 
       if(doneGT){
         $('.placeTools[data-id='+element._id+']').prepend('<a tabindex="0" data-boardid=' + element.board_id + ' class="btnDoneGT mr-4" data-status='+element.status+' data-toggle="tooltip" data-placement="right" data-name="' + element.name + '" data-id=' + element._id + '><i class="fas fa-check fa-lg doneGT" style="color:'+colorDone+'"" data-id='+element._id+'></i></a>')
-        if(!element.status) $('.btnDoneGT[data-id='+element._id+']').attr('title','Done ' + element.name)
+        if(element.status == 'false') $('.btnDoneGT[data-id='+element._id+']').attr('title','Done ' + element.name)
         else $('.btnDoneGT[data-id='+element._id+']').attr('title','Undone ' + element.name)
       }
 
@@ -290,7 +290,7 @@ async function domTaskTable(data, id, result, boardMember) {
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
       htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
-      
+
       if (havePic) {
         window['picTask' + element._id + ''] = element.pic;
         try {
@@ -960,7 +960,7 @@ async function domComment(commentData, id) {
         window['colorClass'+element.user_create] = 'text-white';
       }
 
-    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' data-commentid='+id+' class="form-control txtAreaReply" data-groupid='+$('.commentTask[data-id='+id+']').data('groupid')+' placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="../public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
+    let emptyComment = '<div class="replyComment p-3 mb-3" data-id=' + element._id + '><div class="row mb-3"><div class="col-lg-2 nameReply" style="background:'+choose+'"><span class="initialName '+window['colorClass'+element.user_create]+'">' + getInitials(ct.name) + '</span></div><div class="col-lg-8 align-self-center"><textarea data-index=' + index + ' data-replyid=' + element._id + ' data-commentid='+id+' class="form-control txtAreaReply" data-groupid='+$('.commentTask[data-id='+id+']').data('groupid')+' placeholder="Write a reply here (press enter to submit)"></textarea></div><div class="col-lg-2 labelCommentEach align-self-center"><label for="commentFile'+element._id+'" id="commentFileLabel"><img src="/proman/public/assets/img/image.svg" width="30" height="30" /></label><input class="commentPictEach" data-id='+element._id+' id="commentFile'+element._id+'" type="file" /></div></div></div></div><hr/>';
     cardComment += emptyComment;
     cardComment += '</div>';
 

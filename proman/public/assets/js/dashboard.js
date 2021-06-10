@@ -1,47 +1,6 @@
-let defaultImg = 'data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjMDAwMDAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTEwIDExMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTEwIDExMCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04NC41ODUsMjcuNDk3aDAuMDY3bC0yLjk2NywyLjk2N2gtMC4wNjdMNjguNzg1LDQzLjI5NyAgYzAuMDEsMC4wMTIsMC4wMTksMC4wMjUsMC4wMywwLjAzOEw2Ni43LDQ1LjQ0OGMtMC4wMS0wLjAxMi0wLjAxOS0wLjAyNi0wLjAyOS0wLjAzOEw0My40NDQsNjguNjM4ICBjMC4wMTIsMC4wMSwwLjAyNiwwLjAxOSwwLjAzOCwwLjAyOWwtMi4xNjEsMi4xNjFjLTAuMDEyLTAuMDEtMC4wMjYtMC4wMTktMC4wMzgtMC4wMjlMMzAuNjExLDgxLjQ3aDAuMDY3bC0zLjAxNCwzLjAxNGgtMC4wNjcgIEwxNC40OTQsOTcuNTg3Yy0wLjI4MiwwLjI4Mi0wLjczOSwwLjI4Mi0xLjAyLDBsLTEuMDYxLTEuMDYxYy0wLjI4Mi0wLjI4Mi0wLjI4Mi0wLjczOSwwLTEuMDJsMTEuMDIyLTExLjAyMkgyMy4yNyAgYy0yLjg5NiwwLTUuMjQ0LTIuMzQ4LTUuMjQ0LTUuMjQ0di00Ni41YzAtMi44OTYsMi4zNDgtNS4yNDQsNS4yNDQtNS4yNDRoMTEuMjU2VjI2Ljc0YzAtMi44OTYsMi4zNDctNS4yNDQsNS4yNDQtNS4yNDRoMjguNDczICBjMi44OTYsMCw1LjI0NCwyLjM0OCw1LjI0NCw1LjI0NHYwLjc1Nmg2LjkzNmwxNS4wODQtMTUuMDg0YzAuMjgyLTAuMjgyLDAuNzM5LTAuMjgyLDEuMDIsMGwxLjA2MSwxLjA2ICBjMC4yODIsMC4yODIsMC4yODIsMC43MzksMCwxLjAyMUw4NC41ODUsMjcuNDk3eiBNNDEuMzYyLDY2LjU1N2wyMy4yMjktMjMuMjI5Yy0yLjg2NS0yLjM5OS02LjU1My0zLjg0OC0xMC41ODItMy44NDggIGMtOS4xMSwwLTE2LjQ5NSw3LjM4NS0xNi40OTUsMTYuNDk1QzM3LjUxMyw2MC4wMDUsMzguOTYyLDYzLjY5Myw0MS4zNjIsNjYuNTU3eiBNNzAuNTI1LDMwLjQ2NFYyNi42NyAgYzAtMS4yMTktMC45ODgtMi4yMDYtMi4yMDYtMi4yMDZIMzkuNjkzYy0xLjIxOCwwLTIuMjA2LDAuOTg3LTIuMjA2LDIuMjA2djMuNzk0SDIzLjE5M2MtMS4yMTksMC0yLjIwNiwwLjk4Ny0yLjIwNiwyLjIwNnY0Ni41OTQgIGMwLDEuMjE4LDAuOTg3LDIuMjA2LDIuMjA2LDIuMjA2aDMuMjU2bDEyLjc1My0xMi43NTNjLTIuOTM5LTMuNDE2LTQuNzI3LTcuODUxLTQuNzI3LTEyLjcxMmMwLTEwLjc3OSw4LjczOC0xOS41MTcsMTkuNTE3LTE5LjUxNyAgYzQuODYxLDAsOS4yOTYsMS43ODgsMTIuNzEyLDQuNzI3bDEwLjc1MS0xMC43NTFINzAuNTI1eiBNNzAuNTY3LDQ1Ljc0M2MxLjg1NSwyLjk4MiwyLjk0Miw2LjQ5MSwyLjk0MiwxMC4yNjIgIGMwLDEwLjc3OS04LjczOCwxOS41MTYtMTkuNTE3LDE5LjUxNmMtMy43NzEsMC03LjI3OS0xLjA4Ni0xMC4yNjItMi45NDFsMi4yMjItMi4yMjJjMi4zODMsMS4zNCw1LjEyOCwyLjExMiw4LjA1NywyLjExMiAgYzkuMTEsMCwxNi40OTUtNy4zODUsMTYuNDk1LTE2LjQ5NWMwLTIuOTI5LTAuNzcyLTUuNjc0LTIuMTEyLTguMDU3TDcwLjU2Nyw0NS43NDN6IE0zNC44NCw4MS40N2g0OS45NzkgIGMxLjIxOCwwLDIuMjA2LTAuOTg4LDIuMjA2LTIuMjA2VjMyLjY3YzAtMC45MTUtMC41NTctMS43LTEuMzUxLTIuMDM0bDIuMTM0LTIuMTM0YzEuMzE0LDAuOTUzLDIuMTc4LDIuNDksMi4xNzgsNC4yMzh2NDYuNSAgYzAsMi44OTYtMi4zNDgsNS4yNDQtNS4yNDMsNS4yNDRIMzEuODI2TDM0Ljg0LDgxLjQ3eiI+PC9wYXRoPjwvc3ZnPg=='
-
-var hostName
-var transactionPort
-var withdrawPort
-var authPort
-var accountPort
-var backendPort
-var hostNameGlobal
-var accessParam = 'admin';
-var accessMethod;
-
-async function globalScopeCheck(parameter, method, callbackFunc, onErrorCallback) {
-    var allow = await checkAvailableMethod(parameter, method);
-    if (allow == 'allow') {
-        callbackFunc();
-    } else if (allow == 'unauthorized') {
-        unauthorized();
-        if (onErrorCallback != '' && onErrorCallback != undefined) {
-            onErrorCallback();
-        }
-    } else {
-        onMaintenance(method);
-        if (onErrorCallback != '' && onErrorCallback != undefined) {
-            onErrorCallback();
-        }
-    }
-}
-
 var userData;
 var token;
 let accountProfile;
-var fromOther=false;
-
-
-// let pageRequest = localStorage.getItem('pageRequest');
-let pageRequest = 'employee';
-let btn = document.getElementsByClassName('btn');
-// pageRequest = JSON.parse(pageRequest);
-if ($(btn).data('target') == 'login') {
-    $(btn).attr('data-origin', pageRequest.origin);
-}
-// localStorage.removeItem('accountProfile');
-
 
 function toTitleCase(str) {
     return str.replace(/(?:^|\s)\w/g, function (match) {
@@ -53,7 +12,6 @@ $(document).on('click', '.profilePict', function () {
 })
 $(async function () {
     loadingActivated();
-    // disableDevTools();
     await getEnvData();
     getChatContainer();
     try {
@@ -62,7 +20,6 @@ $(async function () {
         let getUserId = new URLSearchParams(getUrl).get('idEmployee');
         if(getUserFrom=="other")
         {
-            fromOther=true;
             $.ajax({
                 url: '/proman/getSession',
                 crossDomain: true,
@@ -97,7 +54,6 @@ $(async function () {
                         getPage('home');
                         getPage('project_management');
                     }
-                    await initializeServerPort();
                     await subscribeOneSignal();
                     openProfile()
                 },
@@ -150,7 +106,6 @@ $(async function () {
             await getPage('project_management');
         }
         $('#empName').html(ct.fullname);
-        await initializeServerPort();
         await subscribeOneSignal();
         openProfile()
     }
@@ -175,25 +130,6 @@ async function openProfile(){
         $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/profile.js", function (data, textStatus, jqxhr) {})
         $.getScript(domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/global/updateScope.js", function (data, textStatus, jqxhr) {})
     }
-}
-
-async function initializeServerPort() {
-    return new Promise(async function (resolve, reject) {
-        try {
-            let ct = JSON.parse(accountProfile);
-            let allConfig = await getRDataDashboard('all', ct);
-            hostName = allConfig[mainIpKey];
-            hostNameGlobal = allConfig[mainIpKey];
-            transactionPort = allConfig.PORT_TRANSACTION_AWS;
-            withdrawPort = allConfig.PORT_WITHDRAW_AWS;
-            authPort = allConfig.PORT_AUTH_AWS;
-            accountPort = allConfig.PORT_ACC_AWS;
-            backendPort = allConfig.PORT_BACKEND_AWS;
-            resolve(hostName);
-        } catch (err) {
-            reject(err)
-        }
-    })
 }
 
 function splitCamel(word) {
@@ -295,16 +231,6 @@ $(document).on('click', '.closePopup', function () {
     $('#popup').remove();
 })
 
-function formOnLoad() {
-    $('#popup').css('pointer-events', 'none');
-    $('#popup').css('opacity', '0.3');
-}
-
-function formDoneLoad() {
-    $('#popup').css('pointer-events', '');
-    $('#popup').css('opacity', '1');
-}
-
 async function getPageHtml(param, callbackFunc) {
     $.ajax({
         url: '/proman/' + param,
@@ -391,8 +317,9 @@ async function getAjax(url, token) {
     });
 }
 
-function getData(param, token) {
+async function getData(param, token) {
     // console.log('getdata => ', param)
+    let genKeyEncrypt = await getGenerateKey();
     if(ct == undefined) ct = JSON.parse(localStorage.getItem('accountProfile'));
     return new Promise(async (resolve, reject) => {
         try {
@@ -404,6 +331,7 @@ function getData(param, token) {
                 "secretKey": ct.secretKey,
                 "token": ct.token,
                 "signature": ct.signature,
+                "keyencrypt": genKeyEncrypt
             }
             if (param.headers) {
                 _headers = param.headers
@@ -419,6 +347,7 @@ function getData(param, token) {
                         "customerId": _headers,
                         "token": ct.token,
                         "signature": ct.signature,
+                        "keyencrypt": genKeyEncrypt
                     }
                 } else if (_url == 'getEmployeeDetail') {
                     _headers = {
@@ -429,6 +358,7 @@ function getData(param, token) {
                         "employeeId": _headers,
                         "token": ct.token,
                         "signature": ct.signature,
+                        "keyencrypt": genKeyEncrypt
                     }
                 } else if (_url == 'getTicketingService') {
 
@@ -441,21 +371,13 @@ function getData(param, token) {
                         "token": token,
                         "secretKey": ct.secretKey,
                         "signature": ct.signature,
+                        "keyencrypt": genKeyEncrypt
                     }
                 }
             }
-            $.ajax({
-                url: '/proman/' + _url,
-                crossDomain: true,
-                method: "GET",
-                headers: _headers,
-                success: function (callback) {
-                    resolve(callback)
-                },
-                error: function (err) {
-                    reject(404);
-                }
-            })
+
+            let result = await ajaxCall({url:_url,headers:_headers,method:'GET',decrypt:true})
+            resolve(result)
         } catch (err) {
             console.log(err);
             reject(404);
@@ -587,48 +509,6 @@ $(document).on('keyup', '.search', function () {
             break;
     }
 });
-async function postData(data) {
-    let ct = localStorage.getItem('accountProfile')
-    $.ajax({
-        url: "/proman/postData",
-        crossDomain: true,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-            "token": ct.token
-        },
-        data: JSON.stringify(data),
-        success: function (callback) {
-            let param = '';
-            switch (callback.responseCode) {
-                case "401":
-                    logoutNotif();
-                    break;
-                case "404":
-                case "500":
-                default:
-                    param = {
-                        type: "error",
-                        text: callback.responseMessage
-                    }
-                    callNotif(param);
-                    break;
-                case "200":
-                    param = {
-                        type: "success",
-                        text: callback.responseMessage
-                    }
-                    callNotif(param);
-                    // let ap = window.btoa(JSON.stringify(callback.data));
-                    localStorage.setItem("accountProfile", JSON.stringify(callback.data));
-                    getPage("home");
-                    break;
-            }
-        }
-    })
-}
 
 function getPage(param) {
     if(param == 'project_management'){
@@ -764,125 +644,6 @@ function unloadContainer(name) {
     $('.masterData[data-name="'+name+'List"]').children().not('.loader[data-loader="'+name+'"]').css('pointer-events','auto');
 }
 
-async function loadingActivated(element) {
-    const loading = '<div id="loadingWrap">' +
-        '<div class="text-center contentLoadingWrap">' +
-        '<div class="lds-ripple"><div></div><div></div></div>' +
-        '</div>' +
-        '</div>';
-    if (element != '' && element != undefined)
-        $(loading).insertBefore(element);
-    else
-        $(loading).insertBefore('head');
-    $('#loadingWrap').fadeIn('slow');
-}
-
-function loadingDeactivated() {
-    $('#loadingWrap').fadeOut('slow', function () {
-        $('#loadingWrap').remove();
-    });
-}
-
-function postDataAll(data, param) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let ct = localStorage.getItem('accountProfile')
-            $.ajax({
-                url: '/proman/' + param,
-                crossDomain: true,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "*/*",
-                    "Cache-Control": "no-cache",
-                    "token": ct.token
-                },
-                data: JSON.stringify(data),
-                success: function (callback) {
-                    let param = '';
-                    switch (callback.responseCode) {
-                        case "401":
-                            logoutNotif();
-                            break;
-                        case 404:
-                        case "404":
-                            param = {
-                                type: "error",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            resolve(callback);
-                            break;
-                        case 500:
-                        case "500":
-                            param = {
-                                type: "error",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            resolve(callback);
-                            break;
-                        case 200:
-                        case "200":
-                            param = {
-                                type: "success",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            resolve(callback);
-                            break;
-                        default:
-                            param = {
-                                type: "error",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            resolve(callback);
-                            break;
-                    }
-                }
-            });
-        } catch (err) {
-            console.log(err);
-            reject(500);
-        }
-    })
-}
-
-async function getRDataDashboard(_param, ct) {
-    var data = {
-        param: _param,
-    };
-    // console.log('sblm get data', data);
-    return new Promise(function (resolve, reject) {
-        $.ajax({
-            url: "/proman/getRData",
-            crossDomain: true,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "token": ct.token,
-                "secretKey": ct.secretKey,
-                "signature": ct.signature,
-                // "url" : hostNameGlobal + ":" + backendPort + "/master/key"
-                "url": mainIpService + ":" + backendPortService + "/master/key"
-            },
-            data: JSON.stringify(data)
-        }).done(async function (callback) {
-            let jsonCheck = IsJsonString(callback)
-            if (jsonCheck)
-                resolve(JSON.parse(callback))
-            else
-                resolve(callback);
-        }).fail(async function (err) {
-            alert("EROOR getRdata");
-            console.log("error GRD >>>>>>", err.statusCode);
-        });
-    })
-}
-
 function IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -903,9 +664,5 @@ function checkIfNull(text, changeTo = '') {
 function getChatContainer(){
     const chatJsUrl = domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/chat.js";
     console.log("getChatContainer::", chatJsUrl);
-    $.getScript(chatJsUrl, function (data, textStatus, jqxhr) {
-        // console.log("Data::", data);
-        // console.log("textStatus::", textStatus);
-        // console.log("jqxhr::", jqxhr);
-    })
+    $.getScript(chatJsUrl, function (data, textStatus, jqxhr) {})
 }

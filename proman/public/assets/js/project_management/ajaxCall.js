@@ -52,161 +52,91 @@ function checkLocalStorage(varLocal) {
 
 async function getTaskData(id, data, boardMember) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/getTaskData',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "param": JSON.stringify({
-                    'group_id': id
-                }),
-                "signature": ct.signature
-            },
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    await domTaskTable(result.data, id, data, boardMember);
-                } else if (result.responseCode == '404') {
-                    await domTaskTable([], id, data);
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                }
-            }
-        })
+        let result = await ajaxCall({url:'getTaskData',method:'GET',credentialHeader:true,extraHeaders:{"param":JSON.stringify({
+            'group_id': id
+        })},decrypt:true})
+        if (result.responseCode == '200') {
+            await domTaskTable(result.data, id, data, boardMember);
+        } else if (result.responseCode == '404') {
+            await domTaskTable([], id, data);
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            let param = {
+                type: 'error',
+                text: result.responseMessage
+            };
+            callNotif(param);
+        }
+        
     });
 }
 
 async function editGroupTask(body) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/editGroup',
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature,
-            },
-            data: JSON.stringify(body),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let genKeyGroupEdit = await getGenerateKey();
+        let result = await ajaxCall({url:'editGroup',data:JSON.stringify(iterateObjectNewEncrypt(body,genKeyGroupEdit)),extraHeaders:{keyencrypt:genKeyGroupEdit},method:'PUT',credentialHeader:true})
+        resolve(result);
     });
 }
 
 async function deleteGroupTask(body) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/deleteGroup',
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature,
-            },
-            data: JSON.stringify(body),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let genKeyGroupDelete = await getGenerateKey();
+        let result = await ajaxCall({url:'deleteGroup',data:JSON.stringify(iterateObjectNewEncrypt(body,genKeyGroupDelete)),extraHeaders:{keyencrypt:genKeyGroupDelete},method:'DELETE',credentialHeader:true})
+        resolve(result);
     });
 }
 
 async function getComment(taskId) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/comment',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "param": JSON.stringify({
-                    'task_id': taskId
-                }),
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            success: function (result) {
-                if (result.responseCode == '200') {
-                    resolve(result.data);
-                } else if (result.responseCode == '404') {
-                    $('.commentContent[data-id=' + taskId + ']').empty();
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                    reject(500);
-                }
-            }
-        })
+        let result = await ajaxCall({url:'comment',headers:{
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "param": JSON.stringify({
+                'task_id': taskId
+            }),
+            "secretKey": ct.secretKey,
+            "token": ct.token,
+            "signature": ct.signature
+        },method:'GET',decrypt:true})
+        if (result.responseCode == '200') {
+            resolve(result.data);
+        } else if (result.responseCode == '404') {
+            $('.commentContent[data-id=' + taskId + ']').empty();
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            let param = {
+                type: 'error',
+                text: result.responseMessage
+            };
+            callNotif(param);
+            reject(500);
+        }
     })
 }
 
 async function deleteTask(body) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/deleteTask',
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature,
-            },
-            data: JSON.stringify(body),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let genKeyTaskDelete = await getGenerateKey();
+        let result = await ajaxCall({url:'deleteTask',data:JSON.stringify(iterateObjectNewEncrypt(body,genKeyTaskDelete)),extraHeaders:{keyencrypt:genKeyTaskDelete},method:'DELETE',credentialHeader:true})
+        resolve(result);
     });
 }
 
 async function syncGoogle(body) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/syncGoogle',
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature,
-            },
-            data: JSON.stringify(body),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let genKeyTaskGoogle = await getGenerateKey();
+        let result = await ajaxCall({url:'syncGoogle',data:JSON.stringify(iterateObjectNewEncrypt(body,genKeyTaskGoogle)),extraHeaders:{keyencrypt:genKeyTaskGoogle},method:'POST',credentialHeader:true})
+        resolve(result);
     });
 }
 
 async function addTask(value, groupId) {
     return new Promise(async function (resolve, reject) {
+        let genKeyTaskOnly = await getGenerateKey();
         let bodyTask = {
             'group_id': groupId,
             'name': value,
@@ -229,42 +159,31 @@ async function addTask(value, groupId) {
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
+                    "keyencrypt": genKeyTaskOnly,
                     "signature": ct.signature
                 },
                 "processData": false,
-                "body": JSON.stringify(bodyTask),
+                "body": JSON.stringify(iterateObjectNewEncrypt(bodyTask,genKeyTaskOnly)),
             }
         }
-        $.ajax({
-            url: '/proman/postTask',
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            data: JSON.stringify(settingsTask),
-            timeout: 30000,
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    toastrNotifFull('success add task');
-                    refreshTableData(groupId)
-
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                }
-            }
-        })
+        let result = await ajaxCall({url:'postTask',data:settingsTask,method:'POST',credentialHeader:true,decrypt:true})
+        if (result.responseCode == '200') {
+            toastrNotifFull('success add task');
+            refreshTableData(groupId)
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            let param = {
+                type: 'error',
+                text: result.responseMessage
+            };
+            callNotif(param);
+        }
     });
 }
 
-function globalUpdateTask(concern, data) {
+async function globalUpdateTask(concern, data) {
+    let genKeyUpdate = await getGenerateKey();
     let settingUpdate = {
         settings: {
             "async": true,
@@ -277,59 +196,40 @@ function globalUpdateTask(concern, data) {
                 "Cache-Control": "no-cache",
                 "secretKey": ct.secretKey,
                 "token": ct.token,
-                "signature": ct.signature
+                "signature": ct.signature,
+                "keyencrypt": genKeyUpdate
             },
             "processData": false,
-            "body": JSON.stringify(data),
+            "body": JSON.stringify(iterateObjectNewEncrypt(data,genKeyUpdate)),
         }
     }
-    $.ajax({
-        url: '/proman/putTask',
-        method: 'PUT',
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-        },
-        data: JSON.stringify(settingUpdate),
-        success: function (result) {
-            if (result.responseCode == '200') {
-                toastrNotifFull('update ' + concern + ' success')
-            } else if (result.responseCode == '401') {
-                logoutNotif();
-            } else {
-                toastrNotifFull('update ' + concern + ' failed','error')
-            }
-        }
-    })
+    let result = await ajaxCall({url:'putTask',method:'PUT',data:JSON.stringify(settingUpdate)})
+    if (result.responseCode == '200') {
+        toastrNotifFull('update ' + concern + ' success')
+    } else if (result.responseCode == '401') {
+        logoutNotif();
+    } else {
+        toastrNotifFull('update ' + concern + ' failed','error')
+    }
 }
 
 async function globalAttachFile(data,method = 'POST') {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: '/proman/attachFile',
-            method: method,
-            headers: {
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            processData: false,
-            contentType: false,
-            data: data,
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    toastrNotifFull('file(s) has been updated');
-                    resolve(result.responseCode);
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    resolve(toastrNotifFull(result.responseMessage,'error'));
-                }
-            }
-        })
+        let result = await ajaxCall({url:'attachFile',data:data,method:method,formdata:true,headers:{
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "secretKey": ct.secretKey,
+            "token": ct.token,
+            "signature": ct.signature
+        }})
+        if (result.responseCode == '200') {
+            toastrNotifFull('file(s) has been updated');
+            resolve(result.responseCode);
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            resolve(toastrNotifFull(result.responseMessage,'error'));
+        }
     });
 }
 
@@ -361,54 +261,27 @@ async function showAttachmentDetails(id) {
 
 async function globalAddComment(data) {
     return new Promise(async function (resolve, reject) {
-        // let settingComment = {
-        //     settings: {
-        //         "async": true,
-        //         "crossDomain": true,
-        //         "url": "/commentUpdate",
-        //         "method": 'POST',
-        //         "headers": {
-        //             "Content-Type": "application/json",
-        //             "Accept": "*/*",
-        //             "Cache-Control": "no-cache",
-        //             "secretKey": ct.secretKey,
-        //             "token": ct.token,
-        //             "signature": ct.signature
-        //         },
-        //         "processData": false,
-        //         "contentType": false,
-        //         "data": data
-        //     }
-        // }
-        $.ajax({
-            url: '/proman/commentUpdate',
-            method: 'POST',
-            headers: {
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            processData: false,
-            contentType: false,
-            data: data,
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    toastrNotifFull('commenting success')
-                    resolve(result.data[0]);
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    toastrNotifFull('commenting failed','error')
-                    resolve(500);
-                }
-            }
-        })
+        let result = await ajaxCall({url:'commentUpdate',data:data,formdata:true,method:'POST',headers:{
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "secretKey": ct.secretKey,
+            "token": ct.token,
+            "signature": ct.signature
+        }})
+        if (result.responseCode == '200') {
+            toastrNotifFull('commenting success')
+            resolve(result.responseCode);
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            toastrNotifFull('commenting failed','error')
+            resolve(500);
+        }
     });
 }
 
-function globalUpdateComment(method, data) {
+async function globalUpdateComment(method, data) {
+    let genKeyUpdateComment = await getGenerateKey();
     let settingComment = {
         settings: {
             "async": true,
@@ -421,36 +294,27 @@ function globalUpdateComment(method, data) {
                 "Cache-Control": "no-cache",
                 "secretKey": ct.secretKey,
                 "token": ct.token,
-                "signature": ct.signature
+                "signature": ct.signature,
+                "keyencrypt": genKeyUpdateComment
             },
             "processData": false,
-            "body": JSON.stringify(data),
+            "body": JSON.stringify(iterateObjectNewEncrypt(data,genKeyUpdateComment)),
         }
     }
-    $.ajax({
-        url: '/proman/commentUpdate',
-        method: method,
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-        },
-        data: JSON.stringify(settingComment),
-        success: function (result) {
-            if (result.responseCode == '200') {
-                toastrNotifFull('commenting success')
-            } else if (result.responseCode == '401') {
-                logoutNotif();
-            } else {
-                toastrNotifFull('commenting failed','error')
-            }
-        }
-    })
+    let result = await ajaxCall({url:'commentUpdate',data:JSON.stringify(settingComment),method:method})
+    if (result.responseCode == '200') {
+        toastrNotifFull(result.responseMessage)
+    } else if (result.responseCode == '401') {
+        logoutNotif();
+    } else {
+        toastrNotifFull('commenting failed','error')
+    }
 }
 
 async function globalUpdateReplyComment(method, data) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
         if(method == 'DELETE' || method == 'delete'){
+            let genKeyDeleteReply = await getGenerateKey();
             let settingComment = {
                 settings: {
                     "async": true,
@@ -463,62 +327,40 @@ async function globalUpdateReplyComment(method, data) {
                         "Cache-Control": "no-cache",
                         "secretKey": ct.secretKey,
                         "token": ct.token,
-                        "signature": ct.signature
+                        "signature": ct.signature,
+                        "keyencrypt":genKeyDeleteReply
                     },
                     "processData": false,
-                    "body": JSON.stringify(data),
+                    "body": JSON.stringify(iterateObjectNewEncrypt(data,genKeyDeleteReply)),
                 }
             }
-            $.ajax({
-                url: '/proman/commentReply',
-                method: method,
-                headers: {
-                    "Accept": "*/*",
-                    "Content-Type": "application/json",
-                    "Cache-Control": "no-cache",
-                    "secretKey": ct.secretKey,
-                    "token": ct.token,
-                    "signature": ct.signature
-                },
-                data: JSON.stringify(settingComment),
-                success: function (result) {
-                    if (result.responseCode == '200') {
-                        resolve(result);
-                        toastrNotifFull('commenting success')
-                    } else if (result.responseCode == '401') {
-                        logoutNotif();
-                    } else {
-                        reject(500);
-                        toastrNotifFull('commenting failed','error')
-                    }
-                }
-            })
+            let result = await ajaxCall({url:'commentReply',data:JSON.stringify(settingComment),method:'DELETE',credentialHeader:true})
+            if (result.responseCode == '200') {
+                resolve(result);
+                toastrNotifFull('commenting success')
+            } else if (result.responseCode == '401') {
+                logoutNotif();
+            } else {
+                reject(500);
+                toastrNotifFull('commenting failed','error')
+            }
         } else {
-            $.ajax({
-                url: '/proman/commentReply',
-                method: method,
-                headers: {
-                    "Accept": "*/*",
-                    "Cache-Control": "no-cache",
-                    "secretKey": ct.secretKey,
-                    "token": ct.token,
-                    "signature": ct.signature
-                },
-                processData: false,
-                contentType: false,
-                data: data,
-                success: function (result) {
-                    if (result.responseCode == '200') {
-                        resolve(result);
-                        toastrNotifFull('commenting success')
-                    } else if (result.responseCode == '401') {
-                        logoutNotif();
-                    } else {
-                        reject(500);
-                        toastrNotifFull('commenting failed','error')
-                    }
-                }
-            })
+            let result = await ajaxCall({url:'commentReply',data:data,method:method,formdata:true,headers:{
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+                "secretKey": ct.secretKey,
+                "token": ct.token,
+                "signature": ct.signature
+            }})
+            if (result.responseCode == '200') {
+                resolve(result);
+                toastrNotifFull('commenting success')
+            } else if (result.responseCode == '401') {
+                logoutNotif();
+            } else {
+                reject(500);
+                toastrNotifFull('commenting failed','error')
+            }
         }
         
     })

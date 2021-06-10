@@ -295,22 +295,6 @@ function checkGroupTaskRedirect(boardDataStatus, boardId = '', groupTaskId = '',
     })
 }
 
-function loadingActivated() {
-    const loading = '<div id="loadingWrap">' +
-        '<div class="text-center contentLoadingWrap">' +
-        '<div class="lds-ripple"><div></div><div></div></div>' +
-        '</div>' +
-        '</div>';
-    $(loading).insertBefore('head');
-    $('#loadingWrap').fadeIn('slow');
-}
-
-function loadingDeactivated() {
-    $('#loadingWrap').fadeOut('slow', function () {
-        $('#loadingWrap').remove();
-    });
-}
-
 $(document).on('click', '.removeSidebar', function () {
     if ($('#sidebar-wrapper').hasClass('w767')) {
         $('#sidebar-wrapper').removeClass('w767');
@@ -325,63 +309,42 @@ $(document).on('click', '.removeSidebar', function () {
     }
 })
 
-async function getBoard(param = {
-    "_id": "",
-    "type": "",
-    "name": "",
-    "account_id": ""
-}, cases = '') {
-    return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: 'board',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "param": JSON.stringify(param),
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            success: function (result) {
-
-                if (cases == 'boardId') {
-                    if (result.responseCode == '200') {
-                        resolve(result.data);
-                    } else if (result.responseCode == '404') {
-                        resolve(toastrNotifFull(result.responseMessage, 'error'));
-                        loadingDeactivated();
-                    } else if (result.responseCode != '401') {
-                        let param = {
-                            type: 'error',
-                            text: result.responseMessage
-                        };
-                        resolve(callNotif(param));
-                        loadingDeactivated();
-                    } else {
-                        logoutNotif();
-                        loadingDeactivated();
-                    }
-                } else {
-                    loadingDeactivated();
-                    if (result.responseCode == '200') {
-                        manageBoardData(result.data);
-                    } else if (result.responseCode == '404') {
-                        toastrNotifFull(result.responseMessage, 'error');
-                    } else if (result.responseCode != '401') {
-                        let param = {
-                            type: 'error',
-                            text: result.responseMessage
-                        };
-                        callNotif(param);
-                    }
-                    resolve(result.responseCode);
-                }
+async function getBoard(param = {}, cases = '') {
+    return new Promise(async function(resolve,reject){
+        let result = await ajaxCall({url:'board',method:'GET',credentialHeader:true,extraHeaders:{"param":JSON.stringify(param)},decrypt:true})
+        if (cases == 'boardId') {
+            if (result.responseCode == '200') {
+                resolve(result.data);
+            } else if (result.responseCode == '404') {
+                resolve(toastrNotifFull(result.responseMessage, 'error'));
+                loadingDeactivated();
+            } else if (result.responseCode != '401') {
+                let param = {
+                    type: 'error',
+                    text: result.responseMessage
+                };
+                resolve(callNotif(param));
+                loadingDeactivated();
+            } else {
+                logoutNotif();
+                loadingDeactivated();
             }
-        })
+        } else {
+            loadingDeactivated();
+            if (result.responseCode == '200') {
+                manageBoardData(result.data);
+            } else if (result.responseCode == '404') {
+                toastrNotifFull(result.responseMessage, 'error');
+            } else if (result.responseCode != '401') {
+                let param = {
+                    type: 'error',
+                    text: result.responseMessage
+                };
+                callNotif(param);
+            }
+            resolve(result.responseCode);
+        }
     })
-
 }
 
 async function getChartAnalytic(param = {}) {
@@ -396,15 +359,9 @@ async function getChartAnalytic(param = {}) {
             "signature": ct.signature
         };
         // console.log('rParam =>',rParam)
-        $.ajax({
-            url: 'getChartAnalytic',
-            method: 'GET',
-            headers: headers,
-            success: function (result) {
-                loadingDeactivated();
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:'getChartAnalytic',method:'GET',headers:headers,decrypt:true})
+        loadingDeactivated()
+        resolve(result);
     })
 
 }
@@ -418,65 +375,103 @@ async function getSummaryBoard(category, param = '') {
     var rParam = extend({}, dParam, param);
     // console.log('rParam =>',rParam)
     return new Promise(async function (resolve) {
-        $.ajax({
-            url: 'summaryBoard',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "param": JSON.stringify(rParam),
-                // "param": JSON.stringify({
-                //     "_id": "",
-                //     "type": "",
-                //     "name": "",
-                //     "account_id": account_id
-                // }),
-                "category": category,
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            success: function (result) {
-                // loadingDeactivated();
-                console.log('category =>', category, ' =>', result);
-                if (category == 'boardTypeForMe' || category == 'myTaskStatus' || category == 'boardDivision' || category == 'boardMember' || category == 'boardTask' || category == 'taskByDivision' || category == 'taskByStatus' || category == 'taskByPriority' || category == 'taskByDivisionAndStatus' || category == 'taskByDeadLine') {
-                    resolve(result);
-                } else {
-                    if (parseInt(ct.grade) <= 5) {
-                        result.category = 'boardTypeForMe';
-                        result.names = category;
-                    } else {
-                        result.category = 'boardType';
-                        result.names = category;
-                    }
-                    if (category == 'taskForMe') {
-                        result.category = category;
-                    }
-                    // // result.category = category;
-                    if (result.responseCode == '200') {
-                        resolve(manageSummaryBoardData(result));
-                    } else if (result.responseCode == '404' && category == 'taskForMe') {
-                        loadingDeactivated()
-                        resolve(manageSummaryBoardData([], 'chartTaskForMe', true))
-                        callNotif({
-                            type: 'error',
-                            text: result.responseMessage
-                        })
-                    } else {
-                        loadingDeactivated();
-                        callNotif({
-                            type: 'error',
-                            text: result.responseMessage
-                        })
-                    }
-                }
+        let result = await ajaxCall({url:'summaryBoard',headers:{
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Cache-Control": "no-cache",
+            "param": JSON.stringify(rParam),
+            "category": category,
+            "secretKey": ct.secretKey,
+            "token": ct.token,
+            "signature": ct.signature
+        },method:'GET',decrypt:true})
 
-                // if(category == 'taskForMeByStatus'){
-                // }
-
+        console.log('category =>', category, ' =>', result);
+        if (category == 'boardTypeForMe' || category == 'myTaskStatus' || category == 'boardDivision' || category == 'boardMember' || category == 'boardTask' || category == 'taskByDivision' || category == 'taskByStatus' || category == 'taskByPriority' || category == 'taskByDivisionAndStatus' || category == 'taskByDeadLine') {
+            resolve(result);
+        } else {
+            if (parseInt(ct.grade) <= 5) {
+                result.category = 'boardTypeForMe';
+                result.names = category;
+            } else {
+                result.category = 'boardType';
+                result.names = category;
             }
-        })
+            if (category == 'taskForMe') {
+                result.category = category;
+            }
+            // // result.category = category;
+            if (result.responseCode == '200') {
+                resolve(manageSummaryBoardData(result));
+            } else if (result.responseCode == '404' && category == 'taskForMe') {
+                loadingDeactivated()
+                resolve(manageSummaryBoardData([], 'chartTaskForMe', true))
+                callNotif({
+                    type: 'error',
+                    text: result.responseMessage
+                })
+            } else {
+                loadingDeactivated();
+                callNotif({
+                    type: 'error',
+                    text: result.responseMessage
+                })
+            }
+        }
+
+        // $.ajax({
+        //     url: 'summaryBoard',
+        //     method: 'GET',
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         "Accept": "*/*",
+        //         "Cache-Control": "no-cache",
+        //         "param": JSON.stringify(rParam),
+        //         "category": category,
+        //         "secretKey": ct.secretKey,
+        //         "token": ct.token,
+        //         "signature": ct.signature
+        //     },
+        //     success: function (result) {
+        //         // loadingDeactivated();
+        //         console.log('category =>', category, ' =>', result);
+        //         if (category == 'boardTypeForMe' || category == 'myTaskStatus' || category == 'boardDivision' || category == 'boardMember' || category == 'boardTask' || category == 'taskByDivision' || category == 'taskByStatus' || category == 'taskByPriority' || category == 'taskByDivisionAndStatus' || category == 'taskByDeadLine') {
+        //             resolve(result);
+        //         } else {
+        //             if (parseInt(ct.grade) <= 5) {
+        //                 result.category = 'boardTypeForMe';
+        //                 result.names = category;
+        //             } else {
+        //                 result.category = 'boardType';
+        //                 result.names = category;
+        //             }
+        //             if (category == 'taskForMe') {
+        //                 result.category = category;
+        //             }
+        //             // // result.category = category;
+        //             if (result.responseCode == '200') {
+        //                 resolve(manageSummaryBoardData(result));
+        //             } else if (result.responseCode == '404' && category == 'taskForMe') {
+        //                 loadingDeactivated()
+        //                 resolve(manageSummaryBoardData([], 'chartTaskForMe', true))
+        //                 callNotif({
+        //                     type: 'error',
+        //                     text: result.responseMessage
+        //                 })
+        //             } else {
+        //                 loadingDeactivated();
+        //                 callNotif({
+        //                     type: 'error',
+        //                     text: result.responseMessage
+        //                 })
+        //             }
+        //         }
+
+        //         // if(category == 'taskForMeByStatus'){
+        //         // }
+
+        //     }
+        // })
     })
 
 }
@@ -488,7 +483,6 @@ async function manageBoardData(data) {
     let boardPrivate = data.filter(function (e) {
         return e.type.toUpperCase() == 'PRIVATE'
     });
-
 
     $('.boardListPlaceMain').empty();
     $('.boardListPlacePrivate').empty();
@@ -520,31 +514,44 @@ async function manageBoardData(data) {
 
     boardMain.forEach(element => {
         window['dataBoardMember' + element._id + ''] = element.member;
-        if (element.user_create == ct.name) {
+        if("user_create_id" in element && element.user_create_id == ct.id_employee){
             let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
             $('.boardListPlaceMain').append(htmlMain);
         } else {
-            let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
-            $('.boardListPlaceMain').append(htmlMain);
+            if (element.user_create == ct.name) {
+                let htmlMain = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
+                $('.boardListPlaceMain').append(htmlMain);
+            } else {
+                let htmlMain = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+                $('.boardListPlaceMain').append(htmlMain);
+            }
         }
 
     });
 
     boardPrivate.forEach(element => {
-        if (element.user_create == ct.name) {
+        if("user_create_id" in element && element.user_create_id == ct.id_employee){
             element.member = JSON.parse(element.member);
             window['dataBoardMember' + element._id + ''] = element.member;
             let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
             $('.boardListPlacePrivate').append(htmlPrivate);
-        } else {
-            element.member = JSON.parse(element.member);
-            window['dataBoardMember' + element._id + ''] = element.member;
-            element.member.forEach(elementMember => {
-                if (elementMember.account_id == ct.id_employee) {
-                    let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
-                    $('.boardListPlacePrivate').append(htmlPrivate);
-                }
-            });
+        }
+        else {
+            if (element.user_create == ct.name) {
+                element.member = JSON.parse(element.member);
+                window['dataBoardMember' + element._id + ''] = element.member;
+                let htmlPrivate = '<div class="row"><div class="col-lg-8"><a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a></div><div class="col-lg-4" style="align-self:center;"><i class="editBoard fas fa-edit fa-lg mr-1" data-name="' + element.name + '" data-type=' + element.type + ' data-id=' + element._id + '></i><i class="delBoard far fa-trash-alt fa-lg" data-name="' + element.name + '" data-id=' + element._id + '></i></div></div>';
+                $('.boardListPlacePrivate').append(htmlPrivate);
+            } else {
+                element.member = JSON.parse(element.member);
+                window['dataBoardMember' + element._id + ''] = element.member;
+                element.member.forEach(elementMember => {
+                    if (elementMember.account_id == ct.id_employee) {
+                        let htmlPrivate = '<a class="list-group-item list-group-item-action boardList" data-create="' + element.user_create + '" data-member="' + element.member + '" data-id="' + element._id + '" data-type="' + element.type + '" data-name="' + element.name + '"style="border-top:0;">' + element.name + '</a>';
+                        $('.boardListPlacePrivate').append(htmlPrivate);
+                    }
+                });
+            }
         }
     })
 }
@@ -683,62 +690,6 @@ async function fireMyTask() {
             },
         });
           
-        // $('input[name="datePickerRangeFilterPersonal"]').daterangepicker({
-        //     opens: 'center',
-        //     autoUpdateInput: false,
-        //     minDate: new Date(),
-        //     ranges: {
-        //         'Next 7 Days': [moment().add(6, 'days'), moment()],
-        //         'Next 30 Days': [moment().add(29, 'days'), moment()],
-        //         'Rest of this month': [moment(), moment().endOf('month')],
-        //     },
-        //     locale: {
-        //         cancelLabel: 'Clear'
-        //     }
-        // }, async function (start, end) {
-        //     let chartRangeFilter;
-        //     let startDate = start.format('YYYY-MM-DD');
-        //     let endDate = end.format('YYYY-MM-DD');
-        //     loadingActivated();
-        //     chartRangeFilter = await getChartAnalytic({
-        //         startDate: startDate,
-        //         endDate: endDate,
-        //         name: ct.name,
-        //         category: $("select.chartTaskPersonal").val(),
-        //         type: 'personal'
-        //     });
-        //     loadingDeactivated();
-        //     if (chartRangeFilter.responseCode == '200') {
-        //         $('input[name="datePickerRangeFilterPersonal"]').val(startDate + ' - ' + endDate)
-        //         if (myBarChart != null) myBarChart.destroy();
-        //         $("select.chartTaskPersonal").val("mytask");
-        //         $("select.chartLabelPersonal").val("all");
-        //         $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
-        //         await processTaskCanvas(chartRangeFilter.data, 'chartTaskForMe', 'personal')
-        //     } else if (chartRangeFilter.responseCode == '401') {
-        //         logoutNotif();
-        //     } else if (chartRangeFilter.responseCode == '404') {
-        //         callNotif({
-        //             type: 'error',
-        //             text: chartRangeFilter.responseMessage
-        //         })
-        //         if (myBarChart != null) myBarChart.destroy();
-        //     } else {
-        //         callNotif({
-        //             type: 'error',
-        //             text: chartRangeFilter.responseMessage
-        //         })
-        //     }
-        // })
-
-        // $('input[name="datePickerRangeFilterPersonal"]').on('cancel.daterangepicker', async function (ev, picker) {
-        //     if (myBarChart != null) myBarChart.destroy();
-        //     $("select.chartTaskPersonal").val("mytask");
-        //     $("select.chartLabelPersonal").val("all");
-        //     $('#datepickerFilterPersonal').val('').attr('placeholder', 'all')
-        //     $('input[name="datePickerRangeFilterPersonal"]').val('').attr('placeholder', 'all');
-        //     await processTaskCanvas(chAnalytic.data, 'chartTaskForMe', 'personal');
-        // });
 
         $(".dateDueFilterPersonal").datepicker({
             showButtonPanel: true,
@@ -806,9 +757,9 @@ async function manageSummaryBoardData(data, idCanvas = 'chartTaskForMe', special
         $('#taskForMe').empty();
         let html = '<div class="row"><div class="col-lg-4 publicBoardLabel align-self-center text-start mt-2" style="font-size: x-large;" id="lblTaskForMe">Personal Board</div><div class="col-lg-8 filterPlace"></div></div>';
         if (idCanvas == 'chartTaskForMe')
-            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + idCanvas + '" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><canvas id="' + idCanvas + '" class="p-2 d-none"></canvas><img id="chartTaskForMeBackup" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlacePersonal"></div></div>';
         else
-            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="' + idCanvas + '" src="public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
+            html += '<div class="row" style="gap:3.5em;"><div class="col-lg-12"><img id="' + idCanvas + '" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img></div><div class="col-lg-12 placeForTeam gridLayout3" id="legendPlaceProject"></div></div>';
         $('#taskForMe').html(html);
 
         // if(idCanvas == 'chartTaskForMe'){
@@ -919,7 +870,7 @@ async function manageSummaryBoardData(data, idCanvas = 'chartTaskForMe', special
         var chartName = divId.charAt(0).toUpperCase() + divId.slice(1);
 
         $('#' + names).empty();
-        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">Chart ' + splitCamel(data.names) + '<p><img class="text-center font-italic" style="opacity:0.7;" src="public/assets/img/emptyProjects.svg" width="300px" height="300px"></img></p></div>';
+        let html = '<div class="publicBoardLabel text-center mt-2" style="font-size: xx-large;" id="lbl' + chartName + '">Chart ' + splitCamel(data.names) + '<p><img class="text-center font-italic" style="opacity:0.7;" src="/proman/public/assets/img/emptyProjects.svg" width="300px" height="300px"></img></p></div>';
         $('#' + names).html(html);
     }
 
@@ -1020,7 +971,7 @@ async function manageNullBoardData(data) {
     // let html = node.outerHTML;
 
     $('#' + divId).empty();
-    let html = '<div class="row"><div class="col-lg-6 publicBoardLabel text-start mt-2" style="font-size: x-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="public/assets/img/emptyProjects.svg"></img></p></div><div class="col-lg-6 filterPlace"></div></div>';
+    let html = '<div class="row"><div class="col-lg-6 publicBoardLabel text-start mt-2" style="font-size: x-large;" id=' + labelused + '>Chart ' + splitCamel(chartName) + '<p><img width="300px" height="300px" style="opacity:0.7;" class="text-center font-italic" src="/proman/public/assets/img/emptyProjects.svg"></img></p></div><div class="col-lg-6 filterPlace"></div></div>';
     $('#' + divId).html(html);
 
     $(pageFilterr).appendTo($('.filterPlace'))
@@ -1119,7 +1070,7 @@ $(document).on('change', '.chartTaskProject, .chartTypeProject', async function 
     } else if (summaryBoard.responseCode == '404') {
         if (myProjectChart != null) myProjectChart.destroy();
         $('#legendPlaceProject').empty();
-        $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+        $('<img id="canvasTaskProjectBackup" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
         $('#canvasTaskProjectBackup').css('display', 'block').css('width', '772px').css('height', '386px')
         $('#canvasTaskProject').addClass('d-none');
     } else if (summaryBoard.responseCode == '404') {
@@ -1187,7 +1138,8 @@ $(document).on('click', '.analyticList', async function () {
             if ($('.colTeam').length > 0) {
                 loadingActivated();
                 let chartsAnalytic = await getChartAnalytic({
-                    division_id: ct.division_id
+                    // division_id: ct.division_id
+                    category: 'manager'
                 });
                 loadingDeactivated();
                 if (chartsAnalytic.responseCode == '200') {
@@ -1236,7 +1188,8 @@ $(document).on('click', '.analyticList', async function () {
                             loadingActivated();
                             chartRangeFilter = await getChartAnalytic({
                                 startDate: startDate,
-                                endDate: endDate
+                                endDate: endDate,
+                                category:'manager'
                             });
                             loadingDeactivated();
                             if (chartRangeFilter.responseCode == '200') {
@@ -1265,59 +1218,6 @@ $(document).on('click', '.analyticList', async function () {
                         },
                     });
 
-                    // $('input[name="datePickerRangeFilter"]').daterangepicker({
-                    //     opens: 'center',
-                    //     autoUpdateInput: false,
-                    //     minDate: new Date(),
-                    //     ranges: {
-                    //         'Next 7 Days': [moment().add(6, 'days'), moment()],
-                    //         'Next 30 Days': [moment().add(29, 'days'), moment()],
-                    //         'Rest of this month': [moment(), moment().endOf('month')],
-                    //     },
-                    //     locale: {
-                    //         cancelLabel: 'Clear'
-                    //     }
-                    // }, async function (start, end) {
-                    //     let chartRangeFilter;
-                    //     let startDate = start.format('YYYY-MM-DD');
-                    //     let endDate = end.format('YYYY-MM-DD');
-                    //     loadingActivated();
-                    //     chartRangeFilter = await getChartAnalytic({
-                    //         startDate: startDate,
-                    //         endDate: endDate
-                    //     });
-                    //     loadingDeactivated();
-                    //     if (chartRangeFilter.responseCode == '200') {
-                    //         $('input[name="datePickerRangeFilter"]').val(startDate + ' - ' + endDate)
-                    //         if (charted != null) charted.destroy();
-                    //         $("select.chartTaskEmployee").val("all");
-                    //         $("select.chartLabelName").val("all");
-                    //         $('#datepickerFilter').val('').attr('placeholder', 'all')
-                    //         await processTaskCanvas(chartRangeFilter.data, 'canvasTask')
-                    //     } else if (chartRangeFilter.responseCode == '401') {
-                    //         logoutNotif();
-                    //     } else if (chartRangeFilter.responseCode == '404') {
-                    //         callNotif({
-                    //             type: 'error',
-                    //             text: chartRangeFilter.responseMessage
-                    //         })
-                    //         if (charted != null) charted.destroy();
-                    //     } else {
-                    //         callNotif({
-                    //             type: 'error',
-                    //             text: chartRangeFilter.responseMessage
-                    //         })
-                    //     }
-                    // })
-                    // $('input[name="datePickerRangeFilter"]').on('cancel.daterangepicker', async function (ev, picker) {
-                    //     if (charted != null) charted.destroy();
-                    //     $("select.chartTaskEmployee").val("all");
-                    //     $("select.chartLabelName").val("all");
-                    //     $('#datepickerFilter').val('').attr('placeholder', 'all')
-                    //     $('input[name="datePickerRangeFilter"]').val('').attr('placeholder', 'all');
-                    //     await processTaskCanvas(chartsAnalytic.data, 'canvasTask');
-                    // });
-
                     $(".dateDueFilter").datepicker({
                         showButtonPanel: true,
                         closeText: 'Clear',
@@ -1337,7 +1237,8 @@ $(document).on('click', '.analyticList', async function () {
                             $("select.chartLabelName").val('all')
                             let chartFiltered;
                             chartFiltered = await getChartAnalytic({
-                                dueDate: dateUsed
+                                dueDate: dateUsed,
+                                category:'manager'
                             });
                             loadingDeactivated();
                             if (chartFiltered.responseCode == '200') {
@@ -1409,7 +1310,7 @@ $(document).on('click', '.analyticList', async function () {
                 } else if (summaryBoard.responseCode == '404') {
                     if (myProjectChart != null) myProjectChart.destroy();
                     $('#legendPlaceProject').empty();
-                    $('<img id="canvasTaskProjectBackup" src="public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
+                    $('<img id="canvasTaskProjectBackup" src="/proman/public/assets/img/emptyProjects.svg" class="p-2"></img>').insertAfter($('#canvasTaskProject'));
                     $('#canvasTaskProjectBackup').css('display', 'block').css('width', '772px').css('height', '386px')
                     $('#canvasTaskProject').addClass('d-none');
                 } else {
@@ -1610,7 +1511,8 @@ $(document).on('change', '.chartTaskEmployee, .chartLabelName, .chartType', asyn
             loadingActivated();
             let filteredData = await getChartAnalytic({
                 'dueDate': dates,
-                'member': employeeName
+                'member': employeeName,
+                'category': "manager"
             })
             loadingDeactivated();
             if (filteredData.responseCode == '200') {
@@ -2047,6 +1949,7 @@ $(document).on('click', '.editBoard', async function () {
 
 async function editBoard(bodyEdit) {
     return new Promise(async function (resolve, reject) {
+        let genKeyEdit = await getGenerateKey();
         let editSettingsBoard = {
             settings: {
                 "async": true,
@@ -2059,60 +1962,90 @@ async function editBoard(bodyEdit) {
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
-                    "signature": ct.signature
+                    "signature": ct.signature,
+                    "keyencrypt": genKeyEdit
                 },
                 "processData": false,
-                "body": JSON.stringify(bodyEdit),
+                "body": JSON.stringify(iterateObjectNewEncrypt(bodyEdit,genKeyEdit)),
             }
         }
 
-        $.ajax({
-            url: 'board',
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            data: JSON.stringify(editSettingsBoard),
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    let param = {
-                        type: 'success',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                    boardTeamMember = [];
-                    try {
-                        loadingActivated();
-                        let boardList = await getBoard();
-                        if (boardList == '200') {
-                            console.log('ss', bodyEdit._id);
-                            $('.boardList[data-id=' + bodyEdit._id + ']').click();
-                        }
-                    } catch (error) {
-                        loadingDeactivated();
-                    }
-
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
+        let result = await ajaxCall({url:'board',data:editSettingsBoard,method:'PUT',credentialHeader:true})
+        if (result.responseCode == '200') {
+            let param = {
+                type: 'success',
+                text: result.responseMessage
+            };
+            callNotif(param);
+            boardTeamMember = [];
+            try {
+                loadingActivated();
+                let boardList = await getBoard();
+                if (boardList == '200') {
+                    console.log('ss', bodyEdit._id);
+                    $('.boardList[data-id=' + bodyEdit._id + ']').click();
                 }
+            } catch (error) {
+                loadingDeactivated();
             }
-        })
+
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            let param = {
+                type: 'error',
+                text: result.responseMessage
+            };
+            callNotif(param);
+        }
+        // $.ajax({
+        //     url: 'board',
+        //     method: 'PUT',
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         "Accept": "*/*",
+        //         "Cache-Control": "no-cache",
+        //         "secretKey": ct.secretKey,
+        //         "token": ct.token,
+        //         "signature": ct.signature
+        //     },
+        //     data: JSON.stringify(editSettingsBoard),
+        //     success: async function (result) {
+        //         if (result.responseCode == '200') {
+        //             let param = {
+        //                 type: 'success',
+        //                 text: result.responseMessage
+        //             };
+        //             callNotif(param);
+        //             boardTeamMember = [];
+        //             try {
+        //                 loadingActivated();
+        //                 let boardList = await getBoard();
+        //                 if (boardList == '200') {
+        //                     console.log('ss', bodyEdit._id);
+        //                     $('.boardList[data-id=' + bodyEdit._id + ']').click();
+        //                 }
+        //             } catch (error) {
+        //                 loadingDeactivated();
+        //             }
+
+        //         } else if (result.responseCode == '401') {
+        //             logoutNotif();
+        //         } else {
+        //             let param = {
+        //                 type: 'error',
+        //                 text: result.responseMessage
+        //             };
+        //             callNotif(param);
+        //         }
+        //     }
+        // })
     })
 }
 
 async function deleteBoard(bodyDelete) {
     return new Promise(async function (resolve, reject) {
+        let genKeyDeleteBoard = await getGenerateKey();
         let deleteSettingsBoard = {
             settings: {
                 "async": true,
@@ -2125,68 +2058,59 @@ async function deleteBoard(bodyDelete) {
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
-                    "signature": ct.signature
+                    "signature": ct.signature,
+                    'keyencrypt': genKeyDeleteBoard
                 },
                 "processData": false,
-                "body": JSON.stringify(bodyDelete),
+                "body": JSON.stringify(iterateObjectNewEncrypt(bodyDelete,genKeyDeleteBoard)),
             }
         }
-
-        $.ajax({
-            url: 'board',
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            data: JSON.stringify(deleteSettingsBoard),
-            success: async function (result) {
-                if (result.responseCode == '200') {
-                    let param = {
-                        type: 'success',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                    return location.reload();
-                } else if (result.responseCode == '401') {
-                    logoutNotif();
-                } else {
-                    let param = {
-                        type: 'error',
-                        text: result.responseMessage
-                    };
-                    callNotif(param);
-                    return false;
-                }
-            }
-        })
+        let result = await ajaxCall({url:'board',data:JSON.stringify(deleteSettingsBoard),method:'DELETE'})
+        if (result.responseCode == '200') {
+            let param = {
+                type: 'success',
+                text: result.responseMessage
+            };
+            callNotif(param);
+            return location.reload();
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            let param = {
+                type: 'error',
+                text: result.responseMessage
+            };
+            callNotif(param);
+            return false;
+        }
     })
 }
 
 async function getGroupTask(id) {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: 'getGroupTask',
-            method: 'GET',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "param": JSON.stringify({
-                    'board_id': id
-                }),
-                "signature": ct.signature
-            },
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:'getGroupTask',method:'GET',credentialHeader:true,extraHeaders:{"param":JSON.stringify({
+            'board_id': id
+        })},decrypt:true})
+        console.log('tes',result);
+        resolve(result);
+        // $.ajax({
+        //     url: 'getGroupTask',
+        //     method: 'GET',
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         "Accept": "*/*",
+        //         "Cache-Control": "no-cache",
+        //         "secretKey": ct.secretKey,
+        //         "token": ct.token,
+        //         "param": JSON.stringify({
+        //             'board_id': id
+        //         }),
+        //         "signature": ct.signature
+        //     },
+        //     success: function (result) {
+        //         resolve(result);
+        //     }
+        // })
     });
 }
 
@@ -2274,7 +2198,7 @@ $(document).on('click', '.boardList', async function () {
             if (type == 'Private') distributeColor(id)
             // ANCHOR jgn lupa uncomment
             groupTask.data = await groupTaskChecking(groupTask.data, type);
-            window['groupTask' + id + ''] = groupTask.data;
+            window['groupTask' + id] = groupTask.data;
             $.ajax({
                 url: 'projectBoard',
                 method: 'GET',
@@ -2328,7 +2252,7 @@ $(document).on('click', '.boardList', async function () {
                     };
                     domBoardTools(pass)
 
-                    let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="public/assets/img/emptyProjects.svg" style="opacity:0.7;"></p></img>';
+                    let appendEmptyImage = '<p><img width="300px" height="300px" class="text-center font-italic" width="300" height="300" src="/proman/public/assets/img/emptyProjects.svg" style="opacity:0.7;"></p></img>';
                     $('.boardContentData').addClass('h-100');
                     $('#boardAccordion').addClass('d-flex justify-content-center align-items-center text-center');
                     $('#boardAccordion').css({
@@ -2524,10 +2448,7 @@ function callNotifBoard(title) {
             let bodyBoard = {
                 'name': boardName,
                 'type': capitalize(boardType),
-                'member': JSON.stringify(boardMemberJoin),
-                'division_id': ct.division_id,
-                'grade': ct.grade,
-                'user_create': ct.name
+                'member': JSON.stringify(boardMemberJoin)
             }
             return await postBoard(bodyBoard).then(async function (result) {
                 let param;
@@ -2687,7 +2608,7 @@ $(document).on('click', '.removeData', function () {
 
 async function postBoard(body) {
     return new Promise(async function (resolve, reject) {
-
+        let genKey = await getGenerateKey();
         let settingsBoard = {
             settings: {
                 "async": true,
@@ -2700,25 +2621,15 @@ async function postBoard(body) {
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
-                    "signature": ct.signature
+                    "signature": ct.signature,
+                    "keyencrypt": genKey
                 },
                 "processData": false,
-                "body": JSON.stringify(body),
+                "body": JSON.stringify(iterateObjectNewEncrypt(body,genKey)),
             }
         }
-        $.ajax({
-            url: 'postBoard',
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            data: JSON.stringify(settingsBoard),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:'postBoard',data:settingsBoard,method:'POST',credentialHeader:true,decrypt:true})
+        resolve(result);
     });
 }
 
@@ -2822,8 +2733,8 @@ async function getEmployee() {
 
         let b = await getData(param);
         if (b.responseCode == '200') {
-            window['employeeData'] = b.data;
-            resolve(b.data);
+            window['employeeData'] = JSON.parse(b.data);
+            resolve(JSON.parse(b.data));
         } else {
             reject(500);
         }
@@ -2855,6 +2766,7 @@ async function getChannelSlack() {
 
 async function getSlackSettings() {
     return new Promise(async function (resolve, reject) {
+
         let param = {
             url: 'getSlackSettings',
             headers: {
@@ -2866,7 +2778,6 @@ async function getSlackSettings() {
                 "signature": ct.signature
             }
         }
-
         let b = await getData(param);
         resolve(b);
     });
@@ -3097,18 +3008,15 @@ $(document).on('click', '#addGroupTask', function () {
         showLoaderOnConfirm: true,
         preConfirm: async () => {
             let pic = [{
-                'account_id': $('select#picGroup').val(),
-                'account_name': $('select#picGroup :selected').text()
+                "account_id": $('select#picGroup').val(),
+                "account_name": $('select#picGroup :selected').text()
             }]
 
             let bodyGroup = {
                 'board_id': thisId,
                 'name': taskValue,
                 'pic': JSON.stringify(pic),
-                "division_id": ct.division_id,
-                "grade": ct.grade,
-                "user_create": ct.name,
-                'url': window.location.origin  + '/proman/employee?boardId=' + thisId
+                'url': '/proman/employee?boardId=' + thisId
             }
             return await postGroupTask(bodyGroup).then(async function (result) {
                 let param;
@@ -3118,40 +3026,9 @@ $(document).on('click', '#addGroupTask', function () {
                         text: result.responseMessage
                     };
                     callNotif(param);
-
-                    // $('.boardContentData').empty();
-                    // $('.boardContent').empty();
-                    // $('.boardHeader').empty();
                     let gt = await getGroupTask(thisId);
                     if (gt.responseCode == '200') {
                         $('.boardList[data-id=' + thisId + ']').click();
-                        // gt.data = await groupTaskChecking(gt.data, boardType);
-                        // window['groupTask' + thisId + ''] = gt.data;
-                        // $.ajax({
-                        //     url: 'projectBoard',
-                        //     method: 'GET',
-                        //     headers: {
-                        //         "Content-Type": "application/json",
-                        //         "Accept": "*/*",
-                        //         "Cache-Control": "no-cache",
-                        //     },
-                        //     success: function (result) {
-                        //         $.getScript(localUrl + ":" + projectManagementLocalPort + "/public/assets/js/project_management/projectContent.js", function (data, textStatus, jqxhr) {})
-                        //         $('.boardContentData').html(result);
-                        //         let pass = {
-                        //             boardName: boardName,
-                        //             camelized: camelized,
-                        //             name: boardName,
-                        //             id: thisId,
-                        //             type: boardType,
-                        //             member: boardMember,
-                        //             created: boardCreated,
-                        //             groupTask: window['groupTask' + thisId]
-                        //         };
-                        //         console.log('the pass', pass);
-                        //         domBoardTools(pass)
-                        //     }
-                        // })
                     } else if (result.responseCode == '401') {
                         logoutNotif();
                     } else {
@@ -3170,7 +3047,7 @@ $(document).on('click', '#addGroupTask', function () {
 
 async function postGroupTask(body) {
     return new Promise(async function (resolve, reject) {
-
+        let genKeyTask = await getGenerateKey();
         let settingsGroup = {
             settings: {
                 "async": true,
@@ -3183,25 +3060,15 @@ async function postGroupTask(body) {
                     "Cache-Control": "no-cache",
                     "secretKey": ct.secretKey,
                     "token": ct.token,
-                    "signature": ct.signature
+                    "signature": ct.signature,
+                    "keyencrypt": genKeyTask
                 },
                 "processData": false,
-                "body": JSON.stringify(body),
+                "body": JSON.stringify(iterateObjectNewEncrypt(body,genKeyTask)),
             }
         }
-        $.ajax({
-            url: 'postGroup',
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-            },
-            data: JSON.stringify(settingsGroup),
-            success: function (result) {
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:'postGroup',data:settingsGroup,method:'POST',credentialHeader:true,decrypt:true})
+        resolve(result);
     });
 }
 

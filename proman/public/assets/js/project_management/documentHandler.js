@@ -291,6 +291,9 @@ $(document).on('click', '.menuRename', async function () {
     loadingDeactivated();
     let param;
     if (result.responseCode == '200') {
+      $('button.close').click();
+      $('a[data-id=' + renameBoardId + ']').click();
+      $('#chartSection').addClass('d-none');
       param = {
         type: 'success',
         text: result.responseMessage
@@ -304,9 +307,6 @@ $(document).on('click', '.menuRename', async function () {
         p
       );
       localStorage.setItem('favList', JSON.stringify(newProjects))
-      $('#modalOptions').modal('toggle');
-      $('a[data-id=' + renameBoardId + ']').click();
-      $('#chartSection').addClass('d-none');
     } else if (result.responseCode == '401') {
       logoutNotif();
     } else {
@@ -342,6 +342,9 @@ $(document).on('click', '.menuDelete', function () {
       return await deleteGroupTask(bodyGroup).then(async function (result) {
         let param;
         if (result.responseCode == '200') {
+          $('button.close').click()
+          $('a[data-id=' + deleteBoardId + ']').click();
+          $('#chartSection').addClass('d-none');
           param = {
             type: 'success',
             text: result.responseMessage
@@ -351,9 +354,6 @@ $(document).on('click', '.menuDelete', function () {
             return el.id != deleteId
           });
           localStorage.setItem('favList', JSON.stringify(filters))
-          $('#modalOptions').modal('toggle');
-          $('a[data-id=' + deleteBoardId + ']').click();
-          $('#chartSection').addClass('d-none');
         } else if (result.responseCode == '401') {
           logoutNotif();
         } else {
@@ -398,12 +398,7 @@ $(document).on('click', '.editComment', function () {
 
         let editedComment = {
           '_id': id,
-          'task_id': taskid,
-          // 'comment': newCommentEdited,
-          // 'user_create': ct.name
-          // 'comment_id': id,
           'comment': newCommentEdited,
-          'user_create': ct.name,
           'comment_file': ''
         }
         console.log('edited  comment', editedComment);
@@ -433,9 +428,7 @@ $(document).on('click', '.deleteComment', function () {
 
   let deletedComment = {
     '_id': id,
-    'task_id': taskid,
-    'comment': commentNow,
-    'user_create': ct.name
+    'comment': commentNow
   }
   notifDeleteComment(deletedComment, groupId);
 })
@@ -577,7 +570,7 @@ $(document).on('keydown', '.commentInputArea', async function (ev) {
       if (newCommentValue != '') {
         let formUpdateComment = new FormData();
 
-        formUpdateComment.append('task_id', id);
+        formUpdateComment.append('task_id', id.toString());
         formUpdateComment.append('comment', newCommentValue);
         formUpdateComment.append('comment_file', base64CommentFile);
         formUpdateComment.append('user_create', ct.name);
@@ -719,7 +712,7 @@ function clearCanvas() {
 
 $(document).on('click', '.savingCanvas', async function () {
   let idFile = $(this).data("id");
-  let idTask = $(this).data("idTask");
+  let idTask = $(this).data("idtask");
   let groupId = $(this).data('groupid');
   let pdf = $(this).data('pdf');
   let multiple = $(this).data('multiple')
@@ -1259,6 +1252,7 @@ $(document).on('click', '.btnDoneGT', async function () {
     'board_id': renameBoardId,
     'status': statusGT == false ? '1' : '0'
   }
+  console.log('bod',bodyGroup);
   loadingActivated();
   return await editGroupTask(bodyGroup).then(async function (result) {
     loadingDeactivated();
@@ -1921,6 +1915,7 @@ function objDiffTelegram(array1, array2) {
 
 async function submitActivationSlack(bodyEdit) {
   return new Promise(async function (resolve, reject) {
+    let genKeyActivationSlack = await getGenerateKey();
     let editSettingsBoard = {
       settings: {
         "async": true,
@@ -1933,34 +1928,21 @@ async function submitActivationSlack(bodyEdit) {
           "Cache-Control": "no-cache",
           "secretKey": ct.secretKey,
           "token": ct.token,
-          "signature": ct.signature
+          "signature": ct.signature,
+          "keyencrypt": genKeyActivationSlack
         },
         "processData": false,
-        "body": JSON.stringify(bodyEdit),
+        "body": JSON.stringify(iterateObjectNewEncrypt(bodyEdit,genKeyActivationSlack)),
       }
     }
-
-    $.ajax({
-      url: 'submitActivationSlack',
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "*/*",
-        "Cache-Control": "no-cache",
-        "secretKey": ct.secretKey,
-        "token": ct.token,
-        "signature": ct.signature
-      },
-      data: JSON.stringify(editSettingsBoard),
-      success: async function (result) {
-        resolve(result);
-      }
-    })
+    let result = await ajaxCall({url:'submitActivationSlack',data:JSON.stringify(editSettingsBoard),credentialHeader:true,method:'POST'})
+    resolve(result);
   })
 }
 
 async function submitChannel(bodyEdit, chip = true) {
   return new Promise(async function (resolve, reject) {
+    let genKeySubmitChannel = await getGenerateKey();
     let editSettingsBoard = {
       settings: {
         "async": true,
@@ -1973,47 +1955,33 @@ async function submitChannel(bodyEdit, chip = true) {
           "Cache-Control": "no-cache",
           "secretKey": ct.secretKey,
           "token": ct.token,
-          "signature": ct.signature
+          "signature": ct.signature,
+          "keyencrypt": genKeySubmitChannel
         },
         "processData": false,
-        "body": JSON.stringify(bodyEdit),
+        "body": JSON.stringify(iterateObjectNewEncrypt(bodyEdit,genKeySubmitChannel)),
       }
     }
-
-    $.ajax({
-      url: 'submitChannel',
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "*/*",
-        "Cache-Control": "no-cache",
-        "secretKey": ct.secretKey,
-        "token": ct.token,
-        "signature": ct.signature
-      },
-      data: JSON.stringify(editSettingsBoard),
-      success: async function (result) {
-        if (!chip) {
-          if (result.responseCode == '200') {
-            let param = {
-              type: 'success',
-              text: result.responseMessage
-            };
-            callNotif(param);
-          } else if (result.responseCode == '401') {
-            logoutNotif();
-          } else {
-            let param = {
-              type: 'error',
-              text: result.responseMessage
-            };
-            callNotif(param);
-          }
-        } else {
-          resolve(result);
-        }
+    let result = await ajaxCall({url:'submitChannel',data:JSON.stringify(editSettingsBoard),credentialHeader:true,method:'POST'})
+    if (!chip) {
+      if (result.responseCode == '200') {
+        let param = {
+          type: 'success',
+          text: result.responseMessage
+        };
+        callNotif(param);
+      } else if (result.responseCode == '401') {
+        logoutNotif();
+      } else {
+        let param = {
+          type: 'error',
+          text: result.responseMessage
+        };
+        callNotif(param);
       }
-    })
+    } else {
+      resolve(result);
+    }
   })
 }
 
@@ -2698,6 +2666,7 @@ $(document).on('mouseenter', '.name', function () {
   let name = $(this).data('name')
   let valuenya = $(this).html();
   let html;
+  console.log('value',valuenya,valuenya.length)
   if (valuenya.length > 14) {
     html = '<textarea class="form-control nameTask" data-id="' + id + '" data-groupid=' + groupid + ' data-name="' + name + '">' + name + '</textarea>'
   } else {
@@ -2726,8 +2695,8 @@ $(document).on('mouseenter', '.name', function () {
 
 $(document).on('mouseleave', '.name', function () {
   let id = $(this).data('id');
-  let name = $(this).data('name')
-  $('.name[data-id=' + id + ']').html(name);
+  let name = $(this).data('name');
+  $('.name[data-id=' + id + ']').html(htmlEntities(name));
 });
 
 $(document).on('mouseenter', '.statusChild', function () {

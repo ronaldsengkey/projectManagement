@@ -4,6 +4,22 @@ function unauthorized() {
     callNotif(param);
 }
 
+function loadingActivated() {
+    const loading = '<div id="loadingWrap">' +
+        '<div class="text-center contentLoadingWrap">' +
+        '<div class="lds-ripple"><div></div><div></div></div>' +
+        '</div>' +
+        '</div>';
+    $(loading).insertBefore('head');
+    $('#loadingWrap').fadeIn('slow');
+}
+
+function loadingDeactivated() {
+    $('#loadingWrap').fadeOut('slow', function () {
+        $('#loadingWrap').remove();
+    });
+}
+
 const capitalize = (s) => {
     if (typeof s !== 'string') return ''
     return s.charAt(0).toUpperCase() + s.slice(1)
@@ -41,46 +57,47 @@ function getInitials(string) {
     });
 }
 
-function disableDevTools(){
+function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+$(function(){
+    disableDevTools()
+})
+
+function disableDevTools() {
     // disable right click
-    $(document).bind("contextmenu",function(e){
+    $(document).bind("contextmenu", function (e) {
         return false;
     });
 
-    disablePrintScreenAndPrint();
-    
+    disablePrintScreenAndPrint()
+
     // disable f12 etc
     $(document).keydown(function (event) {
         if (event.keyCode == 123) { // Prevent F12
             return false;
         } else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I        
             return false;
-        } else if(event.ctrlKey && event.shiftKey && event.keyCode == 'I'.charCodeAt(0)) {
+        } else if (event.ctrlKey && event.shiftKey && event.keyCode == 'I'.charCodeAt(0)) {
             return false;
-         }
-         if(event.ctrlKey && event.shiftKey && event.keyCode == 'C'.charCodeAt(0)) {
+        }
+        if (event.ctrlKey && event.shiftKey && event.keyCode == 'C'.charCodeAt(0)) {
             return false;
-         }
-         if(event.ctrlKey && event.shiftKey && event.keyCode == 'J'.charCodeAt(0)) {
+        }
+        if (event.ctrlKey && event.shiftKey && event.keyCode == 'J'.charCodeAt(0)) {
             return false;
-         }
-         if(event.ctrlKey && event.keyCode == 'U'.charCodeAt(0)) {
+        }
+        if (event.ctrlKey && event.keyCode == 'U'.charCodeAt(0)) {
             return false;
-         }
+        }
     });
 
     // disable devTools
-    var element = new Image;
-    var devtoolsOpen = false;
-    setInterval(function() {
-        console.log('xx',element);
-        element.__defineGetter__("id", function() {
-            devtoolsOpen = true;
-        });
-        if(devtoolsOpen){
-            window.location = 'prohibited';
-        }
-    }, 3000);
+    window.addEventListener('devtoolschange', event => {
+        if (event.detail.isOpen) window.location = '/proman/prohibited';
+    });
+    if (window.devtools.isOpen) window.location = '/proman/prohibited';
 }
 
 function onMaintenance(text) {
@@ -201,7 +218,7 @@ async function ajaxCall({
 
         if (!formdata) {
             $.ajax({
-                url: url,
+                url: '/proman/' + url,
                 crossDomain: true,
                 method: method,
                 headers: headers,
@@ -209,7 +226,8 @@ async function ajaxCall({
             }).done(async function (callback) {
                 if (!decrypt) resolve(callback);
                 else {
-                    iterateObjectDecryptAES(callback.data)
+                    console.log('daaa',callback);
+                    if (callback.data != undefined) iterateObjectNewDecrypt(callback.data, callback.cred)
                     resolve(callback);
                 }
 
@@ -219,17 +237,16 @@ async function ajaxCall({
         } else {
             $.ajax({
                 type: method,
-                crossDomain: true,
                 contentType: false,
                 cache: false,
-                url: url,
+                url: '/proman/' + url,
                 processData: false,
-                enctype: 'multipart/form-data',
                 headers: headers,
                 data: data,
             }).done(async function (callback) {
                 resolve(callback);
             }).fail(async function (b) {
+                console.log('bbb',b);
                 resolve(false)
             })
         }
@@ -237,17 +254,16 @@ async function ajaxCall({
     })
 }
 
-
-function iterateObjectDecryptAES(obj) {
+function iterateObjectNewEncrypt(obj,keys) {
     try {
         let temp;
         Object.keys(obj).forEach(key => {
             if (typeof obj[key] === 'object') {
-                iterateObjectDecryptAES(obj[key])
+                iterateObjectNewEncrypt(obj[key],keys)
             } else {
                 temp = obj[key];
-                obj[key] = aesDecrypt(obj[key]);
-                if (obj[key] == "") obj[key] = temp;
+                obj[key] = newEncrypt(obj[key],keys);
+                if (obj[key] == "" || obj[key] == null || obj[key] == {}) obj[key] = temp;
                 if (obj[key].toString().includes("error")) obj[key] = temp;
             }
         })
@@ -255,47 +271,53 @@ function iterateObjectDecryptAES(obj) {
     } catch (error) {
         return obj;
     }
+    
 }
 
-function aesDecrypt(data) {
-    var key = CryptoJS.enc.Utf8.parse(aesKeyDecrypt);
-    var iv = CryptoJS.enc.Utf8.parse(ivKeyDecrypt);
-    var decryptedWA = CryptoJS.AES.decrypt(data, key, {
-        iv: iv
-    });
-    var decryptedUtf8 = decryptedWA.toString(CryptoJS.enc.Utf8);
-    return decryptedUtf8;
+function iterateObjectNewDecrypt(obj,keys) {
+    try {
+        let temp;
+        Object.keys(obj).forEach(key => {
+            if (typeof obj[key] === 'object') {
+                iterateObjectNewDecrypt(obj[key],keys)
+            } else {
+                temp = obj[key];
+                if (key != 'cred') obj[key] = newDecrypt(obj[key],keys);
+                if (obj[key] == "") obj[key] = temp;
+                if (obj[key].toString().includes("error")) obj[key] = temp;
+            }
+        })
+        return obj;
+    } catch (error) {
+        console.log('err',error);
+        return obj;
+    }
+    
 }
 
-function iterateObjectEncryptAESGlobal(obj) {
-    Object.keys(obj).forEach(key => {
-        if (typeof obj[key] === 'object') {
-            iterateObjectEncryptAESGlobal(obj[key])
-        } else {
-            obj[key] = aesEncryptGlobal(obj[key]);
-        }
-    })
-    return obj;
+function newEncrypt(string, key){
+    let result = ''; 
+    for(let i=0; i<string.length; i++) {
+        let char = string.toString().substr(i,1);
+        let keychar = key.substr((i % key.length)-1,1);
+        char = String.fromCharCode(char.charCodeAt(0) + keychar.charCodeAt(0));
+        result += char;
+    }
+    return window.btoa(result); 
 }
 
-function aesEncryptGlobal(data) {
-    let key = aesKeyDecrypt;
-    let iv = ivKeyDecrypt;
-    let cipher = CryptoJS.AES.encrypt(data, CryptoJS.enc.Utf8.parse(key), {
-        iv: CryptoJS.enc.Utf8.parse(iv),
-        padding: CryptoJS.pad.Pkcs7,
-        mode: CryptoJS.mode.CBC
-    });
-    return cipher.toString();
+function newDecrypt(strings,key){
+    let result = ''; 
+    let string = window.atob(strings); 
+    for(let i=0;i<string.length; i++) { 
+        let char = string.substr(i, 1); 
+        let keychar = key.substr((i % key.length)-1, 1);
+        char = String.fromCharCode(char.charCodeAt(0)-keychar.charCodeAt(0));
+        result += char; 
+    }
+    return result; 
 }
 
-function iterateObjectValueToString(obj) {
-    Object.keys(obj).forEach(key => {
-        if (typeof obj[key] === 'object') {
-            iterateObjectValueToString(obj[key])
-        } else {
-            obj[key] = obj[key].toString();
-        }
-    })
-    return obj;
+async function getGenerateKey(){
+    return await ajaxCall({url:'generateKey',method:'GET'});
 }
