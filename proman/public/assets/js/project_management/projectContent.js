@@ -466,7 +466,7 @@ async function domTaskTable(data, id, result, boardMember) {
       let dueDateTask = moment(element.due_date);
       let currentDate = moment()
       let diff = dueDateTask.diff(currentDate,'days')
-      if(diff < 0 && diff >= -7 && currentDate.isAfter(dueDateTask) && element.status == 'Pending'){
+      if(diff <= 0 && diff >= -7 && currentDate.isAfter(dueDateTask) && element.status == 'Pending'){
         $('.taskRow[data-id=' + element._id + ']').addClass('taskRowDueDate')
       }
     });
