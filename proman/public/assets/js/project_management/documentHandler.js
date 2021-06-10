@@ -2129,6 +2129,7 @@ async function triggerPopoverChartLegendTeam(name, status, backupName = '') {
     $('.teamStatus[data-name="' + name + '"]').popover({
       content: legendHTML,
       placement: "right",
+      trigger: 'focus',
       html: true,
       sanitize: false
     });
@@ -2170,6 +2171,7 @@ $(document).on('click', '.openTaskTeam', async function () {
 
 async function triggerPopoverChartLegend(type, capitalType) {
   if ($('.personalDetail[data-for=' + type + ']').data("bs.popover") == undefined) {
+
     let htmlLegendChart = '';
     for (let i = 0; i < window['data' + capitalType].length; i++) {
       htmlLegendChart += '<li class="list-group-item d-flex justify-content-between align-items-center">' + window['data' + capitalType][i] + '<span style="float:right;cursor:pointer;"><i class="far fa-eye fa-lg ml-3 openTask" data-for="' + capitalType + '" data-index=' + i + '></i></span></li> '
@@ -2182,13 +2184,13 @@ async function triggerPopoverChartLegend(type, capitalType) {
     $('.personalDetail[data-for=' + type + ']').popover({
       content: legendHTML,
       placement: "right",
+      trigger: 'focus',
       html: true,
       sanitize: false
     });
 
     // $('.popover-body').css('height','75vh');
     // $('.popover-body').css('overflow','auto');
-
   }
 }
 
