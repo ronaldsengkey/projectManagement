@@ -226,7 +226,6 @@ async function ajaxCall({
             }).done(async function (callback) {
                 if (!decrypt) resolve(callback);
                 else {
-                    console.log('daaa',callback);
                     if (callback.data != undefined) iterateObjectNewDecrypt(callback.data, callback.cred)
                     resolve(callback);
                 }
@@ -284,7 +283,6 @@ function iterateObjectNewDecrypt(obj,keys) {
                 temp = obj[key];
                 if (key != 'cred') obj[key] = newDecrypt(obj[key],keys);
                 if (obj[key] == "") obj[key] = temp;
-                if (obj[key].toString().includes("error")) obj[key] = temp;
             }
         })
         return obj;

@@ -32,6 +32,9 @@ const myKey = efs.readFileSync("./server.key", 'utf-8');
 var redis = require("redis");
 const fs = require('fs');
 var client = redis.createClient();
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
 fastify.register(require('fastify-multipart'));
 fastify.register(require('fastify-static'), {
   root: path.join(__dirname, 'proman/public'),
@@ -142,7 +145,7 @@ function actionGet(data) {
       data.settings.headers.clientKey = cryptography.aesEncrypt(
         cryptography.pub
       );
-      console.log("head", data.settings);
+      // console.log("head", data.settings);
       // if(data.settings.headers.Host) delete data.settings.headers.Host;
 
       let settings = data.settings;
@@ -151,7 +154,7 @@ function actionGet(data) {
           if (error.toString().includes('TIMEDOUT')) reject(999)
           else reject(process.env.ERRORINTERNAL_RESPONSE);
         } else {
-          console.log("action Get body data => ", body);
+          // console.log("action Get body data => ", body);
           let result = "";
           if (body !== "" && JSON.parse(body).data !== undefined) {
             result = JSON.parse(body);
@@ -1383,7 +1386,6 @@ fastify.delete("/proman/deleteBoardTrello", async function (req, reply) {
 fastify.get("/proman/getChartAnalytic", async function (req, reply) {
   try {
     let token = extToken ? extToken : req.headers.token;
-    console.log('qqq', req.headers.param);
     let data = {
       settings: {
         async: true,
@@ -1409,9 +1411,8 @@ fastify.get("/proman/getChartAnalytic", async function (req, reply) {
       },
     };
 
-    console.log("coba get analytical", data);
+    // console.log("coba get analytical", data);
     let a = await actionGet(data);
-    console.log('aaaaa', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -1451,9 +1452,9 @@ fastify.get("/proman/summaryBoard", async function (req, reply) {
       },
     };
 
-    console.log("coba get summaryBoard", data);
+    // console.log("coba get summaryBoard", data);
     let a = await actionGet(data);
-    // console.log('aaaaa',a);
+    console.log('aaaaa',a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -2610,7 +2611,7 @@ fastify.get('/proman/chat', async function (request, reply) {
     "headers": {
       "Cache-Control": "no-cache",
     },
-    "url": "http://" + localUrl + ':8100/chat'
+    "url": 'http://' + localUrl + ':8443/main/chat'
   }, function (err, response, body) {
     reply.send(body);
   });
@@ -2727,14 +2728,12 @@ function iterateObjectNewDecrypt(obj, keys) {
       } else {
         temp = obj[key];
         obj[key] = newDecrypt(obj[key], keys);
-        if (key != 'pic' && key != 'timeline' && key != 'member' && key != 'slack_channels' && key != 'telegram_channels') obj[key] = htmlEncodes(obj[key]);
+        if (key != 'pic' && key != 'timeline' && key != 'member' && key != 'slack_channels' && key != 'telegram_channels') obj[key] = sanitizeHTML(obj[key]);
         if (obj[key] == "" || obj[key] == null || obj[key] == {}) obj[key] = temp;
-        if (obj[key].toString().includes("error")) obj[key] = temp;
       }
     });
     return obj;
   } catch (error) {
-    console.log('kok error', error);
     return obj;
   }
 
@@ -2788,6 +2787,13 @@ function iterateObjectNewEncrypt(obj, keys) {
     console.log('errorrrr', error);
     return obj;
   }
+}
+
+function sanitizeHTML(text){
+  const window = new JSDOM('').window;
+  const DOMPurify = createDOMPurify(window);
+  const clean = DOMPurify.sanitize(text);
+  return clean;
 }
 
 let sockets = require("./socket.js");
