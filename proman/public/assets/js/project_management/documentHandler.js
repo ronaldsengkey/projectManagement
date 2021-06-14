@@ -2685,7 +2685,7 @@ $(document).on('mouseenter', '.name', function () {
         let updateName = {
           '_id': id,
           'group_id': groupid,
-          'name': newValue,
+          'name': htmlEntities(newValue),
           'user_update': ct.name
         }
         globalUpdateTask('name', updateName);
