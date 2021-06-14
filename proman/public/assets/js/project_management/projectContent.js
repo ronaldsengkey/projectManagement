@@ -304,18 +304,18 @@ async function domTaskTable(data, id, result, boardMember) {
         } catch (error) {
           window['colorClass'+JSON.parse(element.pic)[0].account_id] = 'text-white';
         }
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="memberLogo" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
+        htmlTask += '<td class="picPlace"><div class="memberLogo pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '" style="background:'+window['color'+JSON.parse(element.pic)[0].account_id]+'" data-toggle="tooltip" data-placement="bottom" title="' + JSON.parse(element.pic)[0].account_name + '"><span class="initialPic '+window['colorClass'+JSON.parse(element.pic)[0].account_id]+'">' + getInitials(JSON.parse(element.pic)[0].account_name) + '</span></div></td>';
       } else {
-        htmlTask += '<td class="pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><i class="icon_user far fa-user fa-lg" data-id="' + element._id + '"></i></td>';
+        htmlTask += '<td class="picPlace"><i class="icon_user far fa-user fa-lg pic" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '" data-id="' + element._id + '"></i></td>';
       }
 
       if (haveTeam) {
         window['dataCurrentTeam' + element._id + ''] = element;
         let htmlTeamDom = processTeamData(window['dataCurrentTeam' + element._id]);
-        htmlTask += '<td class="team" data-team="true" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="row"><div class="col-lg-12 colTeam justify-content-center" data-id=' + element._id + ' style="display:flex;"><i data-id=' + element._id + ' class="addTeamIcon fas fa-plus fa-lg d-none"></i>' + htmlTeamDom + '</div></div></td>';
+        htmlTask += '<td class="teamTD"><div class="row"><div class="col-lg-12 colTeam justify-content-center" data-id=' + element._id + ' style="display:flex;"><i data-id=' + element._id + ' class="addTeamIcon fas fa-plus fa-lg d-none team" data-team="true" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"></i>' + htmlTeamDom + '</div></div></td>';
       } else {
         window['dataCurrentTeam' + element._id + ''] = [];
-        htmlTask += '<td class="team" data-team="false" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"><div class="colTeam" data-id=' + element._id + '><i class="icon_team far fa-user fa-lg" data-id="' + element._id + '"></i></div></td>';
+        htmlTask += '<td class="teamTD"><div class="colTeam"><i class="icon_team far fa-user fa-lg team" data-team="false" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '"></i></div></td>';
       }
 
       if (haveStatus) {
@@ -363,7 +363,7 @@ async function domTaskTable(data, id, result, boardMember) {
       if(haveFile){
         let fileCount = JSON.parse(element.file).length
         window['fileAttachment'+element._id] = JSON.parse(element.file);
-        htmlTask += '<td class="fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"><div class="position-relative"><i class="far fa-file-alt fa-lg"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
+        htmlTask += '<td class="fileAttachment"><div class="position-relative"><i class="far fa-file-alt fa-lg fileAttach" data-id=' + element._id + ' data-groupid="' + element.group_id + '"></i><span class="badge rounded-pill badge-notification bg-danger badgeAttachment">'+fileCount+'</span></div></td>';
       } else {
         htmlTask += '<td>-</td>';
       }
@@ -407,10 +407,10 @@ async function domTaskTable(data, id, result, boardMember) {
         $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
         // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
         $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-          if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+          if($(element).attr('class') == 'picPlace' || $(element).attr('class') == 'team') {
             $('td.'+$(element).attr('class')).addClass('disableInputClick')
           }
-          else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+          else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttachment'){
             $('td.'+$(element).attr('class')).addClass('disableInputInside')
           }
         })
@@ -428,10 +428,10 @@ async function domTaskTable(data, id, result, boardMember) {
               $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
               // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
               $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-                if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+                if($(element).attr('class') == 'picPlace' || $(element).attr('class') == 'teamTD') {
                   $('td.'+$(element).attr('class')).addClass('disableInputClick')
                 }
-                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttachment'){
                   $('td.'+$(element).attr('class')).addClass('disableInputInside')
                 }
                 
@@ -450,10 +450,10 @@ async function domTaskTable(data, id, result, boardMember) {
               $('.delTask[data-id='+element._id+']').addClass('disableInputInside');
               // $('.lblAttach[data-id='+element._id+']').addClass('disableInputInside');
               $('.taskRow[data-id=' + element._id + ']').children().each((index, element) =>{
-                if($(element).attr('class') == 'pic' || $(element).attr('class') == 'team') {
+                if($(element).attr('class') == 'picPlace' || $(element).attr('class') == 'teamTD') {
                   $('td.'+$(element).attr('class')).addClass('disableInputClick')
                 }
-                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttach'){
+                else if($(element).attr('class') != 'status' && $(element).attr('class') != 'fileAttachment'){
                   $('td.'+$(element).attr('class')).addClass('disableInputInside')
                 }
                 
