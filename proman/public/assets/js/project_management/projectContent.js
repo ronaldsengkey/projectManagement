@@ -289,7 +289,7 @@ async function domTaskTable(data, id, result, boardMember) {
 
       htmlTask = '<tr class="taskRow" data-board="'+id+'" data-id="' + element._id + '" data-member=' + JSON.stringify(boardMember) + '>';
 
-      htmlTask += '<td class="name" data-name="' + element.name + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
+      htmlTask += '<td class="name" data-name="' + htmlEntities(element.name) + '" data-groupid="' + element.group_id + '" data-id="' + element._id + '">' + element.name + '</td>';
 
       if (havePic) {
         window['picTask' + element._id + ''] = element.pic;

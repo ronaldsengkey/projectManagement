@@ -2665,7 +2665,7 @@ $(document).on('click', '.timeline', function () {
 $(document).on('mouseenter', '.name', function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
-  let name = $(this).data('name')
+  let name = htmlEntities($(this).data('name'))
   let valuenya = $(this).html();
   let html;
   console.log('value',valuenya,valuenya.length)
