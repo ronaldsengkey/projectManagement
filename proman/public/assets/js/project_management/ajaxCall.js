@@ -139,7 +139,7 @@ async function addTask(value, groupId) {
         let genKeyTaskOnly = await getGenerateKey();
         let bodyTask = {
             'group_id': groupId,
-            'name': value,
+            'name': htmlEntities(value),
             'user_create': ct.name,
             'status': "Pending",
             'priority': "High",
