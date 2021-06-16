@@ -165,6 +165,7 @@ function actionGet(data) {
             else result.data = cryptography.decryptMessage(result.data);
 
             if ("encrypt" in settings.headers) {
+              if(settings.headers.target == 'getEmployee') result.data = JSON.parse(result.data);
               let keyss = generateKey();
               result.data = iterateObjectNewEncrypt(result.data, keyss)
               result.cred = keyss;
@@ -735,7 +736,6 @@ fastify.get("/proman/board", async function (req, reply) {
 
     console.log("coba get board", req.headers);
     let a = await actionGet(data);
-    console.log('aaaaa', a);
     reply.send(a);
   } catch (err) {
     console.log("Error apa sih", err);
@@ -964,6 +964,7 @@ fastify.get("/proman/getEmployee", async function (req, reply) {
           ),
           param: cryptography.aesEncrypt('all'),
           apiService: cryptography.aesEncrypt('x'),
+          encrypt:true
         },
       },
     };
@@ -998,6 +999,7 @@ fastify.get("/proman/getDivision", async function (req, reply) {
           token: cryptography.aesEncrypt(
             token
           ),
+          encrypt: true
         },
       },
     };
@@ -1032,6 +1034,7 @@ fastify.get("/proman/goAuth", async function (req, reply) {
           token: cryptography.aesEncrypt(
             token
           ),
+          encrypt:true
         },
       },
     };
@@ -1066,6 +1069,7 @@ fastify.post("/proman/confirmAuthToken", async function (req, reply) {
           token: cryptography.aesEncrypt(
             token
           ),
+          encrypt:true
         },
         body: JSON.stringify(iterateObject(req.body))
       },
@@ -1452,7 +1456,7 @@ fastify.get("/proman/summaryBoard", async function (req, reply) {
       },
     };
 
-    // console.log("coba get summaryBoard", data);
+    console.log("coba get summaryBoard", req.headers);
     let a = await actionGet(data);
     console.log('aaaaa',a);
     reply.send(a);

@@ -13,7 +13,7 @@ $(document).on('click', '.profilePict', function () {
 $(async function () {
     loadingActivated();
     await getEnvData();
-    getChatContainer();
+    // getChatContainer();
     try {
         let getUrl = window.location.search;
         let getUserFrom = new URLSearchParams(getUrl).get('from');
@@ -394,12 +394,6 @@ $(document).on('click', '.breadcrumb-item', function () {
     }
 })
 
-function logout() {
-    localStorage.removeItem('accountProfile');
-    localStorage.removeItem('accountLogin');
-    sessionStorage.clear();
-    window.location = "/proman/login";
-};
 $(document).on('click', '#logout', function () {
     logout();
 });
@@ -661,8 +655,8 @@ function checkIfNull(text, changeTo = '') {
     }
 }
 
-function getChatContainer(){
-    const chatJsUrl = domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/chat.js";
-    console.log("getChatContainer::", chatJsUrl);
-    $.getScript(chatJsUrl, function (data, textStatus, jqxhr) {})
-}
+// function getChatContainer(){
+//     const chatJsUrl = domainPlaceUS + ":" + mainLocalPort + "/public/assets/js/chat.js";
+//     console.log("getChatContainer::", chatJsUrl);
+//     $.getScript(chatJsUrl, function (data, textStatus, jqxhr) {})
+// }

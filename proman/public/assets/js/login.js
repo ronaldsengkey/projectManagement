@@ -128,107 +128,90 @@ function getPage(param) {
     })
 }
 
-function postData(data) {
-    $.ajax({
-        url: "/proman/postData",
-        crossDomain: true,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-        },
-        data: JSON.stringify(data)
-    }).done(async function (callback) {
-        try {
-            let param = '';
-            switch (callback.responseCode) {
-                case "401":
-                    logoutNotif();
-                    break;
-                case "406":
-                case "404":
+async function postData(data) {
+    let callback = await ajaxCall({url: 'postData',data:data,method:'POST',decrypt:true})
+    let param = '';
+    switch (callback.responseCode) {
+        case "401":
+            logoutNotif();
+            break;
+        case "406":
+        case "404":
+            param = {
+                type: "error",
+                text: callback.responseMessage
+            }
+            callNotif(param);
+            loadingDeactivated();
+            break;
+        case "500":
+            param = {
+                type: "error",
+                text: callback.responseMessage
+            }
+            callNotif(param);
+            loadingDeactivated();
+            break;
+        case "200":
+            switch (data.target) {
+                case 'login':
+                    loadingDeactivated();
+                    console.log('login type => ', callback.data)
                     param = {
-                        type: "error",
+                        type: "success",
                         text: callback.responseMessage
                     }
                     callNotif(param);
-                    loadingDeactivated();
-                    break;
-                case "500":
-                    param = {
-                        type: "error",
-                        text: callback.responseMessage
-                    }
-                    callNotif(param);
-                    loadingDeactivated();
-                    break;
-                case "200":
-                    switch (data.target) {
-                        case 'login':
-                            loadingDeactivated();
-                            console.log('login type => ', callback.data.type)
-                            param = {
-                                type: "success",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            switch (callback.data.type) {
-                                case 'sms':
-                                    localStorage.setItem("accountLogin", JSON.stringify(callback.data));
-                                    window.location = "login-auth";
-                                    break;
-                                case 'email':
-                                    localStorage.setItem("accountLogin", JSON.stringify(callback.data));
-                                    window.location = "login-auth";
-                                    break;
-                                case 'authenticator':
-                                    localStorage.setItem("accountLogin", JSON.stringify(callback.data));
-                                    window.location = "login-auth";
-                                    break;
-                                default:
-                                    localStorage.setItem("accountProfile", JSON.stringify(callback.data));
-                                    let today = new Date();
-                                    // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-                                    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-                                    localStorage.setItem("loginTime", time);
-                                    let getUrl = window.location.search;
-                                    let boardAidi = new URLSearchParams(getUrl).get('boardId');
-                                    if (boardAidi != undefined && boardAidi != '') {
-                                        window.location = 'employee' + window.location.search
-                                    } else 
-                                    window.location = "employee";
-                                    break;
-                            }
+                    switch (callback.data.type) {
+                        case 'sms':
+                            localStorage.setItem("accountLogin", JSON.stringify(callback.data));
+                            window.location = "login-auth";
                             break;
-                        case 'login-auth':
-                            param = {
-                                type: "success",
-                                text: callback.responseMessage
-                            }
-                            callNotif(param);
-                            localStorage.setItem("accountProfile", JSON.stringify(callback.data));
-                            window.location = "employee";
+                        case 'email':
+                            localStorage.setItem("accountLogin", JSON.stringify(callback.data));
+                            window.location = "login-auth";
+                            break;
+                        case 'authenticator':
+                            localStorage.setItem("accountLogin", JSON.stringify(callback.data));
+                            window.location = "login-auth";
                             break;
                         default:
+                            localStorage.setItem("accountProfile", JSON.stringify(callback.data));
+                            localStorage.setItem("userData", JSON.stringify(callback.data));
+                            let today = new Date();
+                            // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+                            let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                            localStorage.setItem("loginTime", time);
+                            let getUrl = window.location.search;
+                            let boardAidi = new URLSearchParams(getUrl).get('boardId');
+                            if (boardAidi != undefined && boardAidi != '') {
+                                window.location = 'employee' + window.location.search
+                            } else 
+                            window.location = "employee";
                             break;
                     }
                     break;
-                default:
+                case 'login-auth':
                     param = {
-                        type: "error",
-                        text: "Can't connect to service, please try again later !"
+                        type: "success",
+                        text: callback.responseMessage
                     }
                     callNotif(param);
-                    loadingDeactivated();
+                    localStorage.setItem("accountProfile", JSON.stringify(callback.data));
+                    localStorage.setItem("userData", JSON.stringify(callback.data));
+                    window.location = "employee";
+                    break;
+                default:
                     break;
             }
-        } catch (err) {
-            alert("ooops sory you have an error");
-            console.log(err);
-            return;
-        }
-    }).fail(async function (b) {
-        alert("error", b);
-    })
+            break;
+        default:
+            param = {
+                type: "error",
+                text: "Can't connect to service, please try again later !"
+            }
+            callNotif(param);
+            loadingDeactivated();
+            break;
+    }
 }

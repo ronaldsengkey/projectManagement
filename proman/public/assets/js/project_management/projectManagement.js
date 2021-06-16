@@ -349,17 +349,7 @@ async function getBoard(param = {}, cases = '') {
 
 async function getChartAnalytic(param = {}) {
     return new Promise(async function (resolve) {
-        let headers = {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-            "secretKey": ct.secretKey,
-            "param": JSON.stringify(param),
-            "token": ct.token,
-            "signature": ct.signature
-        };
-        // console.log('rParam =>',rParam)
-        let result = await ajaxCall({url:'getChartAnalytic',method:'GET',headers:headers,decrypt:true})
+        let result = await ajaxCall({url:'getChartAnalytic',extraHeaders:{"param": JSON.stringify(param)},credentialHeader:true,method:'GET',decrypt:true})
         loadingDeactivated()
         resolve(result);
     })
@@ -375,16 +365,10 @@ async function getSummaryBoard(category, param = '') {
     var rParam = extend({}, dParam, param);
     // console.log('rParam =>',rParam)
     return new Promise(async function (resolve) {
-        let result = await ajaxCall({url:'summaryBoard',headers:{
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
+        let result = await ajaxCall({url:'summaryBoard',extraHeaders:{
             "param": JSON.stringify(rParam),
-            "category": category,
-            "secretKey": ct.secretKey,
-            "token": ct.token,
-            "signature": ct.signature
-        },method:'GET',decrypt:true})
+            "category": category
+        },credentialHeader:true,method:'GET',decrypt:true})
 
         console.log('category =>', category, ' =>', result);
         if (category == 'boardTypeForMe' || category == 'myTaskStatus' || category == 'boardDivision' || category == 'boardMember' || category == 'boardTask' || category == 'taskByDivision' || category == 'taskByStatus' || category == 'taskByPriority' || category == 'taskByDivisionAndStatus' || category == 'taskByDeadLine') {
@@ -2795,8 +2779,8 @@ async function getEmployee() {
 
         let b = await getData(param);
         if (b.responseCode == '200') {
-            window['employeeData'] = JSON.parse(b.data);
-            resolve(JSON.parse(b.data));
+            window['employeeData'] = b.data;
+            resolve(b.data);
         } else {
             reject(500);
         }
@@ -2961,47 +2945,20 @@ function activeModalConfirmToken() {
 
 async function goAuth() {
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: goAuth.name,
-            method: 'GET',
-            headers: {
-                // "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            success: async function (result) {
-                loadingDeactivated()
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:goAuth.name,method:'GET',credentialHeader:true,decrypt:true})
+        loadingDeactivated();
+        resolve(result);
     });
 }
 
 async function confirmAuthToken(tokenAuth) {
     loadingActivated();
     return new Promise(async function (resolve, reject) {
-        $.ajax({
-            url: confirmAuthToken.name,
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature
-            },
-            data: JSON.stringify({
-                'token': tokenAuth
-            }),
-            success: async function (result) {
-                loadingDeactivated()
-                resolve(result);
-            }
-        })
+        let result = await ajaxCall({url:confirmAuthToken.name,data:{
+            'token': tokenAuth
+        },method:'POST',credentialHeader:true,decrypt:true})
+        loadingDeactivated();
+        resolve(result)
     });
 }
 

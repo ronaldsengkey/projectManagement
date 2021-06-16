@@ -106,8 +106,7 @@ function onMaintenance(text) {
 }
 
 function logout() {
-    localStorage.removeItem('accountProfile');
-    localStorage.removeItem('accountLogin');
+    localStorage.clear()
     sessionStorage.clear();
     window.location = "/proman/login";
 }
