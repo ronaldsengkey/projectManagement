@@ -20,6 +20,8 @@
   <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css">
   <!-- <link rel="stylesheet" href="/public/assets/css/main.css"> -->
   <link rel="stylesheet/less" type="text/css" href="/proman/public/assets/css/less/main.less">
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.css' rel='stylesheet' />
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.css' rel='stylesheet' />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/beefup@1.2.0/dist/css/jquery.beefup.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -85,6 +87,31 @@
         </div>
 
         
+      </div>
+      <!--/.Content-->
+    </div>
+  </div>
+  
+  <div class="modal fade modalDetailTask" id="modalDetailTask" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    style="display: none;" aria-hidden="true">
+    <div class="modal-dialog cascading-modal modal-lg" role="document">
+
+      <!--Content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <p class="heading lead white-text titleDetail"></p>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" class="white-text">×</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-lg-12 align-self-center bodyDetail">
+
+            </div>
+          </div>
+        </div>
       </div>
       <!--/.Content-->
     </div>
@@ -197,6 +224,9 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/beefup@1.2.0/dist/js/jquery.beefup.min.js"></script>
   <script defer type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.0.6/compressor.js"></script>
+  <script defer src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.js'></script>
+  <script defer src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/interaction/main.js'></script>
+  <script defer src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.js'></script>
   <script defer src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.2/tinycolor.min.js"></script>

@@ -2916,6 +2916,10 @@ $(document).on('click', '.goTrello', async function () {
     }
 })
 
+$(document).on('click','.calendarView',async function(){
+    $.getScript(window.location.origin + "/proman/public/assets/js/project_management/calendarView.js", function (data, textStatus, jqxhr) {})
+})
+
 $(document).on('click', '.btnConfirm', async function () {
     let tokenData = $('.tokenPlace').val();
     let confirmRes = await confirmAuthToken(tokenData);

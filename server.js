@@ -129,6 +129,10 @@ fastify.get("/proman/login", function (req, reply) {
   reply.sendFile("layouts/login.html");
 });
 
+fastify.get("/proman/calendarView", function (req, reply) {
+  reply.sendFile("layouts/calendarView.html");
+});
+
 fastify.get("/proman/home", function (req, reply) {
   reply.sendFile("layouts/home.html");
 });

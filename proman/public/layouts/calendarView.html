@@ -1,0 +1,62 @@
+<div class="row my-4 ml-1">
+    <div class="col-lg-6" style="font-size: larger;text-align: left;">
+        Project Board
+        <span class="goHome"> <i class="fas fa-home ml-2"></i></span>
+      </div>
+
+      <div class="col-lg-6 d-flex" style="place-content: flex-end">
+        <div id="filterCalendarStatus" class="dropdown mx-1">
+            <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">
+                <span class="filterCalendarLabelStatus">Status</span><span id="onFilter" class="text-success"></span>
+                <i class="fas ml-2 fa-chevron-down"></i>
+            </a>
+            <div id="formCalendar" class="dropdown-menu dropdown-menu-right px-3">
+                <form onsubmit="return false">
+                    <div class="form-group m-0">
+                        <div class="input-group">
+                            <select class="form-control filterCalendarStatus">
+                                <option value="all" selected>All</option>
+                                <option value="Done">Done</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Working on it">Working on it</option>
+                                <option value="Stuck">Stuck</option>
+                                <option value="Waiting for review">Waiting for review</option>
+                                <option value="Need to fix">Need to fix</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="filterCalendar" class="dropdown mx-1">
+            <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">
+                <span class="filterCalendarLabel">Filter</span><span id="onFilter" class="text-success"></span>
+                <i class="fas ml-2 fa-chevron-down"></i>
+            </a>
+            <div id="formCalendar" class="dropdown-menu dropdown-menu-right px-3">
+                <form onsubmit="return false">
+                    <div class="form-group m-0">
+                        <div class="input-group">
+                            <select class="form-control filterCalendar">
+                                <option value="assign" selected>Assign to Me</option>
+                                <option value="mytask">My Task</option>
+                                <option value="pictask">PIC of Task</option>
+                                <option value="mygroup">My Group Task</option>
+                                <option value="picgroup">PIC of Group Task</option>
+                                <option value="myboard">My Board</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+      </div>
+</div>
+
+<div class="row p-2">
+    <div class="col-lg-12">
+        <div id='calendar'></div>
+    </div>
+</div>

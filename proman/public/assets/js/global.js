@@ -62,7 +62,7 @@ function htmlEntities(str) {
 }
 
 $(function(){
-    disableDevTools()
+    // disableDevTools()
 })
 
 function disableDevTools() {
