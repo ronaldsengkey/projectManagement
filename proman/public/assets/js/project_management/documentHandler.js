@@ -2211,7 +2211,7 @@ $(document).on('mouseenter', '.pic', function () {
 
 })
 
-$(document).on('change', '.emploPic', function () {
+$(document).on('change', '.emploPic', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
@@ -2231,7 +2231,7 @@ $(document).on('change', '.emploPic', function () {
   }
   let rand = (Math.floor(Math.random() * 4) + 1);
   $('.pic[data-id=' + id + ']').html('<div class="memberLogo" style="background:' + window['color' + val] + '" data-toggle="tooltip" data-placement="bottom" title="' + valName + '"><span class="initialPic ' + window['colorClass' + val] + '">' + getInitials(valName) + '</span></div>');
-  globalUpdateTask('pic', updatePic);
+  await globalUpdateTask('pic', updatePic);
 
 })
 
@@ -2453,7 +2453,7 @@ async function triggerPopoverTeam(id, haveTeam, groupid, name) {
   }
 }
 
-$(document).on('click', '.removeAllTeam', function () {
+$(document).on('click', '.removeAllTeam', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
@@ -2484,7 +2484,7 @@ $(document).on('click', '.removeAllTeam', function () {
   let htmlRemove = '<div class="colTeam" data-id=' + id + '><i class="far fa-user fa-lg icon_team" data-id="' + id + '"></i></div>';
   $('.team[data-id=' + id + ']').html(htmlRemove);
   $('.team[data-id=' + id + ']').data('team', false)
-  globalUpdateTask('team', updateTeam);
+  await globalUpdateTask('team', updateTeam);
 })
 
 
@@ -2556,7 +2556,7 @@ $(document).on('change', '.emploTeam', function () {
   console.log('the team current', window['dataCurrentTeam' + id + '']);
 })
 
-$(document).on('click', '.submitTeam', function () {
+$(document).on('click', '.submitTeam', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
@@ -2575,11 +2575,11 @@ $(document).on('click', '.submitTeam', function () {
     'member': memberData,
     'url': window.location.origin  + '/proman/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
-  globalUpdateTask('team', updateTeam);
+  await globalUpdateTask('team', updateTeam);
   refreshTableData(groupid);
 })
 
-$(document).on('click', '.duedate', function () {
+$(document).on('click', '.duedate', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
@@ -2602,7 +2602,7 @@ $(document).on('click', '.duedate', function () {
 
   $(".dateDue").datepicker({
     minDate: new Date(),
-    onSelect: function (date) {
+    onSelect: async function (date) {
       let updateDueDate = {
         '_id': id,
         'group_id': groupid,
@@ -2611,13 +2611,13 @@ $(document).on('click', '.duedate', function () {
         'due_date': moment(date).format('YYYY-MM-DD')
       }
       $('.duedate[data-id="' + id + '"]').html(date);
-      globalUpdateTask('duedate', updateDueDate);
+      await globalUpdateTask('duedate', updateDueDate);
     },
   });
 
 })
 
-$(document).on('click', '.timeline', function () {
+$(document).on('click', '.timeline', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = $(this).data('name');
@@ -2662,7 +2662,7 @@ $(document).on('click', '.timeline', function () {
   });
 })
 
-$(document).on('mouseenter', '.name', function () {
+$(document).on('mouseenter', '.name', async function () {
   let id = $(this).data('id');
   let groupid = $(this).data('groupid');
   let name = htmlEntities($(this).data('name'))
@@ -2688,7 +2688,7 @@ $(document).on('mouseenter', '.name', function () {
           'name': htmlEntities(newValue),
           'user_update': ct.name
         }
-        globalUpdateTask('name', updateName);
+        await globalUpdateTask('name', updateName);
         refreshTableData(groupid);
       }
     }
@@ -2810,7 +2810,7 @@ $(document).on('click', '.rowStat', async function () {
     'user_update': ct.name,
     'url': window.location.origin  + '/proman/employee?groupTaskId=' + groupid + '&taskId=' + id
   }
-  globalUpdateTask('status', dataStat);
+  await globalUpdateTask('status', dataStat);
   // await updateStatusProgressBar(dataStat, currentStat);
   refreshTableData(groupid);
 })
@@ -2887,7 +2887,7 @@ $(document).on('click', '.rowPrio', async function () {
     'name': name,
     'user_update': ct.name
   }
-  globalUpdateTask('priority', dataPrio);
+  await globalUpdateTask('priority', dataPrio);
   // await updatePriorityProgressBar(dataPrio, currentPrio);
   refreshTableData(groupid);
 })

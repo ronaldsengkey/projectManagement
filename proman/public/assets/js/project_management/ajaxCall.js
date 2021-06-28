@@ -183,34 +183,38 @@ async function addTask(value, groupId) {
 }
 
 async function globalUpdateTask(concern, data) {
-    let genKeyUpdate = await getGenerateKey();
-    let settingUpdate = {
-        settings: {
-            "async": true,
-            "crossDomain": true,
-            "url": "/putTask",
-            "method": "PUT",
-            "headers": {
-                "Content-Type": "application/json",
-                "Accept": "*/*",
-                "Cache-Control": "no-cache",
-                "secretKey": ct.secretKey,
-                "token": ct.token,
-                "signature": ct.signature,
-                "keyencrypt": genKeyUpdate
-            },
-            "processData": false,
-            "body": JSON.stringify(iterateObjectNewEncrypt(data,genKeyUpdate)),
+    return new Promise(async function(resolve,reject){
+        let genKeyUpdate = await getGenerateKey();
+        let settingUpdate = {
+            settings: {
+                "async": true,
+                "crossDomain": true,
+                "url": "/putTask",
+                "method": "PUT",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Accept": "*/*",
+                    "Cache-Control": "no-cache",
+                    "secretKey": ct.secretKey,
+                    "token": ct.token,
+                    "signature": ct.signature,
+                    "keyencrypt": genKeyUpdate
+                },
+                "processData": false,
+                "body": JSON.stringify(iterateObjectNewEncrypt(data,genKeyUpdate)),
+            }
         }
-    }
-    let result = await ajaxCall({url:'putTask',method:'PUT',data:JSON.stringify(settingUpdate)})
-    if (result.responseCode == '200') {
-        toastrNotifFull('update ' + concern + ' success')
-    } else if (result.responseCode == '401') {
-        logoutNotif();
-    } else {
-        toastrNotifFull('update ' + concern + ' failed','error')
-    }
+        let result = await ajaxCall({url:'putTask',method:'PUT',data:JSON.stringify(settingUpdate)})
+        resolve(result);
+        if (result.responseCode == '200') {
+            toastrNotifFull('update ' + concern + ' success')
+        } else if (result.responseCode == '401') {
+            logoutNotif();
+        } else {
+            toastrNotifFull('update ' + concern + ' failed','error')
+        }
+    })
+    
 }
 
 async function globalAttachFile(data,method = 'POST') {

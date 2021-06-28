@@ -112,6 +112,7 @@ async function activeModalDetailTask(info) {
     });
     $('.titleDetail').html(infoData.name);
     $('.modal-header').css('background-color', checkColor(infoData.status))
+    $('.updateStatusCalendar ').css('background-color', checkColor(infoData.status))
     let member = '';
     try {
         let parsedMember = JSON.parse(infoData.member)
@@ -123,6 +124,7 @@ async function activeModalDetailTask(info) {
 
     }
     console.log('infoo', infoData);
+    
     let form = `<div class="form-group">
         <label for="priority">Priority</label>
         <input type="text" class="form-control" value="` + infoData.priority + `" readonly>
@@ -143,9 +145,8 @@ async function activeModalDetailTask(info) {
             </div>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group formStatusTask">
         <label for="status">Status</label>
-        <input type="text" class="form-control" value="` + infoData.status + `" readonly>
     </div>
     <div class="form-group">
         <label for="pic">PIC</label>
@@ -154,9 +155,60 @@ async function activeModalDetailTask(info) {
     <div class="form-group">
         <label for="member">Member</label>
         <input type="text" class="form-control" value="` + member + `" readonly>
+        <input type="hidden" class="idTask" value=`+infoData._id+` />
+        <input type="hidden" class="groupIdTask" value=`+infoData.group_id+` />
+    </div>
+    <div class="form-group">
+        <label for="lastUpdate">Last Updated By</label>
+        <input type="text" class="form-control" value="` + infoData.user_update + `" readonly>
     </div>`;
     $('.bodyDetail').append(form)
+    if(await checkPic(JSON.parse(infoData.pic)[0].account_id)) {
+        $('.formStatusTask').append(`<select id="statusTask" class="form-control">
+            <option value="Done">Done</option>
+            <option value="Pending">Pending</option>
+            <option value="Need to fix">Need to fix</option>
+            <option value="Waiting for review">Waiting for review</option>
+            <option value="Stuck">Stuck</option>
+            <option value="Working on it">Working on it</option>
+        </select>`)
+    } else {
+        $('.formStatusTask').append(`<select id="statusTask" class="form-control">
+            <option value="Done" disabled>Done</option>
+            <option value="Pending" disabled>Pending</option>
+            <option value="Need to fix" disabled>Need to fix</option>
+            <option value="Waiting for review">Waiting for review</option>
+            <option value="Stuck">Stuck</option>
+            <option value="Working on it">Working on it</option>
+        </select>`)
+    }
+    $("select#statusTask").val(infoData.status).change();
 }
+
+async function checkPic(accountId){
+    if(accountId == ct.id_employee) return true;
+    else return false;
+}
+
+$(document).on('click','.updateStatusCalendar',async function(){
+    let val = $("select#statusTask").val();
+    let dataStat = {
+        '_id': $('.idTask').val(),
+        'group_id': $('.groupIdTask').val(),
+        'status': val,
+        'name': $('.titleDetail').html(),
+        'user_update': ct.name,
+        'url' : '/proman/employee?groupTaskId=' + $('.groupIdTask').val() + '&taskId=' + $('.idTask').val()
+    }
+    loadingActivated()
+    let res = await globalUpdateTask('status', dataStat);
+    if(res.responseCode == '200') {
+        $('#modalDetailTask').modal('hide');
+        calendar.removeAllEvents();
+        await getCalendarTask($('select.filterCalendar option:selected').val(),$('select.filterCalendarStatus option:selected').val())
+        loadingDeactivated();
+    } else loadingDeactivated();
+})
 
 function checkColor(status) {
     let color;
