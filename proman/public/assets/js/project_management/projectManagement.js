@@ -1691,7 +1691,7 @@ $(document).on('change', '.chartTaskEmployee, .chartLabelName, .chartType', asyn
                     let plural = parseInt(chart.data.datasets[0].data[i]) > 1 ? 'tasks' : 'task'
                     if (colorCheck == 'light') colorFont = 'text-dark';
                     else colorFont = 'text-white';
-                    htmls += '<div class="card text-white mb-3 teamStatus" style="cursor:pointer;" data-name="'+chart.data.labels[i]+'" data-for="'+ chart.data.datasets[0].backgroundColor[i] +'" style="background:' + chart.data.datasets[0].backgroundColor[i] + '"">' +
+                    htmls += '<div class="card text-white mb-3 teamStatus" data-name="'+chart.data.labels[i]+'" data-for="'+ chart.data.datasets[0].backgroundColor[i]+'" style="cursor:pointer;background:' + chart.data.datasets[0].backgroundColor[i] + '">' +
                         '<div class="card-header ' + colorFont + '" style="border-bottom:none;background:unset;font-size:1.2rem;">' + chart.data.labels[i] + '</div>' +
                         '<div class="card-body text-center pb-3">' +
                         '<p class="card-text ' + colorFont + '" style="font-size:1.0rem;">' + chart.data.datasets[0].data[i] + ' ' + plural + ' </p>' +

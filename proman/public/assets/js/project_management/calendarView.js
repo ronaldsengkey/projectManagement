@@ -15,8 +15,9 @@ $(async function () {
             center: 'title',
             right: 'next'
         },
-        contentHeight: window.innerHeight - 250,
-        height: window.innerHeight - 250,
+        // contentHeight: window.innerHeight - 250,
+        // height: window.innerHeight - 250,
+        contentHeight: 'auto',
         eventClick: async function (info) {
             activeModalDetailTask(info)
         }
@@ -26,14 +27,14 @@ $(async function () {
     $('.filterCalendarLabel').html('Assign to Me')
 })
 
-$(document).on('mousewheel', ".fc-scroller:nth-child(1)", function (e) {
-    var delta = e.originalEvent.deltaY;
+// $(document).on('mousewheel', ".fc-scroller:nth-child(1)", function (e) {
+//     var delta = e.originalEvent.deltaY;
 
-    if (delta > 0) $('button[aria-label="next"]').click(); // going down
-    else $('button[aria-label="prev"]').click() // going up
+//     if (delta > 0) $('button[aria-label="next"]').click(); // going down
+//     else $('button[aria-label="prev"]').click() // going up
 
-    return false;
-});
+//     return false;
+// });
 
 $(document).on('click', '.goHome', async function () {
     window.location.reload()
