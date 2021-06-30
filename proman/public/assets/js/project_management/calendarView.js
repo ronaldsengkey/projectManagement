@@ -15,7 +15,8 @@ $(async function () {
             center: 'title',
             right: 'next'
         },
-        height: window.innerHeight - 300,
+        contentHeight: window.innerHeight - 250,
+        height: window.innerHeight - 250,
         eventClick: async function (info) {
             activeModalDetailTask(info)
         }
@@ -100,12 +101,20 @@ async function getCalendarTask(category = 'assign',status = 'all') {
 
 async function activeModalDetailTask(info) {
     let infoData = JSON.parse(info.event.groupId);
-    // loadingActivated();
-    // let boardData = await getBoard({
-    //     group_id: info.event.groupId
-    //   }, 'boardId');
-    //   console.log('boaa',boardData);
-    // loadingDeactivated();
+    let groupTaskName;
+    let boardName;
+    loadingActivated();
+    let result = await ajaxCall({url:'getTaskData',method:'GET',credentialHeader:true,extraHeaders:{"param":JSON.stringify({
+        '_id': info.event.id,
+        'group_id': infoData.group_id
+    })},decrypt:true})
+    if(result.responseCode == '200') {
+        groupTaskName = result.data[0].groupName;
+        boardName = result.data[0].boardName;
+    } else {
+        toastrNotifFull(result.responseMessage,'error')
+    }
+    loadingDeactivated();
     $('.bodyDetail').empty()
     $('#modalDetailTask').modal({
         show: true
@@ -126,6 +135,14 @@ async function activeModalDetailTask(info) {
     console.log('infoo', infoData);
     
     let form = `<div class="form-group">
+        <label for="board">Board Name</label>
+        <input type="text" class="form-control" value="` + boardName + `" readonly>
+    </div>
+    <div class="form-group">
+        <label for="groupName">Group Task Name</label>
+        <input type="text" class="form-control" value="` + groupTaskName + `" readonly>
+    </div>
+    <div class="form-group">
         <label for="priority">Priority</label>
         <input type="text" class="form-control" value="` + infoData.priority + `" readonly>
     </div>
