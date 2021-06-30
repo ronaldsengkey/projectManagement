@@ -142,23 +142,20 @@ async function activeModalDetailTask(info) {
         <label for="groupName">Group Task Name</label>
         <input type="text" class="form-control" value="` + groupTaskName + `" readonly>
     </div>
-    <div class="form-group">
+    <div class="form-group formPriorityTask">
         <label for="priority">Priority</label>
-        <input type="text" class="form-control" value="` + infoData.priority + `" readonly>
     </div>
-    <div class="form-group">
+    <div class="form-group formDueDateTask">
         <label for="duedate">Due Date</label>
-        <input type="text" class="form-control" value=` + infoData.due_date + ` readonly>
     </div>
     <div class="form-group">
         <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-6 formStartDateTask">
                 <label for="timelineStart">Start</label>
-                <input type="text" class="form-control" value="` + JSON.parse(infoData.timeline)[0] + `" readonly>
+                
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6 formEndDateTask">
                 <label for="timelineEnd">End</label>
-                <input type="text" class="form-control" value="` + JSON.parse(infoData.timeline)[1] + `" readonly>
             </div>
         </div>
     </div>
@@ -180,6 +177,23 @@ async function activeModalDetailTask(info) {
         <input type="text" class="form-control" value="` + infoData.user_update + `" readonly>
     </div>`;
     $('.bodyDetail').append(form)
+    if(await checkPic(infoData.user_create_id)){
+        $('.formPriorityTask').append(`<select id="priorityTask" class="form-control">
+            <option value="Urgent">Urgent</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select>`)
+        $("select#priorityTask").val(infoData.priority).change();
+        $('.formDueDateTask').append('<input type="date" class="form-control formDueDate" value=' + infoData.due_date + '>');
+        $('.formStartDateTask').append('<input type="date" class="form-control formStartDate" value="' + JSON.parse(infoData.timeline)[0] + '">');
+        $('.formEndDateTask').append('<input type="date" class="form-control formEndDate" value="' + JSON.parse(infoData.timeline)[1] + '">');
+    } else {
+        $('.formPriorityTask').append('<input type="text" class="form-control formStatus" value="' + infoData.priority + '" readonly>');
+        $('.formDueDateTask').append('<input type="text" class="form-control formDueDate" value=' + infoData.due_date + ' readonly>');
+        $('.formStartDateTask').append('<input type="text" class="form-control formStartDate" value="' + JSON.parse(infoData.timeline)[0] + '" readonly>');
+        $('.formEndDateTask').append('<input type="text" class="form-control formEndDate" value="' + JSON.parse(infoData.timeline)[1] + '" readonly>');
+    }
     if(await checkPic(JSON.parse(infoData.pic)[0].account_id)) {
         $('.formStatusTask').append(`<select id="statusTask" class="form-control">
             <option value="Done">Done</option>
@@ -209,14 +223,25 @@ async function checkPic(accountId){
 
 $(document).on('click','.updateStatusCalendar',async function(){
     let val = $("select#statusTask").val();
+    let dueDate = $('.formDueDate').val()
+    let dateStart = $('.formStartDate').val();
+    let dateEnd = $('.formEndDate').val();
+    let priority;
+    if($("select#priorityTask").length > 0) {
+        priority = $("select#priorityTask").val()
+    } else priority = $('.formStatus').val() 
     let dataStat = {
         '_id': $('.idTask').val(),
         'group_id': $('.groupIdTask').val(),
         'status': val,
+        'priority': priority,
+        'due_date': moment(dueDate).format('YYYY-MM-DD'),
         'name': $('.titleDetail').html(),
+        'timeline' : JSON.stringify([moment(dateStart).format('YYYY-MM-DD'), moment(dateEnd).format('YYYY-MM-DD')]),
         'user_update': ct.name,
         'url' : '/proman/employee?groupTaskId=' + $('.groupIdTask').val() + '&taskId=' + $('.idTask').val()
     }
+    console.log('aaa',dataStat);
     loadingActivated()
     let res = await globalUpdateTask('status', dataStat);
     if(res.responseCode == '200') {
