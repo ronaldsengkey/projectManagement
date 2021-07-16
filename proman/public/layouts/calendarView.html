@@ -1,10 +1,21 @@
 <div class="row my-4 ml-1">
-    <div class="col-lg-6" style="font-size: larger;text-align: left;">
+    <div class="col-lg-3" style="font-size: larger;text-align: left;">
         Project Board
         <span class="goHome"> <i class="fas fa-home ml-2"></i></span>
       </div>
 
-      <div class="col-lg-6 d-flex" style="place-content: flex-end">
+      <div class="col-lg-6">
+        <ul class="legend">
+            <li><span class="pending"></span> Pending</li>
+            <li><span class="workingOnIt"></span> Working On It</li>
+            <li><span class="waitingForReview"></span> Waiting for Review</li>
+            <li><span class="done"></span> Done</li>
+            <li><span class="needToFix"></span> Need to Fix</li>
+            <li><span class="stuck"></span> Stuck</li>
+        </ul>
+      </div>
+
+      <div class="col-lg-3 d-flex" style="place-content: flex-end">
         <div id="filterCalendarStatus" class="dropdown mx-1">
             <a href="#" class="btn btn-lg z-depth-0 m-0 py-2 px-3 text-capitalize" type="button" data-toggle="dropdown" aria-haspopup="true"
             aria-expanded="false">
