@@ -9,13 +9,22 @@ $(async function () {
     let path = window.location.pathname
     if (path.indexOf("login-auth") != -1) {
         if (accountLogin !== 'undefined' && accountLogin !== null && accountLogin !== '') {
-            console.log('acccount Login data => ', JSON.parse(accountLogin))
             $('#title_login_' + JSON.parse(accountLogin).type).show()
             $('#login_img').attr('src', JSON.parse(accountLogin).qrcode)
         } else {
             if (accountProfile == 'undefined' || accountProfile == null) {
                 window.location = "/proman/login";
             }
+        }
+    } else {
+        if (accountProfile !== 'undefined' && accountProfile !== null && accountProfile !== '') {
+            let tokens = JSON.parse(accountProfile).token;
+            setTimeout(async () => {
+                loadingActivated();
+                let callback = await ajaxCall({url: 'checkToken',extraHeaders:{token:tokens},method:'GET'})
+                loadingDeactivated()
+                if(callback.responseCode == '200') window.location = "/proman/employee";
+            }, 250);
         }
     }
 });

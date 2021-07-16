@@ -1508,6 +1508,33 @@ fastify.get("/proman/getGroupTask", async function (req, reply) {
   }
 });
 
+fastify.get("/proman/checkToken", async function (req, reply) {
+  try {
+    let token = extToken ? extToken : req.headers.token;
+    let data = {
+      settings: {
+        async: true,
+        crossDomain: true,
+        url: returnedConfig.hostIP + ":" + returnedConfig.authPortService + '/check/' + token,
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          "Cache-Control": "no-cache"
+        },
+      },
+    };
+
+    console.log("coba check token", data);
+    let a = await actionGet(data);
+    delete a.data;
+    console.log('check token', a);
+    reply.send(a);
+  } catch (err) {
+    console.log("Error apa sih", err);
+    reply.send(500);
+  }
+});
+
 fastify.get("/proman/getTaskData", async function (req, reply) {
   try {
     console.log('req', req.headers);
